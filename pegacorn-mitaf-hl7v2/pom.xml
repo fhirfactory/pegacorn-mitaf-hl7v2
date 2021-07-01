@@ -18,7 +18,9 @@
     <description></description>
 
     <modules>
-	<module>../pegacorn-mitaf-hl7v2-platform</module>
+	    <module>../pegacorn-mitaf-hl7v2-platform</module>
+        <module>../pegacorn-mitaf-hl7v231</module>
+        <module>../pegacorn-mitaf-hl7v24</module>
     </modules>
 
     <properties>
