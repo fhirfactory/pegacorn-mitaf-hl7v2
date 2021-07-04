@@ -24,11 +24,13 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
@@ -44,49 +46,90 @@ public abstract class HL7v2MessageEncapsulator {
     @Inject
     private HL7V2XTopicFactory topicFactory;
 
+    //
+    // Constructor(s)
+    //
+
     public HL7v2MessageEncapsulator() {
         context = new DefaultHapiContext();
     }
 
-    public abstract boolean triggerIsSupported(String tigger);
+    //
+    // Abstract methods
+    //
+
+    public abstract boolean triggerIsSupported(String trigger);
+    public abstract HL7v2VersionEnum getSupportedVersion();
     public abstract DataParcelTypeDescriptor createDataParcelTypeDescriptor(String messageEventType, String messageTriggerEvent);
     protected abstract Logger specifyLogger();
+
+    //
+    // Getters (and Setters)
+    //
 
     protected Logger getLogger(){
         return(specifyLogger());
     }
 
+    protected HL7V2XTopicFactory getTopicFactory(){
+        return(topicFactory);
+    }
+
+    //
+    // Business Functions
+    //
+
     public UoW encapsulateMessage(Message message, Exchange exchange){
         getLogger().warn(".encapsulateMessage(): Entry, message --> {}", message.toString());
         try {
-            getLogger().info(".encapsulateMessage(): Extracting header details --> {}",message.toString() );
+            getLogger().info(".encapsulateMessage(): Extracting header details" );
             String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
             getLogger().info(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
             String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
             getLogger().info(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
             String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
+            UoWProcessingOutcomeEnum outcomeEnum;
+            String outcomeDescription;
+            if(messageVersion.equalsIgnoreCase(getSupportedVersion().getVersionText())){
+                outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
+                outcomeDescription = "All Good!";
+            } else {
+                outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
+                outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersion+")!";
+                getLogger().error(".encapsulateMessage(): " + outcomeDescription);
+            }
             getLogger().info(".encapsulateMessage(): message::messageVersion --> {}", messageVersion );
 //            String stringMessage = message.encode();
             message.getParser().getParserConfiguration().setValidating(false);
 //            message.getParser().getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
-            getLogger().info(".encapsulateMessage(): Structure --> {}", message.printStructure());
+//            getLogger().info(".encapsulateMessage(): Structure --> {}", message);
             getLogger().info(".encapsulateMessage(): Attempting to decode!");
             String encodedString = message.encode();
             getLogger().info(".encapsulateMessage(): Decoded, encodedString --> {}", encodedString);
+            getLogger().info(".encapsulateMessage(): Creating Data Parcel Descriptor (messageDescriptor)");
             DataParcelTypeDescriptor messageDescriptor = createDataParcelTypeDescriptor(messageEventType, messageTriggerEvent );
+            getLogger().info(".encapsulateMessage(): messageDescriptor created->{}", messageDescriptor);
+            getLogger().info(".encapsulateMessage(): Creating Data Parcel Manifest (messageManifest)");
             DataParcelManifest messageManifest = new DataParcelManifest();
             messageManifest.setContentDescriptor(messageDescriptor);
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+            messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
+            getLogger().info(".encapsulateMessage(): messageManifest created->{}", messageManifest);
+            getLogger().info(".encapsulateMessage(): Creating Egress Payload (newPayload)");
             UoWPayload newPayload = new UoWPayload();
             newPayload.setPayload(encodedString);
             newPayload.setPayloadManifest(messageManifest);
+            getLogger().info(".encapsulateMessage(): newPayload created->{}", newPayload);
+            getLogger().info(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
             newUoW.getEgressContent().addPayloadElement(newPayload);
-            newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+            newUoW.setProcessingOutcome(outcomeEnum);
+            newUoW.setFailureDescription(outcomeDescription);
+            getLogger().info(".encapsulateMessage(): newUoW created");
             return(newUoW);
         } catch (Exception ex) {
-            getLogger().info(".encapsulateMessage(): Exception occured", ex);
+            getLogger().error(".encapsulateMessage(): Exception occurred", ex);
             UoWPayload newPayload = new UoWPayload();
             if(message != null){
                 newPayload.setPayload(message.toString());

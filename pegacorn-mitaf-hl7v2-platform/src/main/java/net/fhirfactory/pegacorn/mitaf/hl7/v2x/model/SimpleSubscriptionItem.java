@@ -1,5 +1,3 @@
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.model;
-
 /*
  * Copyright (c) 2021 Mark A. Hunter
  *
@@ -21,6 +19,8 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.model;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.model;
+
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 
 import java.util.ArrayList;

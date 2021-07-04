@@ -23,6 +23,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
 
 import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRCommunicationToUoW;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
@@ -62,6 +63,9 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 	@Inject
 	private FHIRCommunicationToUoW communicationIntoUoW;
 
+	@Inject
+	private HL7V2XTopicFactory topicFactory;
+
 	@Override
 	public void configure() throws Exception {
 		getLogger().info(this.getClass().getName() + ":: ingresFeed() --> {}", this.ingresFeed());
@@ -74,5 +78,9 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 				.bean(securityMarkerInjection, "injectSecurityMarkers")
 				.bean(communicationIntoUoW, "packageCommunicationResource")
 				.to(egressFeed());
+	}
+
+	public HL7V2XTopicFactory getTopicFactory() {
+		return topicFactory;
 	}
 }

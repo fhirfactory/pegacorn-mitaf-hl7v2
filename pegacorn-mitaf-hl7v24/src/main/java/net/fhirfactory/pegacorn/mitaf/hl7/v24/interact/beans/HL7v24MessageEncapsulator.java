@@ -22,31 +22,39 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
 
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageEncapsulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
 public class HL7v24MessageEncapsulator extends HL7v2MessageEncapsulator {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v24MessageEncapsulator.class);
-
-
 
     public HL7v24MessageEncapsulator(){
         super();
     }
 
     @Override
-    public boolean triggerIsSupported(String tigger) {
-        return false;
+    public boolean triggerIsSupported(String trigger) {
+        return true;
     }
 
     @Override
     public DataParcelTypeDescriptor createDataParcelTypeDescriptor(String messageEventType, String messageTriggerEvent) {
-        return null;
+        DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(messageEventType, messageTriggerEvent, HL7v2VersionEnum.VERSION_HL7_V24.getVersionText());
+        return (descriptor);
     }
 
     @Override
     protected Logger specifyLogger() {
         return (LOG);
+    }
+
+    @Override
+    public HL7v2VersionEnum getSupportedVersion() {
+        return (HL7v2VersionEnum.VERSION_HL7_V24);
     }
 }
