@@ -22,6 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 
-@ApplicationScoped
+@Dependent
 public class HL7v2MessageExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
 

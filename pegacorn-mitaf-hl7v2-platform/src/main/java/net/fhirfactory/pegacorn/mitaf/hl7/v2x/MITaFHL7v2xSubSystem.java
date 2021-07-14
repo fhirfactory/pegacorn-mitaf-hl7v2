@@ -28,7 +28,6 @@ import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcemen
 import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
-import net.fhirfactory.pegacorn.petasos.model.pubsub.PubSubSubscriptionStatusEnum;
 import net.fhirfactory.pegacorn.platform.edge.model.pubsub.RemoteSubscriptionResponse;
 import net.fhirfactory.pegacorn.platform.edge.services.InterSubSystemPubSubBroker;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
@@ -37,7 +36,6 @@ import org.hl7.fhir.r4.model.ResourceType;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
@@ -50,12 +48,14 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
     @Inject
     private PegacornReferenceProperties pegacornReferenceProperties;
 
-    protected RemoteSubscriptionResponse subscribe(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
+    protected RemoteSubscriptionResponse subscribeToRemoteDataParcels(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
+        getLogger().info(".subscribeToRemoteDataParcels(): Entry, sourceSystem->{}", sourceSystem);
         if(triggerEventList.isEmpty()){
             RemoteSubscriptionResponse nothingToDoResponse = new RemoteSubscriptionResponse();
             nothingToDoResponse.setSubscriptionSuccessful(true);
             return(nothingToDoResponse);
         }
+        getLogger().info(".subscribeToRemoteDataParcels(): We have entries in the subscription list, processing");
         List<DataParcelManifest> manifestList = new ArrayList<>();
         for(DataParcelTypeDescriptor currentTriggerEvent: triggerEventList){
             DataParcelTypeDescriptor container = fhirElementTopicFactory.newTopicToken(ResourceType.Communication.name(), pegacornReferenceProperties.getPegacornDefaultFHIRVersion());
@@ -67,21 +67,25 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             manifest.setInterSubsystemDistributable(true);
             manifestList.add(manifest);
         }
+        getLogger().info(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber()");
         RemoteSubscriptionResponse response = pubSubBroker.subscribe(manifestList, sourceSystem);
+        getLogger().info(".subscribeToRemoteDataParcels(): Exit, response->{}", response);
         return(response);
     }
 
     @Override
     protected void executePostConstructActivities() {
+        getLogger().info(".executePostConstructActivities(): Entry");
         List<SimpleSubscriptionItem> subscriptionList = registerSubscriptionList();
         for(SimpleSubscriptionItem currentSimpleSubscription: subscriptionList){
             List<DataParcelTypeDescriptor> descriptorList = currentSimpleSubscription.getDescriptorList();
             String currentSource = currentSimpleSubscription.getSourceSystem();
             for(DataParcelTypeDescriptor currentDescriptor: descriptorList) {
-                getLogger().info("Subscribing: SourceSubsystem->{}, currentDescriptor->{}",currentSource, currentDescriptor);
-//            subscribe(descriptorList, currentSource);
+                getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}",currentSource, currentDescriptor);
+                subscribeToRemoteDataParcels(descriptorList, currentSource);
             }
-        }
+        }getLogger().info(".executePostConstructActivities(): Exit");
+
     }
 
     abstract protected List<SimpleSubscriptionItem> registerSubscriptionList();

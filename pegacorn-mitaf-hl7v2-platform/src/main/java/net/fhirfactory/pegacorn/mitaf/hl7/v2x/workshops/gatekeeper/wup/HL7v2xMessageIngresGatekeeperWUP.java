@@ -93,7 +93,10 @@ public class HL7v2xMessageIngresGatekeeperWUP extends MOAStandardWUP {
         communicationEvents.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
         communicationEvents.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         communicationEvents.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
+        communicationEvents.setInterSubsystemDistributable(false);
         communicationEvents.setInterSubsystemDistributable(true);
+        communicationEvents.setSourceSystem("*");
+        communicationEvents.setIntendedTargetSystem("*");
         subscriptionList.add(communicationEvents);
         return (subscriptionList);
     }

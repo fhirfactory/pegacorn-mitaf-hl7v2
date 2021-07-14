@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,34 +19,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.deployment.topology.model.nodes.WorkUnitProcessorTopologyNode;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
-import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.camel.model.RouteDefinition;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
 
-import javax.inject.Inject;
+public abstract class HL7v24MessageEgressWUP extends BaseHL7v2MessageEgressWUP {
 
-/**
- * Base class for all Mitaf Ingres WUPs.
- * 
- * @author Brendan Douglas
- *
- */
-public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingGatewayWUP {
+    private String WUP_VERSION="1.0.0";
+    private String CAMEL_COMPONENT_TYPE="mllp";
 
-	@Inject
-	private InteractWorkshop interactWorkshop;
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (this.getClass().getSimpleName());
+    }
 
-	@Override
-	protected WorkshopInterface specifyWorkshop() {
-		return (interactWorkshop);
-	}
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
 
 
 

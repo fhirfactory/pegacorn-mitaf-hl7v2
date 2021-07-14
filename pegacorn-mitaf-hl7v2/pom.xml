@@ -14,7 +14,7 @@
     <artifactId>pegacorn-mitaf-hl7v2</artifactId>
     <packaging>pom</packaging>
 
-    <name>Pegacorn :: Mitaf :: HL7v2</name>
+    <name>Pegacorn :: MITaF :: HL7v2</name>
     <description></description>
 
     <modules>

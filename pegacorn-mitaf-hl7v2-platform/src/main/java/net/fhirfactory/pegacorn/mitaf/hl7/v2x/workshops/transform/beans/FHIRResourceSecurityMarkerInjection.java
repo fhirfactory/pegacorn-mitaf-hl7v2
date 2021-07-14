@@ -21,8 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Communication;
 
 import javax.enterprise.context.ApplicationScoped;
