@@ -49,7 +49,7 @@ import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface
 import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
-import net.fhirfactory.pegacorn.workshops.GatekeeperWorkshop;
+import net.fhirfactory.pegacorn.workshops.PolicyEnforcementPointWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
@@ -61,14 +61,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class HL7v2xMessageIngresGatekeeperWUP extends MOAStandardWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageIngresGatekeeperWUP.class);
+public class HL7v2xMessageEgressCheckPointWUP extends MOAStandardWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageEgressCheckPointWUP.class);
 
-    private static String WUP_NAME = "HL7v2xMessageIngresGatekeeperWUP";
     private static String WUP_VERSION = "1.0.0";
 
     @Inject
-    private GatekeeperWorkshop gatekeeperWorkshop;
+    private PolicyEnforcementPointWorkshop policyEnforcementPointWorkshop;
 
     @Inject
     private PegacornReferenceProperties referenceProperties;
@@ -88,22 +87,21 @@ public class HL7v2xMessageIngresGatekeeperWUP extends MOAStandardWUP {
         DataParcelManifest communicationEvents = new DataParcelManifest();
         DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
         communicationEvents.setContainerDescriptor(fhirCommunicationDescriptor);
-        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
+        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.OUTBOUND_DATA_PARCEL);
+        communicationEvents.setSourceSystem("*");
+        communicationEvents.setIntendedTargetSystem("*");
         communicationEvents.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         communicationEvents.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
         communicationEvents.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         communicationEvents.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
         communicationEvents.setInterSubsystemDistributable(false);
-        communicationEvents.setInterSubsystemDistributable(true);
-        communicationEvents.setSourceSystem("*");
-        communicationEvents.setIntendedTargetSystem("*");
         subscriptionList.add(communicationEvents);
         return (subscriptionList);
     }
 
     @Override
     protected String specifyWUPInstanceName() {
-        return (WUP_NAME);
+        return (getClass().getSimpleName());
     }
 
     @Override
@@ -113,7 +111,7 @@ public class HL7v2xMessageIngresGatekeeperWUP extends MOAStandardWUP {
 
     @Override
     protected WorkshopInterface specifyWorkshop() {
-        return (gatekeeperWorkshop);
+        return (policyEnforcementPointWorkshop);
     }
 
     @Override
@@ -123,7 +121,7 @@ public class HL7v2xMessageIngresGatekeeperWUP extends MOAStandardWUP {
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceIngresPolicy")
+                .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceEgressPolicy")
                 .to(egressFeed());
     }
 }

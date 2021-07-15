@@ -23,8 +23,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.transform.wup;
 
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseFHIRCommunication2HL7V2MessageWUP;
@@ -60,7 +59,12 @@ public class FHIRCommunicationToHL7v24MessageWUP extends BaseFHIRCommunication2H
         DataParcelTypeDescriptor parcelDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
         DataParcelManifest manifest = new DataParcelManifest();
         manifest.setContainerDescriptor(parcelDescriptor);
+        manifest.setSourceSystem("*");
+        manifest.setIntendedTargetSystem("*");
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.OUTBOUND_DATA_PARCEL);
+        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
         subscriptionList.add(manifest);
         return (subscriptionList);
