@@ -24,6 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.util.StringUtil;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
@@ -77,6 +78,7 @@ public class HL7v2xMessageOutOfFHIRCommunication {
 
         getLogger().trace(".extractMessage(): Now, set the containerDescriptor to null, as we've removed payload from the Communication resource");
         newManifest.setContainerDescriptor(null);
+        newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
 
         getLogger().trace(".extractMessage(): Populate the new Egress payload object");
         newPayload.setPayload(clonedMessage);

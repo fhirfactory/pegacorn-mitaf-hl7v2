@@ -21,15 +21,23 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
+import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
+import org.apache.camel.LoggingLevel;
 
 import javax.inject.Inject;
 
@@ -53,6 +61,14 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	@Inject
 	private HL7v2MessageExtractor messageExtractor;
 
+	@Inject
+	private MLLPActivityAnswerCollector answerCollector;
+
+	@Override
+	protected WorkshopInterface specifyWorkshop() {
+		return (interactWorkshop);
+	}
+
 	@Override
 	public void configure() throws Exception {
 		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
@@ -61,8 +77,10 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
-				.bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
-				.to(egressFeed());
+				.log(LoggingLevel.INFO, "Sending->{body}")
+				.to(egressFeed())
+				.bean(answerCollector, "extractUoWAndAnswer")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
 	@Override
@@ -77,6 +95,21 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
 		endpoint.setFrameworkEnabled(false);
 		return endpoint;
+	}
+
+	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
+		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+		DataParcelManifest manifest = new DataParcelManifest();
+		manifest.setContentDescriptor(descriptor);
+		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.OUTBOUND_DATA_PARCEL);
+		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+		manifest.setIntendedTargetSystem("*");
+		manifest.setSourceSystem("*");
+		manifest.setInterSubsystemDistributable(false);
+		return manifest;
 	}
 
 }

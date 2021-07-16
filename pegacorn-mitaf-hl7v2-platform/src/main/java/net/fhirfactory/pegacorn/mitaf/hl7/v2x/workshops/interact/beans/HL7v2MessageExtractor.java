@@ -21,22 +21,21 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-
+import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
+import javax.enterprise.context.Dependent;
 
 @Dependent
 public class HL7v2MessageExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
 
 	public String convertToMessage(UoW incomingUoW, Exchange exchange) {
+		LOG.info(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
-		exchange.setProperty("ThisInstanceUoW", incomingUoW);
+		LOG.info(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
 		return (messageAsString);
 	}
 }
