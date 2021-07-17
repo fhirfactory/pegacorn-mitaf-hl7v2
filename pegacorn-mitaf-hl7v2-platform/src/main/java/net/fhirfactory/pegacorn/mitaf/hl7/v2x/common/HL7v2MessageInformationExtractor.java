@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v231.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.common;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -30,31 +30,38 @@ import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.parser.Parser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.util.Date;
 
-@ApplicationScoped
-public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v231MessageInformationExtractor.class);
+
+public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
+
+    protected Logger getLogger(){
+        return(specifyLogger());
+    }
+
+    abstract protected Logger specifyLogger();
 
     private HapiContext hapiContext;
 
-    public HL7v231MessageInformationExtractor(){
+    public HL7v2MessageInformationExtractor(){
         hapiContext = new DefaultHapiContext();
     }
 
+    protected HapiContext getHapiContext() {
+        return hapiContext;
+    }
+
     @Override
-    public String extractMessageID(Message message) {
-        LOG.debug(".extractMessageID(): Entry, message->{}", message);
-        if(message != null) {
+    public String extractMessageID(Message messageAsText) {
+        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
+        if(messageAsText != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
+                MSH messageHeader = (MSH) messageAsText.get("MSH");
                 String messageID = messageHeader.getMessageControlID().getValue();
                 return (messageID);
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -64,24 +71,24 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageID(String messageAsText) {
-        LOG.debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageID = extractMessageID(message);
         return(messageID);
     }
 
     @Override
-    public Date extractMessageDate(Message message) {
-        LOG.debug(".extractMessageDate(): Entry, message->{}", message);
-        if(message != null) {
+    public Date extractMessageDate(Message messageAsText) {
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        if(messageAsText != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
+                MSH messageHeader = (MSH) messageAsText.get("MSH");
                 TS messageID = messageHeader.getDateTimeOfMessage();
                 TSComponentOne timeOfAnEvent = messageID.getTs1_TimeOfAnEvent();
                 Date date = timeOfAnEvent.getValueAsDate();
                 return (date);
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -91,23 +98,23 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public Date extractMessageDate(String messageAsText) {
-        LOG.debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         Date messageDate = extractMessageDate(message);
         return (messageDate);
     }
 
     @Override
-    public String extractMessageVersion(Message message) {
-        LOG.debug(".extractMessageVersion(): Entry, message->{}", message);
-        if(message != null) {
+    public String extractMessageVersion(Message messageAsText) {
+        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
+        if(messageAsText != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
+                MSH messageHeader = (MSH) messageAsText.get("MSH");
                 VID versionID = messageHeader.getVersionID();
                 String versionIDString = versionID.getVersionID().getValue();
                 return (versionIDString);
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -117,7 +124,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageVersion(String messageAsText) {
-        LOG.debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageVersion = extractMessageVersion(message);
         return (messageVersion);
@@ -125,14 +132,14 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageTrigger(Message message) {
-        LOG.debug(".extractMessageTrigger(): Entry, message->{}", message);
+        getLogger().debug(".extractMessageTrigger(): Entry, message->{}", message);
         if(message != null) {
             try {
                 MSH messageHeader = (MSH) message.get("MSH");
                 String triggerEvent = messageHeader.getMessageType().getTriggerEvent().getValue();
                 return (triggerEvent);
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -142,7 +149,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageTrigger(String messageAsText) {
-        LOG.debug(".extractMessageTrigger(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageTrigger(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageTrigger = extractMessageTrigger(message);
         return (messageTrigger);
@@ -150,14 +157,14 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageType(Message message) {
-        LOG.debug(".extractMessageType(): Entry, message->{}", message);
+        getLogger().debug(".extractMessageType(): Entry, message->{}", message);
         if(message != null) {
             try {
                 MSH messageHeader = (MSH) message.get("MSH");
                 String messageType = messageHeader.getMessageType().getMessageType().getValue();
                 return (messageType);
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -167,7 +174,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageType(String messageAsText) {
-        LOG.debug(".extractMessageType(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageType(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageType = extractMessageType(message);
         return (messageType);
@@ -175,7 +182,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageSource(Message message) {
-        LOG.debug(".extractMessageDate(): Entry, message->{}", message);
+        getLogger().debug(".extractMessageDate(): Entry, message->{}", message);
         if(message != null) {
             try {
                 MSH messageHeader = (MSH) message.get("MSH");
@@ -183,7 +190,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
                 ST universalID = sendingApplication.getUniversalID();
                 return (universalID.getValue());
             } catch (HL7Exception e) {
-                LOG.error(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
+                getLogger().error(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -193,7 +200,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
 
     @Override
     public String extractMessageSource(String messageAsText) {
-        LOG.debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageSource = extractMessageSource(message);
         return (messageSource);
@@ -205,14 +212,14 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
         try {
             messageAsText = message.encode();
         } catch (HL7Exception e) {
-            LOG.error(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
+            getLogger().error(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
         }
         return(messageAsText);
     }
 
     @Override
     public Message convertToHL7v2Message(String messageText){
-        LOG.debug(".convertToHL7v2Message(): Entry, messageText->{}", messageText);
+        getLogger().debug(".convertToHL7v2Message(): Entry, messageText->{}", messageText);
         Parser parser = hapiContext.getPipeParser();
         parser.getParserConfiguration().setValidating(false);
         parser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
@@ -220,7 +227,7 @@ public class HL7v231MessageInformationExtractor implements HL7v2xInformationExtr
             Message hl7Msg = parser.parse(messageText);
             return(hl7Msg);
         } catch (HL7Exception e) {
-            LOG.error(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
+            getLogger().error(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
             return(null);
         }
     }

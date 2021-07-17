@@ -21,10 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.transform.wup;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseHL7V2Message2FHIRCommunicationWUP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,17 +45,4 @@ public abstract class HL7v24MessageToFHIRCommunicationWUP extends BaseHL7V2Messa
         return (WUP_VERSION);
     }
 
-
-    protected DataParcelManifest createSubscriptionManifestForInteractIngressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version){
-        DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
-        DataParcelManifest manifest = new DataParcelManifest();
-        manifest.setContentDescriptor(descriptor);
-        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
-        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_ANY);
-        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
-        manifest.setInterSubsystemDistributable(false);
-        return(manifest);
-    }
 }

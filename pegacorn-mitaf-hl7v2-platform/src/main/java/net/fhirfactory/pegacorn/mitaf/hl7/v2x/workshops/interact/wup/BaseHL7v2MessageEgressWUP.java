@@ -77,7 +77,6 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
-				.log(LoggingLevel.INFO, "Sending->{body}")
 				.to(egressFeed())
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");

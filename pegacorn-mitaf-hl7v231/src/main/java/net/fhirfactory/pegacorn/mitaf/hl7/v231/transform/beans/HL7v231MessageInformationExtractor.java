@@ -19,33 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v231.transform.beans;
 
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import org.apache.camel.Exchange;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2MessageInformationExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 
-@Dependent
-public class HL7v2MessageExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
+@ApplicationScoped
+public class HL7v231MessageInformationExtractor extends HL7v2MessageInformationExtractor {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v231MessageInformationExtractor.class);
 
-	public String convertToMessage(UoW incomingUoW, Exchange exchange) {
-		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
-		String messageAsString = incomingUoW.getIngresContent().getPayload();
-		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
 
-		//
-		// Because auditing is not running yet
-		// Remove once Auditing is in place
-		//
-		LOG.info("OutgoingMessage->{}", messageAsString);
-		//
-		//
-		//
+    public HL7v231MessageInformationExtractor(){
+        super();
+    }
 
-		return (messageAsString);
-	}
+    @Override
+    protected Logger specifyLogger(){
+        return(LOG);
+    }
+
+
 }
