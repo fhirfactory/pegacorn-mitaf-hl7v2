@@ -19,33 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v231.transform.wup;
 
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import org.apache.camel.Exchange;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseHL7V2Message2FHIRCommunicationWUP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
+public abstract class HL7v231MessageToFHIRCommunicationWUP extends BaseHL7V2Message2FHIRCommunicationWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v231MessageToFHIRCommunicationWUP.class);
 
-@Dependent
-public class HL7v2MessageExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
+    private static String WUP_VERSION="1.0.0";
 
-	public String convertToMessage(UoW incomingUoW, Exchange exchange) {
-		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
-		String messageAsString = incomingUoW.getIngresContent().getPayload();
-		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+    @Override
+    protected Logger specifyLogger() {
+        return (LOG);
+    }
 
-		//
-		// Because auditing is not running yet
-		// Remove once Auditing is in place
-		//
-		LOG.info("OutgoingMessage->{}", messageAsString);
-		//
-		//
-		//
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (getClass().getSimpleName());
+    }
 
-		return (messageAsString);
-	}
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,31 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v231.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.wup;
 
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseHL7V2Message2FHIRCommunicationWUP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
 
-public abstract class HL7v231MessageToFHIRCommunicationWUP extends BaseHL7V2Message2FHIRCommunicationWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v231MessageToFHIRCommunicationWUP.class);
+public abstract class HL7v231MessageEgressWUP extends BaseHL7v2MessageEgressWUP {
 
-    private static String WUP_VERSION="1.0.0";
-
-    @Override
-    protected Logger specifyLogger() {
-        return (LOG);
-    }
+    private String WUP_VERSION="1.0.0";
+    private String CAMEL_COMPONENT_TYPE="mllp";
 
     @Override
     protected String specifyWUPInstanceName() {
-        return (getClass().getSimpleName());
+        return (this.getClass().getSimpleName());
     }
 
     @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
     }
+
 
 
 }

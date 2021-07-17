@@ -80,13 +80,22 @@ public abstract class HL7v2MessageEncapsulator {
     //
 
     public UoW encapsulateMessage(Message message, Exchange exchange){
-        getLogger().warn(".encapsulateMessage(): Entry, message --> {}", message.toString());
+        //
+        // Because auditing is not running yet
+        // Remove once Auditing is in place
+        //
+        getLogger().info("IncomingMessage->{}", message);
+        //
+        //
+        //
+
+        getLogger().debug(".encapsulateMessage(): Entry, message --> {}", message.toString());
         try {
-            getLogger().info(".encapsulateMessage(): Extracting header details" );
+            getLogger().trace(".encapsulateMessage(): Extracting header details" );
             String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
-            getLogger().info(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
+            getLogger().trace(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
             String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
-            getLogger().info(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
+            getLogger().trace(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
             String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
@@ -98,35 +107,35 @@ public abstract class HL7v2MessageEncapsulator {
                 outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersion+")!";
                 getLogger().error(".encapsulateMessage(): " + outcomeDescription);
             }
-            getLogger().info(".encapsulateMessage(): message::messageVersion --> {}", messageVersion );
+            getLogger().trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersion );
 //            String stringMessage = message.encode();
             message.getParser().getParserConfiguration().setValidating(false);
 //            message.getParser().getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
 //            getLogger().info(".encapsulateMessage(): Structure --> {}", message);
-            getLogger().info(".encapsulateMessage(): Attempting to decode!");
+            getLogger().trace(".encapsulateMessage(): Attempting to decode!");
             String encodedString = message.encode();
-            getLogger().info(".encapsulateMessage(): Decoded, encodedString --> {}", encodedString);
-            getLogger().info(".encapsulateMessage(): Creating Data Parcel Descriptor (messageDescriptor)");
+            getLogger().trace(".encapsulateMessage(): Decoded, encodedString --> {}", encodedString);
+            getLogger().trace(".encapsulateMessage(): Creating Data Parcel Descriptor (messageDescriptor)");
             DataParcelTypeDescriptor messageDescriptor = createDataParcelTypeDescriptor(messageEventType, messageTriggerEvent );
-            getLogger().info(".encapsulateMessage(): messageDescriptor created->{}", messageDescriptor);
-            getLogger().info(".encapsulateMessage(): Creating Data Parcel Manifest (messageManifest)");
+            getLogger().trace(".encapsulateMessage(): messageDescriptor created->{}", messageDescriptor);
+            getLogger().trace(".encapsulateMessage(): Creating Data Parcel Manifest (messageManifest)");
             DataParcelManifest messageManifest = new DataParcelManifest();
             messageManifest.setContentDescriptor(messageDescriptor);
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
-            getLogger().info(".encapsulateMessage(): messageManifest created->{}", messageManifest);
-            getLogger().info(".encapsulateMessage(): Creating Egress Payload (newPayload)");
+            getLogger().trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
+            getLogger().trace(".encapsulateMessage(): Creating Egress Payload (newPayload)");
             UoWPayload newPayload = new UoWPayload();
             newPayload.setPayload(encodedString);
             newPayload.setPayloadManifest(messageManifest);
-            getLogger().info(".encapsulateMessage(): newPayload created->{}", newPayload);
-            getLogger().info(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
+            getLogger().trace(".encapsulateMessage(): newPayload created->{}", newPayload);
+            getLogger().trace(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);
-            getLogger().info(".encapsulateMessage(): newUoW created");
+            getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
             getLogger().error(".encapsulateMessage(): Exception occurred", ex);
@@ -142,6 +151,7 @@ public abstract class HL7v2MessageEncapsulator {
             newUoW.setIngresContent(newPayload);
             newUoW.setFailureDescription(ex.toString());
             newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
+            getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         }
     }

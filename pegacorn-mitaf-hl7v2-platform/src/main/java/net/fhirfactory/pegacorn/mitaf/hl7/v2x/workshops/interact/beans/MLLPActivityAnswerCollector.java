@@ -44,7 +44,7 @@ public class MLLPActivityAnswerCollector {
     private HapiContext context = new DefaultHapiContext();
 
     public UoW extractUoWAndAnswer(Message answer, Exchange exchange){
-        LOG.info(".extractUoWAndAnswer(): Entry, answer->{}", answer);
+        LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
         UoW uow = (UoW)exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
         UoWPayload payload = new UoWPayload();
         DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());
@@ -52,11 +52,19 @@ public class MLLPActivityAnswerCollector {
         descriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
         descriptor.setDataParcelDiscriminatorValue("External-MLLP");
         String acknowledgeString = (String)exchange.getMessage().getHeader("CamelMllpAcknowledgementString");
+        //
+        // Because auditing is not running yet
+        // Remove once Auditing is in place
+        //
+        LOG.info("ResponseMessage->{}", acknowledgeString);
+        //
+        //
+        //
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
         uow.getEgressContent().addPayloadElement(payload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-        LOG.info(".extractUoWAndAnswer(): Exit, uow->{}", uow);
+        LOG.debug(".extractUoWAndAnswer(): Exit, uow->{}", uow);
         return(uow);
     }
 }
