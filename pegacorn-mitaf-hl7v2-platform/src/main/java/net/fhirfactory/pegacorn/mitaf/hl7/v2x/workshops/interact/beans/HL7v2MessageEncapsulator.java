@@ -35,6 +35,7 @@ import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
@@ -79,7 +80,7 @@ public abstract class HL7v2MessageEncapsulator {
     // Business Functions
     //
 
-    public UoW encapsulateMessage(Message message, Exchange exchange){
+    public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue){
         //
         // Because auditing is not running yet
         // Remove once Auditing is in place
@@ -117,10 +118,30 @@ public abstract class HL7v2MessageEncapsulator {
             getLogger().trace(".encapsulateMessage(): Decoded, encodedString --> {}", encodedString);
             getLogger().trace(".encapsulateMessage(): Creating Data Parcel Descriptor (messageDescriptor)");
             DataParcelTypeDescriptor messageDescriptor = createDataParcelTypeDescriptor(messageEventType, messageTriggerEvent );
+            if(!StringUtils.isEmpty(parcelDiscriminatorType)) {
+                messageDescriptor.setDataParcelDiscriminatorType(parcelDiscriminatorType);
+            }
+            if(!StringUtils.isEmpty(parcelDiscriminatorValue)){
+                messageDescriptor.setDataParcelDiscriminatorValue(parcelDiscriminatorValue);
+            }
             getLogger().trace(".encapsulateMessage(): messageDescriptor created->{}", messageDescriptor);
             getLogger().trace(".encapsulateMessage(): Creating Data Parcel Manifest (messageManifest)");
             DataParcelManifest messageManifest = new DataParcelManifest();
             messageManifest.setContentDescriptor(messageDescriptor);
+            if(!StringUtils.isEmpty(sourceSystem)) {
+                if(sourceSystem.contentEquals(DataParcelManifest.WILDCARD_CHARACTER)){
+                    messageManifest.setSourceSystem(null);
+                } else {
+                    messageManifest.setSourceSystem(sourceSystem);
+                }
+            }
+            if(!StringUtils.isEmpty(intendedTargetSystem)) {
+                if(intendedTargetSystem.contentEquals(DataParcelManifest.WILDCARD_CHARACTER)){
+                    messageManifest.setSourceSystem(null);
+                } else {
+                    messageManifest.setIntendedTargetSystem(intendedTargetSystem);
+                }
+            }
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);

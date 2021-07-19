@@ -48,6 +48,8 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 		return (interactWorkshop);
 	}
 
-
-
+	abstract protected String specifySourceSystem();
+	abstract protected String specifyIntendedTargetSystem();
+	abstract protected String specifyMessageDiscriminatorType();
+	abstract protected String specifyMessageDiscriminatorValue();
 }

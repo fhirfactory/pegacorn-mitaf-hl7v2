@@ -49,7 +49,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange)")
+                .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
                 .to(egressFeed());
     }
