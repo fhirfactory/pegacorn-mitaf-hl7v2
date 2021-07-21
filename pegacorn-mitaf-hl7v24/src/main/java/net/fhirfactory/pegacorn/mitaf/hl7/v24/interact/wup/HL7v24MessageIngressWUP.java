@@ -69,4 +69,23 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
         return (endpoint);
     }
 
+    @Override
+    protected String specifySourceSystem() {
+        return null;
+    }
+
+    @Override
+    protected String specifyIntendedTargetSystem() {
+        return null;
+    }
+
+    @Override
+    protected String specifyMessageDiscriminatorType() {
+        return null;
+    }
+
+    @Override
+    protected String specifyMessageDiscriminatorValue() {
+        return null;
+    }
 }

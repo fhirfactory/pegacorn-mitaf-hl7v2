@@ -156,7 +156,7 @@ public abstract class HL7v2MessageEncapsulator {
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);
-            getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
+            getLogger().info(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
             getLogger().error(".encapsulateMessage(): Exception occurred", ex);

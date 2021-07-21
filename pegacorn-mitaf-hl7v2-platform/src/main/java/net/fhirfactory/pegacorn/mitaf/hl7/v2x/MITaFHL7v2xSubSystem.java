@@ -28,6 +28,7 @@ import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcemen
 import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
+import net.fhirfactory.pegacorn.petasos.model.pubsub.InterSubsystemPubSubPublisherSubscriptionRegistration;
 import net.fhirfactory.pegacorn.platform.edge.model.pubsub.RemoteSubscriptionResponse;
 import net.fhirfactory.pegacorn.platform.edge.services.InterSubSystemPubSubBroker;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
@@ -48,44 +49,51 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
     @Inject
     private PegacornReferenceProperties pegacornReferenceProperties;
 
-    protected RemoteSubscriptionResponse subscribeToRemoteDataParcels(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
+    protected InterSubsystemPubSubPublisherSubscriptionRegistration subscribeToRemoteDataParcels(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
         getLogger().info(".subscribeToRemoteDataParcels(): Entry, sourceSystem->{}", sourceSystem);
         if(triggerEventList.isEmpty()){
-            RemoteSubscriptionResponse nothingToDoResponse = new RemoteSubscriptionResponse();
-            nothingToDoResponse.setSubscriptionSuccessful(true);
-            return(nothingToDoResponse);
+            return(null);
         }
         getLogger().info(".subscribeToRemoteDataParcels(): We have entries in the subscription list, processing");
         List<DataParcelManifest> manifestList = new ArrayList<>();
         for(DataParcelTypeDescriptor currentTriggerEvent: triggerEventList){
+            getLogger().info(".subscribeToRemoteDataParcels(): currentTriggerEvent->{}", currentTriggerEvent);
             DataParcelTypeDescriptor container = fhirElementTopicFactory.newTopicToken(ResourceType.Communication.name(), pegacornReferenceProperties.getPegacornDefaultFHIRVersion());
+            getLogger().info(".subscribeToRemoteDataParcels(): container->{}", container);
             DataParcelManifest manifest = new DataParcelManifest();
             manifest.setContentDescriptor(currentTriggerEvent);
             manifest.setContainerDescriptor(container);
             manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
             manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
             manifest.setInterSubsystemDistributable(true);
+            manifest.setSourceSystem(sourceSystem);
             manifestList.add(manifest);
         }
-        getLogger().info(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber()");
-        RemoteSubscriptionResponse response = pubSubBroker.subscribe(manifestList, sourceSystem);
-        getLogger().info(".subscribeToRemoteDataParcels(): Exit, response->{}", response);
-        return(response);
+        getLogger().info(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber() ... :)");
+        if(pubSubBroker == null){
+            getLogger().warn(".subscribeToRemoteDataParcels(): Warning, pubSubBroker is null");
+        }
+        InterSubsystemPubSubPublisherSubscriptionRegistration subscriptionRegistration = pubSubBroker.subscribe(manifestList, sourceSystem);
+        getLogger().info(".subscribeToRemoteDataParcels(): Exit, subscriptionRegistration->{}", subscriptionRegistration);
+        return(subscriptionRegistration);
     }
 
     @Override
     protected void executePostConstructActivities() {
         getLogger().info(".executePostConstructActivities(): Entry");
         List<SimpleSubscriptionItem> subscriptionList = registerSubscriptionList();
+        getLogger().info(".executePostConstructActivities(): subscriberList (size)->{}", subscriptionList.size());
         for(SimpleSubscriptionItem currentSimpleSubscription: subscriptionList){
+            getLogger().info(".executePostConstructActivities(): currentSimpleSubscription->{}", currentSimpleSubscription);
             List<DataParcelTypeDescriptor> descriptorList = currentSimpleSubscription.getDescriptorList();
             String currentSource = currentSimpleSubscription.getSourceSystem();
             for(DataParcelTypeDescriptor currentDescriptor: descriptorList) {
                 getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}",currentSource, currentDescriptor);
+                getLogger().info(".executePostConstructActivities(): invoking method of death!");
                 subscribeToRemoteDataParcels(descriptorList, currentSource);
             }
-        }getLogger().info(".executePostConstructActivities(): Exit");
-
+        }
+        getLogger().info(".executePostConstructActivities(): Exit");
     }
 
     abstract protected List<SimpleSubscriptionItem> registerSubscriptionList();
