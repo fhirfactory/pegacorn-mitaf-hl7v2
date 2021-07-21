@@ -61,6 +61,8 @@ public class FHIRCommunicationToUoW {
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         manifest.setInterSubsystemDistributable(true);
+        manifest.setIntendedTargetSystem(uowFromExchange.getPayloadTopicID().getIntendedTargetSystem());
+        manifest.setSourceSystem(uowFromExchange.getPayloadTopicID().getSourceSystem());
         LOG.trace(".packageCommunicationResource(): Inserting details into the UoW");
         UoWPayload egressPayload = new UoWPayload();
         egressPayload.setPayload(communicationAsString);

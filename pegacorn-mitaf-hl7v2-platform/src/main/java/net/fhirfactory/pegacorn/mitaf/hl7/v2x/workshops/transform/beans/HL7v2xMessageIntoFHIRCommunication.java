@@ -22,12 +22,16 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
+import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import org.apache.camel.Exchange;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.StringType;
@@ -82,6 +86,16 @@ public class HL7v2xMessageIntoFHIRCommunication {
         String messageTrigger = messageInformationExtractionInterface.extractMessageTrigger(message);
         String messageVersion = messageInformationExtractionInterface.extractMessageVersion(message);
         DataParcelTypeDescriptor parcelTypeDescriptor = hl7v2TopicFactory.newDataParcelDescriptor(messageType, messageTrigger, messageVersion);
+
+        UoW uowFromExchange = exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
+        DataParcelManifest manifestFromUoW = uowFromExchange.getPayloadTopicID();
+        DataParcelTypeDescriptor descriptorFromUoW = manifestFromUoW.getContentDescriptor();
+        if(descriptorFromUoW.hasDataParcelDiscriminatorType()){
+            parcelTypeDescriptor.setDataParcelDiscriminatorType(SerializationUtils.clone(descriptorFromUoW.getDataParcelDiscriminatorType()));
+        }
+        if(descriptorFromUoW.hasDataParcelDiscriminatorValue()){
+            parcelTypeDescriptor.setDataParcelDiscriminatorValue(SerializationUtils.clone(descriptorFromUoW.getDataParcelDiscriminatorValue()));
+        }
         payloadTypeExtensionEnricher.injectPayloadTypeExtension(payload,parcelTypeDescriptor );
         newCommunication.getPayload().add(payload);
         getLogger().debug(".encapsulateMessage(): Exit, newCommunication->{}", newCommunication);
