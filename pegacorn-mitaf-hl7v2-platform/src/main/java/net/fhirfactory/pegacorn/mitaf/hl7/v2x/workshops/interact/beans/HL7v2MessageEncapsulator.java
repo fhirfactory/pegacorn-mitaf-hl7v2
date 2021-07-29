@@ -85,7 +85,7 @@ public abstract class HL7v2MessageEncapsulator {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        getLogger().info("IncomingMessage->{}", message);
+        getLogger().debug("IncomingMessage->{}", message);
         //
         //
         //
@@ -156,7 +156,7 @@ public abstract class HL7v2MessageEncapsulator {
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);
-            getLogger().info(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
+            getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
             getLogger().error(".encapsulateMessage(): Exception occurred", ex);
