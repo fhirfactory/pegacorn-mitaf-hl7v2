@@ -41,7 +41,9 @@ public class HL7v2MessageExtractor {
 		// Because auditing is not running yet
 		// Remove once Auditing is in place
 		//
-		LOG.info("OutgoingMessage->{}", messageAsString);
+		LOG.error("OutgoingMessage-----------------------------------------------------------------");
+		LOG.error("OutgoingMessage->{}", messageAsString);
+		LOG.error("OutgoingMessage-----------------------------------------------------------------");
 		//
 		//
 		//

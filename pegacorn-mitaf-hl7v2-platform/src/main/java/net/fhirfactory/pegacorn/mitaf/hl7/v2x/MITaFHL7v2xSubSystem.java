@@ -40,6 +40,8 @@ import java.util.List;
 
 public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
+    private boolean mitafHL7v2SubsystemInitialised;
+
     @Inject
     private InterSubSystemPubSubBroker pubSubBroker;
 
@@ -49,17 +51,22 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
     @Inject
     private PegacornReferenceProperties pegacornReferenceProperties;
 
+    public MITaFHL7v2xSubSystem(){
+        super();
+        mitafHL7v2SubsystemInitialised = false;
+    }
+
     protected InterSubsystemPubSubPublisherSubscriptionRegistration subscribeToRemoteDataParcels(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
-        getLogger().info(".subscribeToRemoteDataParcels(): Entry, sourceSystem->{}", sourceSystem);
+        getLogger().debug(".subscribeToRemoteDataParcels(): Entry, sourceSystem->{}", sourceSystem);
         if(triggerEventList.isEmpty()){
             return(null);
         }
-        getLogger().info(".subscribeToRemoteDataParcels(): We have entries in the subscription list, processing");
+        getLogger().trace(".subscribeToRemoteDataParcels(): We have entries in the subscription list, processing");
         List<DataParcelManifest> manifestList = new ArrayList<>();
         for(DataParcelTypeDescriptor currentTriggerEvent: triggerEventList){
-            getLogger().info(".subscribeToRemoteDataParcels(): currentTriggerEvent->{}", currentTriggerEvent);
+            getLogger().trace(".subscribeToRemoteDataParcels(): currentTriggerEvent->{}", currentTriggerEvent);
             DataParcelTypeDescriptor container = fhirElementTopicFactory.newTopicToken(ResourceType.Communication.name(), pegacornReferenceProperties.getPegacornDefaultFHIRVersion());
-            getLogger().info(".subscribeToRemoteDataParcels(): container->{}", container);
+            getLogger().trace(".subscribeToRemoteDataParcels(): container->{}", container);
             DataParcelManifest manifest = new DataParcelManifest();
             manifest.setContentDescriptor(currentTriggerEvent);
             manifest.setContainerDescriptor(container);
@@ -69,17 +76,20 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             manifest.setSourceSystem(sourceSystem);
             manifestList.add(manifest);
         }
-        getLogger().info(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber() ... :)");
+        getLogger().trace(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber() ... :)");
         if(pubSubBroker == null){
             getLogger().warn(".subscribeToRemoteDataParcels(): Warning, pubSubBroker is null");
         }
         InterSubsystemPubSubPublisherSubscriptionRegistration subscriptionRegistration = pubSubBroker.subscribe(manifestList, sourceSystem);
-        getLogger().info(".subscribeToRemoteDataParcels(): Exit, subscriptionRegistration->{}", subscriptionRegistration);
+        getLogger().debug(".subscribeToRemoteDataParcels(): Exit, subscriptionRegistration->{}", subscriptionRegistration);
         return(subscriptionRegistration);
     }
 
     @Override
     protected void executePostConstructActivities() {
+        if(this.mitafHL7v2SubsystemInitialised){
+            return;
+        }
         getLogger().info(".executePostConstructActivities(): Entry");
         List<SimpleSubscriptionItem> subscriptionList = registerSubscriptionList();
         getLogger().info(".executePostConstructActivities(): subscriberList (size)->{}", subscriptionList.size());
@@ -89,11 +99,13 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             String currentSource = currentSimpleSubscription.getSourceSystem();
             for(DataParcelTypeDescriptor currentDescriptor: descriptorList) {
                 getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}",currentSource, currentDescriptor);
-                getLogger().info(".executePostConstructActivities(): invoking method of death!");
-                subscribeToRemoteDataParcels(descriptorList, currentSource);
+                getLogger().info(".executePostConstructActivities(): Invoking subscribeToRemoteDataParcels()!");
+                InterSubsystemPubSubPublisherSubscriptionRegistration subscriptionRegistration = subscribeToRemoteDataParcels(descriptorList, currentSource);
+                getLogger().info(".executePostConstructActivities(): Subscription Registered, outcome->{}!", subscriptionRegistration);
             }
         }
         getLogger().info(".executePostConstructActivities(): Exit");
+        this.mitafHL7v2SubsystemInitialised = true;
     }
 
     abstract protected List<SimpleSubscriptionItem> registerSubscriptionList();

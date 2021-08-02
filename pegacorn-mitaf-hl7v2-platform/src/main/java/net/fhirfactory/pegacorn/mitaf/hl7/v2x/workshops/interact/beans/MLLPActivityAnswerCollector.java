@@ -56,7 +56,9 @@ public class MLLPActivityAnswerCollector {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        LOG.info("ResponseMessage->{}", acknowledgeString);
+        LOG.error("ResponseMessage-----------------------------------------------------------------");
+        LOG.error("ResponseMessage->{}", acknowledgeString);
+        LOG.error("ResponseMessage-----------------------------------------------------------------");
         //
         //
         //

@@ -91,6 +91,8 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 	protected DataParcelManifest createSubscriptionManifestForInteractIngressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
 		getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Entry, eventType->{}, eventTrigger->{}, version->{}", eventType, eventTrigger, version);
 		DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+		descriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+		descriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
 		DataParcelManifest manifest = new DataParcelManifest();
 		manifest.setContentDescriptor(descriptor);
 		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);

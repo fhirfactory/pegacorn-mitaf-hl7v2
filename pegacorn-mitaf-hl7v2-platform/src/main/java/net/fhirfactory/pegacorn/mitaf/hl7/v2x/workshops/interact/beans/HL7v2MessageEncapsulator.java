@@ -85,7 +85,9 @@ public abstract class HL7v2MessageEncapsulator {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        getLogger().debug("IncomingMessage->{}", message);
+        getLogger().error("IncomingMessage-----------------------------------------------------------------");
+        getLogger().error("IncomingMessage->{}", message);
+        getLogger().error("IncomingMessage-----------------------------------------------------------------");
         //
         //
         //
