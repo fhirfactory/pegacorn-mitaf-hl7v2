@@ -88,52 +88,45 @@
             <version>${version-ca.uhn.hapi-hl7structures}</version>
         </dependency>
 
-        <!--                     -->
-        <!-- Pegacorn Components -->
-        <!--                     -->
+        <!--***********************************************************-->
+        <!-- Pegacorn BuildingBlocks                                   -->
+        <!--***********************************************************-->
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-commoncode</artifactId>
+            <artifactId>pegacorn-buildingblocks-commoncode</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-properties</artifactId>
+            <artifactId>pegacorn-buildingblocks-properties</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-model</artifactId>
+            <artifactId>pegacorn-buildingblocks-datamodels-core</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-datasets</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-topology</artifactId>
+            <artifactId>pegacorn-buildingblocks-topology</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-model</artifactId>
+            <artifactId>pegacorn-buildingblocks-datamodels-petasos</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-datasets</artifactId>
+            <artifactId>pegacorn-buildingblocks-petasos-datasets</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -154,7 +147,7 @@
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-core</artifactId>
+            <artifactId>pegacorn-buildingblocks-petasos-core</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
