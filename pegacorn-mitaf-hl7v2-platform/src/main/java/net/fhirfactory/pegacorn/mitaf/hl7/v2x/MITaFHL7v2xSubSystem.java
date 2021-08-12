@@ -21,15 +21,15 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
-import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+
+import net.fhirfactory.pegacorn.deployment.properties.codebased.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.petasos.model.pubsub.InterSubsystemPubSubPublisherSubscriptionRegistration;
-import net.fhirfactory.pegacorn.platform.edge.model.pubsub.RemoteSubscriptionResponse;
 import net.fhirfactory.pegacorn.platform.edge.services.InterSubSystemPubSubBroker;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 import org.hl7.fhir.r4.model.ResourceType;

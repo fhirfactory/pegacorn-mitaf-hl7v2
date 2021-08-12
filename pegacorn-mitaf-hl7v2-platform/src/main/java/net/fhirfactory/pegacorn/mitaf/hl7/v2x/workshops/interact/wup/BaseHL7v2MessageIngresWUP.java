@@ -21,14 +21,9 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.deployment.topology.model.nodes.WorkUnitProcessorTopologyNode;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 

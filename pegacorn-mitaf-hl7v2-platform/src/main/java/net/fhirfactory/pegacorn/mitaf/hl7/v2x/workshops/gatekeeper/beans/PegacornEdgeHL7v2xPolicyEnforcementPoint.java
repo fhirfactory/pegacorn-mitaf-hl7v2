@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import org.apache.camel.Exchange;
