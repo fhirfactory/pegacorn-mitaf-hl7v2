@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,35 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
 
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 
-@Dependent
-public class HL7v2MessageExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
+@ApplicationScoped
+public class HL7v24A19ResponseACKExtractor {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v24A19ResponseACKExtractor.class);
 
-	public String convertToMessage(UoW incomingUoW, Exchange exchange) {
-		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
-		String messageAsString = incomingUoW.getIngresContent().getPayload();
-		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
-
-		//
-		// Because auditing is not running yet
-		// Remove once Auditing is in place
-		//
-		LOG.info("OutgoingMessage-----------------------------------------------------------------");
-		LOG.info("OutgoingMessage->{}", messageAsString);
-		LOG.info("OutgoingMessage-----------------------------------------------------------------");
-		//
-		//
-		//
-
-		return (messageAsString);
-	}
+    public String extractACKContent(String incoming, Exchange camelExchange){
+        LOG.info(".getAckMessage(): Entry, incoming --> {}", incoming);
+        String responseString = camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString", String.class);
+        LOG.info(".getAckMessage(): extracted response --> {}", responseString);
+        return(responseString);
+    }
 }

@@ -63,7 +63,7 @@ public class HL7v2xMessageIntoFHIRCommunication {
     public Communication encapsulateMessage(Message message, Exchange exchange){
         getLogger().debug(".encapsulateMessage(): Entry, message->{}", message);
         if(message == null){
-            getLogger().error(".encapsulateMessage(): Exit, message is null!");
+            getLogger().warn(".encapsulateMessage(): Exit, message is null!");
         }
         String messageID = messageInformationExtractionInterface.extractMessageID(message);
         Date messageDate = messageInformationExtractionInterface.extractMessageDate(message);

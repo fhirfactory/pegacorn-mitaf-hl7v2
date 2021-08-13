@@ -61,7 +61,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 String messageID = messageHeader.getMessageControlID().getValue();
                 return (messageID);
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -88,7 +88,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 Date date = timeOfAnEvent.getValueAsDate();
                 return (date);
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -114,7 +114,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 String versionIDString = versionID.getVersionID().getValue();
                 return (versionIDString);
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -139,7 +139,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 String triggerEvent = messageHeader.getMessageType().getTriggerEvent().getValue();
                 return (triggerEvent);
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -164,7 +164,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 String messageType = messageHeader.getMessageType().getMessageType().getValue();
                 return (messageType);
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -190,7 +190,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
                 ST universalID = sendingApplication.getUniversalID();
                 return (universalID.getValue());
             } catch (HL7Exception e) {
-                getLogger().error(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
+                getLogger().warn(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -212,7 +212,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
         try {
             messageAsText = message.encode();
         } catch (HL7Exception e) {
-            getLogger().error(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
+            getLogger().warn(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
         }
         return(messageAsText);
     }
@@ -227,7 +227,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             Message hl7Msg = parser.parse(messageText);
             return(hl7Msg);
         } catch (HL7Exception e) {
-            getLogger().error(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
+            getLogger().warn(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
             return(null);
         }
     }

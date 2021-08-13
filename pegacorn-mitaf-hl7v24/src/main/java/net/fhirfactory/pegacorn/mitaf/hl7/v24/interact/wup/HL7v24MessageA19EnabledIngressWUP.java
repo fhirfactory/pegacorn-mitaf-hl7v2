@@ -27,8 +27,12 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryC
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import org.apache.camel.component.hl7.HL7DataFormat;
+import org.apache.camel.spi.DataFormat;
 
-public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP {
+import static org.apache.camel.component.hl7.HL7.ack;
+
+public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2MessageIngresWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
@@ -48,11 +52,21 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
+        DataFormat hl7 = new HL7DataFormat();
+
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
-                .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
-                .to(egressFeed());
+                .unmarshal(hl7)
+                .choice()
+                    .when(header("CamelHL7TriggerEvent").contains("A19"))
+                        .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
+                    .otherwise()
+                        .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                        .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                        .to(egressFeed())
+                .end()
+                .marshal(hl7)
+               .transform(ack());
     }
 
     @Override
@@ -63,7 +77,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
         getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getPortValue();
         String interfaceDNSName = serverTopologyEndpoint.getHostDNSName();
-        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue));
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+"?requireEndOfData=false&autoAck=true");
         endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
         getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);

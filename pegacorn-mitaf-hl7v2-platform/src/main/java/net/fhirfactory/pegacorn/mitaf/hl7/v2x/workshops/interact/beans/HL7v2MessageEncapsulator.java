@@ -85,9 +85,9 @@ public abstract class HL7v2MessageEncapsulator {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        getLogger().error("IncomingMessage-----------------------------------------------------------------");
-        getLogger().error("IncomingMessage->{}", message);
-        getLogger().error("IncomingMessage-----------------------------------------------------------------");
+        getLogger().info("IncomingMessage-----------------------------------------------------------------");
+        getLogger().info("IncomingMessage->{}", message);
+        getLogger().info("IncomingMessage-----------------------------------------------------------------");
         //
         //
         //
@@ -108,7 +108,7 @@ public abstract class HL7v2MessageEncapsulator {
             } else {
                 outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
                 outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersion+")!";
-                getLogger().error(".encapsulateMessage(): " + outcomeDescription);
+                getLogger().info(".encapsulateMessage(): " + outcomeDescription);
             }
             getLogger().trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersion );
 //            String stringMessage = message.encode();
@@ -161,7 +161,7 @@ public abstract class HL7v2MessageEncapsulator {
             getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
-            getLogger().error(".encapsulateMessage(): Exception occurred", ex);
+            getLogger().warn(".encapsulateMessage(): Exception occurred", ex);
             UoWPayload newPayload = new UoWPayload();
             if(message != null){
                 newPayload.setPayload(message.toString());
