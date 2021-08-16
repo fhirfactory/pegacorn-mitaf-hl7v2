@@ -21,9 +21,9 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.components.tasks.hl7v2tasks.A19QueryCapabilityFulfillmentInterface;
-import net.fhirfactory.pegacorn.components.tasks.hl7v2tasks.A19QueryTask;
-import net.fhirfactory.pegacorn.components.tasks.hl7v2tasks.A19QueryTaskOutcome;
+import net.fhirfactory.pegacorn.components.capabilities.CapabilityFulfillmentInterface;
+import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
@@ -37,7 +37,7 @@ import org.apache.camel.ProducerTemplate;
 import javax.inject.Inject;
 import java.time.Instant;
 
-public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageEgressWUP implements A19QueryCapabilityFulfillmentInterface  {
+public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageEgressWUP implements CapabilityFulfillmentInterface {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
@@ -90,19 +90,25 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         return endpoint;
     }
 
+
     @Override
-    public A19QueryTaskOutcome fulfillA19QueryCapability(A19QueryTask a19QueryTask) {
-        getLogger().info(".fulfillA19QueryCapability(): Entry, a19QueryTask->{}", a19QueryTask);
-        String queryString = a19QueryTask.getA19QueryString();
+    public CapabilityUtilisationResponse executeTask(CapabilityUtilisationRequest request) {
+        getLogger().info(".executeTask(): Entry, request->{}", request);
+        String queryString = request.getRequestContent();
         String response = hl7MessageInjector.requestBody(getA19DirectCamelEndpointName(), queryString, String.class);
-        getLogger().info(".fulfillA19QueryCapability(): response->{}", response);
-        A19QueryTaskOutcome outcome = new A19QueryTaskOutcome();
+        getLogger().info(".executeTask(): response->{}", response);
+        CapabilityUtilisationResponse outcome = new CapabilityUtilisationResponse();
         outcome.setDateCompleted(Instant.now());
         outcome.setSuccessful(true);
-        outcome.setAssociatedRequestID(a19QueryTask.getRequestID());
-        outcome.setA19QueryResponse(response);
-        getLogger().info(".fulfillA19QueryCapability(): Exit, outcome->{}", outcome);
+        outcome.setAssociatedRequestID(request.getRequestID());
+        outcome.setResponseContent(response);
+        getLogger().info(".executeTask(): Exit, outcome->{}", outcome);
         return(outcome);
+    }
+
+    @Override
+    protected void registerCapabilities(){
+        getProcessingPlant().registerCapabilityFulfillmentService("A19QueryFulfillment", this);
     }
 
     private String getA19DirectCamelEndpointName(){

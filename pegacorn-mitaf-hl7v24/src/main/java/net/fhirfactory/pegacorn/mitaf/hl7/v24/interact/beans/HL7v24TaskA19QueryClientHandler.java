@@ -24,13 +24,14 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.message.ADR_A19;
 import ca.uhn.hl7v2.model.v24.segment.QRD;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
-import net.fhirfactory.pegacorn.components.tasks.CapabilityUtilisationBrokerInterface;
-import net.fhirfactory.pegacorn.components.tasks.hl7v2tasks.A19QueryTask;
-import net.fhirfactory.pegacorn.components.tasks.hl7v2tasks.A19QueryTaskOutcome;
+import net.fhirfactory.pegacorn.components.capabilities.CapabilityUtilisationBrokerInterface;
+import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
+import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTask;
+import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTaskOutcome;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,18 +103,19 @@ public class HL7v24TaskA19QueryClientHandler {
         //
         // Build Query
         //
-        A19QueryTask task = new A19QueryTask();
+        CapabilityUtilisationRequest task = new CapabilityUtilisationRequest();
         task.setRequestID(UUID.randomUUID().toString());
-        task.setA19QueryString(queryString);
+        task.setRequestContent(queryString);
+        task.setRequiredCapabilityName("A19QueryFulfillment");
         task.setRequestDate(Instant.now());
         //
         // Do Query
         //
-        A19QueryTaskOutcome a19QueryTaskOutcome = capabilityUtilisationBroker.useA19QueryCapability(A19_CAPABILITY_PROVIDER, task);
+        CapabilityUtilisationResponse a19QueryTaskOutcome = capabilityUtilisationBroker.executeTask(A19_CAPABILITY_PROVIDER, task);
         //
         // Extract the response
         //
-        String resultString = a19QueryTaskOutcome.getA19QueryResponse();
+        String resultString = a19QueryTaskOutcome.getResponseContent();
         return(resultString);
     }
 

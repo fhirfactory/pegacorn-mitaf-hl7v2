@@ -49,7 +49,7 @@ import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface
 import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
-import net.fhirfactory.pegacorn.workshops.PolicyEnforcementPointWorkshop;
+import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
@@ -67,7 +67,7 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
     private static String WUP_VERSION = "1.0.0";
 
     @Inject
-    private PolicyEnforcementPointWorkshop policyEnforcementPointWorkshop;
+    private PolicyEnforcementWorkshop policyEnforcementWorkshop;
 
     @Inject
     private PegacornReferenceProperties referenceProperties;
@@ -111,7 +111,7 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
 
     @Override
     protected WorkshopInterface specifyWorkshop() {
-        return (policyEnforcementPointWorkshop);
+        return (policyEnforcementWorkshop);
     }
 
     @Override
