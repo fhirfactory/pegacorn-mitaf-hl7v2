@@ -70,7 +70,11 @@ public class HL7v24TaskA19QueryClientHandler {
         String urn = "";
         try {
             String stringToPrint = incomingRequest.printStructure();
-            LOG.info(".processA19Request(): Content --> {}", stringToPrint);
+			//
+			// Because auditing is not running yet
+			// Remove once Auditing is in place
+			//
+            LOG.warn(".processA19Request(): IncomingMessage->{}", stringToPrint); // Log at WARN level so always seen in TEST
             QRD query = (QRD) incomingRequest.get("QRD");
             queryString = incomingRequest.encode();
             urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
@@ -85,7 +89,11 @@ public class HL7v24TaskA19QueryClientHandler {
         parser.getParserConfiguration().setIdGenerator(timeBasedIdGenerator);
 
         String queryResponse = utiliseA19QueryCapability(queryString);
-        LOG.info(".processA19Request(): response --> {}", queryResponse);
+        //
+        // Because auditing is not running yet
+        // Remove once Auditing is in place
+        //
+        LOG.warn(".processA19Request(): ResponseMessage->{}", queryResponse); // Log at WARN level so always seen in TEST
         try {
             Message resultMessage = parser.parse(queryResponse);
             String responseAsString = resultMessage.encode();
@@ -94,7 +102,6 @@ public class HL7v24TaskA19QueryClientHandler {
         } catch (Exception ex) {
             LOG.info(".processA19Request(): Something went wrong with parsing --> {}", ex);
         }
-//        LOG.info(".processA19Request(): queryResponse->{}", queryResponse);
         return(null);
     }
 

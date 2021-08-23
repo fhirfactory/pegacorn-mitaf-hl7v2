@@ -85,9 +85,9 @@ public abstract class HL7v2MessageEncapsulator {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        getLogger().info("IncomingMessage-----------------------------------------------------------------");
-        getLogger().info("IncomingMessage->{}", message);
-        getLogger().info("IncomingMessage-----------------------------------------------------------------");
+        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
+        getLogger().warn("IncomingMessage->{}", message); // Log at WARN level so always seen in TEST
+        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
         //
         //
         //

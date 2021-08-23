@@ -56,9 +56,9 @@ public class MLLPActivityAnswerCollector {
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
-        LOG.info("ResponseMessage-----------------------------------------------------------------");
-        LOG.info("ResponseMessage->{}", acknowledgeString);
-        LOG.info("ResponseMessage-----------------------------------------------------------------");
+        //LOG.info("ResponseMessage-----------------------------------------------------------------");
+        LOG.warn("ResponseMessage->{}", acknowledgeString); // Log at WARN level so always seen in TEST
+        //LOG.info("ResponseMessage-----------------------------------------------------------------");
         //
         //
         //
