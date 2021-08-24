@@ -147,7 +147,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-datasets</artifactId>
+            <artifactId>pegacorn-deployment-cachemap</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -167,7 +167,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-petasos-caches</artifactId>
+            <artifactId>pegacorn-petasos-cachemaps</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -263,7 +263,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-fhir</artifactId>
+            <artifactId>pegacorn-core-fhir</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>

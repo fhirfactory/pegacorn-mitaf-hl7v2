@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v231.transform.wup;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.internals.fhir.r4.codesystems.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseFHIRCommunication2HL7V2MessageWUP;
 import org.hl7.fhir.r4.model.ResourceType;

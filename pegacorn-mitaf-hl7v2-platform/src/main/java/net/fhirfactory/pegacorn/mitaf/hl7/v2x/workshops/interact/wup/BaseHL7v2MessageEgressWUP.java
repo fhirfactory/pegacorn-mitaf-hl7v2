@@ -32,12 +32,10 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFac
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
-import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import net.fhirfactory.pegacorn.petasos.wup.moa.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.wup.moa.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
-import org.apache.camel.LoggingLevel;
 
 import javax.inject.Inject;
 

@@ -5,6 +5,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!--***********************************************************************************-->
+    <!--                                                                                   -->
+    <!-- Project Metadata                                                                -->
+    <!--                                                                                   -->
+    <!--***********************************************************************************-->
+
     <parent>
         <groupId>net.fhirfactory.pegacorn</groupId>
         <artifactId>pegacorn-mitaf-hl7v2</artifactId>
@@ -147,7 +153,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-datasets</artifactId>
+            <artifactId>pegacorn-deployment-cachemap</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -167,7 +173,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-petasos-caches</artifactId>
+            <artifactId>pegacorn-petasos-cachemaps</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -263,7 +269,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-fhir</artifactId>
+            <artifactId>pegacorn-core-fhir</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -288,6 +294,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <version>${version-org.junit5}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${version-org.junit5}</version>
             <scope>test</scope>
         </dependency>

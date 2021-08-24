@@ -1,7 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.fhir.parser.IParser;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
+import net.fhirfactory.pegacorn.petasos.core.payloads.uow.UoW;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.camel.Exchange;
 import org.hl7.fhir.r4.model.Communication;

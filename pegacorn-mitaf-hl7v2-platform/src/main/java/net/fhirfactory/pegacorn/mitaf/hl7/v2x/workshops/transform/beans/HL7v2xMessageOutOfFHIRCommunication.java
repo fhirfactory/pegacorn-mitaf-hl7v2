@@ -22,12 +22,11 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.util.StringUtil;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.petasos.core.payloads.uow.UoW;
+import net.fhirfactory.pegacorn.petasos.core.payloads.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.core.payloads.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;

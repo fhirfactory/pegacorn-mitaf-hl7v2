@@ -23,8 +23,8 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.wup;
 
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.IPCServerTopologyEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import net.fhirfactory.pegacorn.petasos.wup.moa.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.wup.moa.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.beans.HL7v231MessageEncapsulator;
 
 public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP {
