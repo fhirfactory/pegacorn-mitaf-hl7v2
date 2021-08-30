@@ -43,29 +43,20 @@ public class MLLPActivityAnswerCollector {
 
     private HapiContext context = new DefaultHapiContext();
 
-    public UoW extractUoWAndAnswer(Message answer, Exchange exchange){
+    public UoW extractUoWAndAnswer(Message answer, Exchange camelExchange){
         LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
-        UoW uow = (UoW)exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
+        UoW uow = (UoW)camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
         UoWPayload payload = new UoWPayload();
         DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());
         DataParcelTypeDescriptor descriptor = payloadTopicID.getContentDescriptor();
         descriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
         descriptor.setDataParcelDiscriminatorValue("External-MLLP");
-        String acknowledgeString = (String)exchange.getMessage().getHeader("CamelMllpAcknowledgementString");
-        //
-        // Because auditing is not running yet
-        // Remove once Auditing is in place
-        //
-        //LOG.info("ResponseMessage-----------------------------------------------------------------");
-        LOG.warn("ResponseMessage->{}", acknowledgeString); // Log at WARN level so always seen in TEST
-        //LOG.info("ResponseMessage-----------------------------------------------------------------");
-        //
-        //
-        //
+        String acknowledgeString = (String)camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString");
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
         uow.getEgressContent().addPayloadElement(payload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+
         LOG.debug(".extractUoWAndAnswer(): Exit, uow->{}", uow);
         return(uow);
     }

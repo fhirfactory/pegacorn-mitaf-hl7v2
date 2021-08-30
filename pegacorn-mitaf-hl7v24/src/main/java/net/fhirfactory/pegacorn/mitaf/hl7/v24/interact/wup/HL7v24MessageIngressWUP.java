@@ -24,14 +24,20 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.IPCServerTopologyEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24MessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+
+import javax.inject.Inject;
 
 public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
+
+    @Inject
+    private MLLPActivityAuditTrail mllpAuditTrail;
 
     @Override
     protected String specifyWUPInstanceName() {
@@ -52,6 +58,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
                 .to(egressFeed());
     }
 

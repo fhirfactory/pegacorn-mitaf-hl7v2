@@ -32,12 +32,12 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFac
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
-import org.apache.camel.LoggingLevel;
+import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 
@@ -64,6 +64,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	@Inject
 	private MLLPActivityAnswerCollector answerCollector;
 
+	@Inject
+	private MLLPActivityAuditTrail mllpAuditTrail;
+
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (interactWorkshop);
@@ -74,11 +77,13 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
 		getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
-		fromIncludingPetasosServices(ingresFeed())
+		fromIncludingEgressEndpointDetails(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
 				.to(egressFeed())
 				.bean(answerCollector, "extractUoWAndAnswer")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
@@ -110,5 +115,19 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setInterSubsystemDistributable(false);
 		return manifest;
 	}
+
+	/**
+	 * @param uri
+	 * @return the RouteBuilder.from(uri) with all exceptions logged but not handled
+	 */
+	protected RouteDefinition fromIncludingEgressEndpointDetails(String uri) {
+		PortDetailInjector portDetailInjector = new PortDetailInjector();
+		RouteDefinition route = fromWithStandardExceptionHandling(uri);
+		route
+				.process(portDetailInjector)
+		;
+		return route;
+	}
+
 
 }
