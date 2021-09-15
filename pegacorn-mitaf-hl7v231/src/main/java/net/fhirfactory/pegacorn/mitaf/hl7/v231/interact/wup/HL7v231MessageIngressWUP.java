@@ -50,7 +50,7 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
 
     @Override
     public void configure() throws Exception {
-        getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
+        getLogger().warn("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
         fromInteractIngresService(ingresFeed())

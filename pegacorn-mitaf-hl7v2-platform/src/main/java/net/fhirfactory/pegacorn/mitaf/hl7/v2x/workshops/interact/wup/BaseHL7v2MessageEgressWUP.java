@@ -75,7 +75,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	@Override
 	public void configure() throws Exception {
 		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
-		getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
+		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
 		fromIncludingEgressEndpointDetails(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())

@@ -52,6 +52,15 @@ public class MLLPActivityAnswerCollector {
         descriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
         descriptor.setDataParcelDiscriminatorValue("External-MLLP");
         String acknowledgeString = (String)camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString");
+        // Because auditing is not running yet
+        // Remove once Auditing is in place
+        //
+        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
+        LOG.warn("Acknowledgement Message->{}", acknowledgeString); // Log at WARN level so always seen in TEST
+        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
+        //
+        //
+        //
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
         uow.getEgressContent().addPayloadElement(payload);
