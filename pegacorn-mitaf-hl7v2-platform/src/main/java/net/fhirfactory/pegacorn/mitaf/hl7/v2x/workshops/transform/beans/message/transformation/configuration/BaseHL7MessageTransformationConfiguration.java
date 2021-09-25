@@ -12,7 +12,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.UpdateHL7Segment;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7AddSegmentTransformationStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7RemoveSegmentTransformationStep;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateSegmentTransformationStep;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateTransformationStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 
 /**
@@ -23,7 +23,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
  */
 public abstract class BaseHL7MessageTransformationConfiguration {
 
-	private List<BaseHL7UpdateSegmentTransformationStep> segmentsToBeUpdated = new ArrayList<>();
+	private List<BaseHL7UpdateTransformationStep> segmentsToBeUpdated = new ArrayList<>();
 	private List<BaseHL7RemoveSegmentTransformationStep> segmentsToBeRemoved = new ArrayList<>();
 	private List<BaseHL7AddSegmentTransformationStep> segmentsToBeAdded = new ArrayList<>();
 	
@@ -50,7 +50,7 @@ public abstract class BaseHL7MessageTransformationConfiguration {
 					// Instantiate the update class
 					try {
 						Constructor<?> updateClassConstructor = updateAnnotation.updateClass().getConstructor(Rule.class);
-						BaseHL7UpdateSegmentTransformationStep segmentUpdate = (BaseHL7UpdateSegmentTransformationStep) updateClassConstructor.newInstance(rule);
+						BaseHL7UpdateTransformationStep segmentUpdate = (BaseHL7UpdateTransformationStep) updateClassConstructor.newInstance(rule);
 
 						this.segmentsToBeUpdated.add(segmentUpdate);
 					} catch (Exception e) {
@@ -93,7 +93,7 @@ public abstract class BaseHL7MessageTransformationConfiguration {
 		}
 	}
 
-	public List<BaseHL7UpdateSegmentTransformationStep> getSegmentsToBeUpdated() {
+	public List<BaseHL7UpdateTransformationStep> getSegmentsToBeUpdated() {
 		return segmentsToBeUpdated;
 	}
 	

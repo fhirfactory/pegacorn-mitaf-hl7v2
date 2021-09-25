@@ -1,5 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
+import org.slf4j.Logger;
+
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Message;
@@ -7,34 +9,38 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
 /**
- * Base class for all HL7 add new segment transformation steps.
+ * Base class for all HL7 update transformation steps.
  * 
  * @author Brendan Douglas
  *
  */
-public abstract class BaseHL7AddSegmentTransformationStep extends BaseMitafMessageTransformStep {
+public abstract class BaseHL7UpdateTransformationStep extends BaseMitafMessageTransformStep {
+
+	public abstract Logger getLogger();
 	
-	public BaseHL7AddSegmentTransformationStep() {
-		this(new TrueRule());
+	public BaseHL7UpdateTransformationStep() {
+		super(new TrueRule());
 	}
 	
-	public BaseHL7AddSegmentTransformationStep(Rule rule) {
+	public BaseHL7UpdateTransformationStep(Rule rule) {
 		super(rule);
 	}
 
+	
 	@Override
 	public void process(Message message) throws HL7Exception {
-		if (rule.executeRule(message)) {
-			createNewSegment((Message)message.getMessage());
+
+		if (rule.executeRule(message)) {			
+			doUpdate(message);
 		}
 	}
-
-
+	
+	
 	/**
-	 * Add a segment.
+	 * Update the segment.
 	 * 
 	 * @param segment
-	 * @throws DataTypeException
+	 * @param fieldValueRetriever
 	 */
-	protected abstract void createNewSegment(Message message) throws DataTypeException;
+	protected abstract void doUpdate(Message message) throws DataTypeException;
 }

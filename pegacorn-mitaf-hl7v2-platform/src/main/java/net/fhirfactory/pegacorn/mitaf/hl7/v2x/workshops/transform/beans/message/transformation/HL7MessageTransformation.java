@@ -17,7 +17,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7AddSegmentTransformationStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7RemoveSegmentTransformationStep;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateSegmentTransformationStep;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateTransformationStep;
 
 /**
  * Does the actual transformation by executing the transformation steps.
@@ -31,7 +31,7 @@ public class HL7MessageTransformation  {
 	private Message message;
 	private BaseHL7MessageTransformationConfiguration config;
 	
-	public HL7MessageTransformation(String theMessage, BaseHL7MessageTransformationConfiguration config) throws IOException, HL7Exception {
+	public HL7MessageTransformation(String mesage, BaseHL7MessageTransformationConfiguration config) throws IOException, HL7Exception {
 		this.config = config;
 		
 		try (HapiContext context = new DefaultHapiContext();) {
@@ -39,8 +39,13 @@ public class HL7MessageTransformation  {
 
 			ModelClassFactory cmf = new DefaultModelClassFactory();
 			context.setModelClassFactory(cmf);
-			this.message = parser.parse(theMessage);
+			this.message = parser.parse(mesage);
 		} 
+	}
+	
+	public HL7MessageTransformation(Message message, BaseHL7MessageTransformationConfiguration config) throws IOException, HL7Exception {
+		this.config = config;
+		this.message = message;
 	}
 
 	
@@ -52,7 +57,7 @@ public class HL7MessageTransformation  {
 	 */
 	public Message transform() throws HL7Exception {
 
-		for (BaseHL7UpdateSegmentTransformationStep segmentToBeUpdated : config.getSegmentsToBeUpdated()) {
+		for (BaseHL7UpdateTransformationStep segmentToBeUpdated : config.getSegmentsToBeUpdated()) {
 			segmentToBeUpdated.process(message);
 		}
 		
