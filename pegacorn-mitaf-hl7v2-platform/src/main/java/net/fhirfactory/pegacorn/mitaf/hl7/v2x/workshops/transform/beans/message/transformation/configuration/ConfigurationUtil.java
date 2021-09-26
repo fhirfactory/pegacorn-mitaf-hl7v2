@@ -34,11 +34,11 @@ public class ConfigurationUtil {
 		sb.append("configuration");
 		sb.append(".");
 		sb.append(filenamePrefix.replaceAll("_", ""));
-		sb.append("UpdateConfiguration");
+		sb.append("TransformationConfiguration");
 		sb.append(direction);
 
 		// Now try and instantiate the class.
-		return instantiateConfigurationClass(sb.toString(), DefaultHL7UpdateConfiguration.class);
+		return instantiateConfigurationClass(sb.toString(), DefaultHL7TransformationConfiguration.class);
 	}
 
 	private static BaseHL7MessageTransformationConfiguration instantiateConfigurationClass(String classname, Class<?>defaultConfiguration) {
@@ -46,6 +46,8 @@ public class ConfigurationUtil {
 
 		// Use reflection to instantiate the message transformer class.
 		try {
+			LOG.info("Brendan.  class name: " + classname);
+			
 			Class<?> transformationClass = Class.forName(classname);
 			Constructor<?> constructor = transformationClass.getConstructor();
 			configuration = (BaseHL7MessageTransformationConfiguration) constructor.newInstance();

@@ -20,10 +20,10 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v231.message.ADT_A01;
 import ca.uhn.hl7v2.model.v231.segment.NK1;
 import ca.uhn.hl7v2.model.v231.segment.PID;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01UpdateConfigurationEgres;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01TransformationConfigurationEgres;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ConfigurationUtil;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7UpdateConfiguration;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7TransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
 
 /**
@@ -50,7 +50,7 @@ public class MessageTransformationConfigurationTest {
 				
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 
-			assertTrue(configuration instanceof ADTA01UpdateConfigurationEgres);
+			assertTrue(configuration instanceof ADTA01TransformationConfigurationEgres);
 
 			assertEquals(1, configuration.getSegmentsToBeUpdated().size());
 			assertEquals(1, configuration.getSegmentsToBeRemoved().size());
@@ -98,7 +98,7 @@ public class MessageTransformationConfigurationTest {
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 			transformation.transform();
 			
-			assertTrue(configuration instanceof DefaultHL7UpdateConfiguration);
+			assertTrue(configuration instanceof DefaultHL7TransformationConfiguration);
 		} catch (HL7Exception e) {
 			fail("Unable to process HL7 message", e);
 		} catch (IOException e) {

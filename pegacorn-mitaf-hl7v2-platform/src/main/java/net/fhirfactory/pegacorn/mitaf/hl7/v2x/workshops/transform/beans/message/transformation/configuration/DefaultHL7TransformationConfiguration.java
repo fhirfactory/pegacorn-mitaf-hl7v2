@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
  * @author Brendan Douglas
  *
  */
-public class DefaultHL7UpdateConfiguration extends BaseHL7MessageTransformationConfiguration  {
-	private static final Logger LOG = LoggerFactory.getLogger(DefaultHL7UpdateConfiguration.class);
+public class DefaultHL7TransformationConfiguration extends BaseHL7MessageTransformationConfiguration  {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultHL7TransformationConfiguration.class);
 
 	@Override
 	protected Logger getLogger() {

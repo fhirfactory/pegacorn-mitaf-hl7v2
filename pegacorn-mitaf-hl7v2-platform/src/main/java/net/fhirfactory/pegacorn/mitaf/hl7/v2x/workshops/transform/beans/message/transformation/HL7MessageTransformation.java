@@ -36,6 +36,7 @@ public class HL7MessageTransformation  {
 		
 		try (HapiContext context = new DefaultHapiContext();) {
 			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
 
 			ModelClassFactory cmf = new DefaultModelClassFactory();
 			context.setModelClassFactory(cmf);
@@ -56,8 +57,10 @@ public class HL7MessageTransformation  {
 	 * @throws HL7Exception
 	 */
 	public Message transform() throws HL7Exception {
+		LOG.info("Brendan.  In transform");
 
 		for (BaseHL7UpdateTransformationStep segmentToBeUpdated : config.getSegmentsToBeUpdated()) {
+			getLogger().info("Brendan.  In transform. Update class: {} ", segmentToBeUpdated.getClass().getName());
 			segmentToBeUpdated.process(message);
 		}
 		
@@ -68,6 +71,8 @@ public class HL7MessageTransformation  {
 		for (BaseHL7AddSegmentTransformationStep segmentToBeAdded : config.getSegmentsToBeAdded()) {
 			segmentToBeAdded.process(message);
 		}
+		
+		LOG.info("Brendan.  End transform");
 		
 		return message;
 	}
