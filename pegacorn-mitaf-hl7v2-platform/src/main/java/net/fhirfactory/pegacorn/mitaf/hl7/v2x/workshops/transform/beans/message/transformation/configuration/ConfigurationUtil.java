@@ -45,9 +45,7 @@ public class ConfigurationUtil {
 		BaseHL7MessageTransformationConfiguration configuration = null;
 
 		// Use reflection to instantiate the message transformer class.
-		try {
-			LOG.info("Brendan.  class name: " + classname);
-			
+		try {			
 			Class<?> transformationClass = Class.forName(classname);
 			Constructor<?> constructor = transformationClass.getConstructor();
 			configuration = (BaseHL7MessageTransformationConfiguration) constructor.newInstance();

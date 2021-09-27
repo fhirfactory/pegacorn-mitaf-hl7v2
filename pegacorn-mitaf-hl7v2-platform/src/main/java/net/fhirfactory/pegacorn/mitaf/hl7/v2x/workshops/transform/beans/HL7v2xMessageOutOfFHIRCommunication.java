@@ -62,7 +62,7 @@ public class HL7v2xMessageOutOfFHIRCommunication {
         fhirResourceParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
     }
 
-    public UoW extractMessage(UoW uow) throws IOException, HL7Exception {
+    public UoW extractAndTransformMessage(UoW uow) throws IOException, HL7Exception {
         getLogger().debug(".extractMessage(): Entry, uow->{}", uow);
 
         getLogger().trace(".extractMessage(): Extracting payload from uow (UoW)");
@@ -75,9 +75,7 @@ public class HL7v2xMessageOutOfFHIRCommunication {
         Communication.CommunicationPayloadComponent communicationPayload = communication.getPayloadFirstRep();
         
         // Transform the message;
-        getLogger().info("Brendan.  Before transform: {}", communicationPayload.getContentStringType().getValue());
         Message message = messageTransform.doEgresTransform(communicationPayload.getContentStringType().getValue());
-        getLogger().info("Brendan.  After transform: {}", message.toString());
         
         getLogger().trace(".extractMessage(): Clone the content for injection into the UoW egress payload");
         String clonedMessage = SerializationUtils.clone(message.toString());
