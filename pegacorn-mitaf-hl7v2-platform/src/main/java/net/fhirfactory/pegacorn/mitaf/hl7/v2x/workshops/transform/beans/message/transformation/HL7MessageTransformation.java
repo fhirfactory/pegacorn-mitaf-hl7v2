@@ -15,7 +15,6 @@ import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7AddSegmentTransformationStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7RemoveSegmentTransformationStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateTransformationStep;
 
@@ -57,17 +56,18 @@ public class HL7MessageTransformation  {
 	 * @throws HL7Exception
 	 */
 	public Message transform() throws HL7Exception {
-		for (BaseHL7UpdateTransformationStep segmentToBeUpdated : config.getSegmentsToBeUpdated()) {
-			segmentToBeUpdated.process(message);
+		LOG.info("Brendan.  In transform");
+
+		for (BaseHL7UpdateTransformationStep updateTransformationStep : config.getMessageUpdateSteps()) {
+			getLogger().info("Brendan.  In transform. Update class: {} ", updateTransformationStep.getClass().getName());
+			updateTransformationStep.process(message);
 		}
 		
 		for (BaseHL7RemoveSegmentTransformationStep segmentToBeRemoved : config.getSegmentsToBeRemoved()) {
 			segmentToBeRemoved.process(message);
 		}
-		
-		for (BaseHL7AddSegmentTransformationStep segmentToBeAdded : config.getSegmentsToBeAdded()) {
-			segmentToBeAdded.process(message);
-		}
+				
+		LOG.info("Brendan.  End transform");
 		
 		return message;
 	}

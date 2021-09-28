@@ -75,7 +75,9 @@ public class HL7v2xMessageOutOfFHIRCommunication {
         Communication.CommunicationPayloadComponent communicationPayload = communication.getPayloadFirstRep();
         
         // Transform the message;
+        getLogger().info("Brendan.  Before transform: {}", communicationPayload.getContentStringType().getValue());
         Message message = messageTransform.doEgresTransform(communicationPayload.getContentStringType().getValue());
+        getLogger().info("Brendan.  After transform: {}", message.toString());
         
         getLogger().trace(".extractMessage(): Clone the content for injection into the UoW egress payload");
         String clonedMessage = SerializationUtils.clone(message.toString());

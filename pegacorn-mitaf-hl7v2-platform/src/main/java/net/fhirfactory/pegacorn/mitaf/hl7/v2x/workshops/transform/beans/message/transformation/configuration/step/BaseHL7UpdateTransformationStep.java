@@ -11,6 +11,10 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 /**
  * Base class for all HL7 update transformation steps.
  * 
+ * Each step needs to perform 1 update only.  This is not enforced in the code but please
+ * make sure it does.
+ * 
+ * 
  * @author Brendan Douglas
  *
  */
