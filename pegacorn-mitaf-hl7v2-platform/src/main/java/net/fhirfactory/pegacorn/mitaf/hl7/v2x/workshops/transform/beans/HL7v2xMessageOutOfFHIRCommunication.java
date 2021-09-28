@@ -21,27 +21,22 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import java.io.IOException;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
+import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.util.StringUtil;
+import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
+import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.uhn.fhir.parser.IParser;
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.util.FHIRContextUtility;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 @ApplicationScoped
 public class HL7v2xMessageOutOfFHIRCommunication {
@@ -53,16 +48,13 @@ public class HL7v2xMessageOutOfFHIRCommunication {
 
     @Inject
     protected FHIRContextUtility fhirContextUtility;
-    
-    @Inject
-    protected BaseMessageTransform messageTransform;
 
     @PostConstruct
     public void initialise(){
         fhirResourceParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
     }
 
-    public UoW extractMessage(UoW uow) throws IOException, HL7Exception {
+    public UoW extractMessage(UoW uow){
         getLogger().debug(".extractMessage(): Entry, uow->{}", uow);
 
         getLogger().trace(".extractMessage(): Extracting payload from uow (UoW)");
@@ -73,14 +65,10 @@ public class HL7v2xMessageOutOfFHIRCommunication {
 
         getLogger().trace(".extractMessage(): Pull the HL7v2x Message (as Text) from the Communication Payload");
         Communication.CommunicationPayloadComponent communicationPayload = communication.getPayloadFirstRep();
-        
-        // Transform the message;
-        getLogger().info("Brendan.  Before transform: {}", communicationPayload.getContentStringType().getValue());
-        Message message = messageTransform.doEgresTransform(communicationPayload.getContentStringType().getValue());
-        getLogger().info("Brendan.  After transform: {}", message.toString());
-        
+        String contentMessage = communicationPayload.getContentStringType().getValue();
+
         getLogger().trace(".extractMessage(): Clone the content for injection into the UoW egress payload");
-        String clonedMessage = SerializationUtils.clone(message.toString());
+        String clonedMessage = SerializationUtils.clone(contentMessage);
 
         getLogger().trace(".extractMessage(): Create the egress payload (UoWPayload) to contain the message");
         UoWPayload newPayload = new UoWPayload();
