@@ -52,7 +52,7 @@ public class MessageTransformationConfigurationTest {
 
 			assertTrue(configuration instanceof ADTA01TransformationConfigurationEgres);
 
-			assertEquals(1, configuration.getSegmentsToBeUpdated().size());
+			assertEquals(1, configuration.getMessageUpdateSteps().size());
 			assertEquals(1, configuration.getSegmentsToBeRemoved().size());
 			
 			LOG.info("HL7 before transformation: {}", hl7);

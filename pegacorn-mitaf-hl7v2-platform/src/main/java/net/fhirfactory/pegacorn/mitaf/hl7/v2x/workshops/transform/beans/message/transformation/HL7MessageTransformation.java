@@ -58,7 +58,7 @@ public class HL7MessageTransformation  {
 	public Message transform() throws HL7Exception {
 		LOG.info("Brendan.  In transform");
 
-		for (BaseHL7UpdateTransformationStep updateTransformationStep : config.getSegmentsToBeUpdated()) {
+		for (BaseHL7UpdateTransformationStep updateTransformationStep : config.getMessageUpdateSteps()) {
 			getLogger().info("Brendan.  In transform. Update class: {} ", updateTransformationStep.getClass().getName());
 			updateTransformationStep.process(message);
 		}

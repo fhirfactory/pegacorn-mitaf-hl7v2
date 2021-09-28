@@ -75,7 +75,7 @@ public abstract class BaseHL7MessageTransformationConfiguration {
 		}
 	}
 
-	public List<BaseHL7UpdateTransformationStep> getSegmentsToBeUpdated() {
+	public List<BaseHL7UpdateTransformationStep> getMessageUpdateSteps() {
 		return messageUpdateSteps;
 	}
 	
