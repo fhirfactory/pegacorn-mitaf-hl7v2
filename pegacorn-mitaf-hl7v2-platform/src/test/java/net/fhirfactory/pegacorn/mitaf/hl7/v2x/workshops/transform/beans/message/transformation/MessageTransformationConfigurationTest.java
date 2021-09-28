@@ -28,7 +28,6 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7TransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.MDMT02TransformationConfigurationEgres;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ORMTransformationConfigurationEgres;
 
 /**
  * Tests to make sure the message transformation configuration can instantiate
@@ -93,41 +92,7 @@ public class MessageTransformationConfigurationTest {
 	 * Make sure a generic message config can be found eg. ORM instead of ORM^O01.
 	 */
 	@Test
-	public void testGenericMessageConfig() {
-		try (HapiContext context = new DefaultHapiContext();) {
-			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ORM_O01.txt"));
-			hl7 = hl7.replaceAll("\n", "\r");
-			
-			PipeParser parser = context.getPipeParser();
-			parser.getParserConfiguration().setValidating(false);
-
-			ModelClassFactory cmf = new DefaultModelClassFactory();
-			context.setModelClassFactory(cmf);
-			Message message = parser.parse(hl7);
-
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
-			
-			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
-			
-			message = transformation.transform();
-			
-			assertTrue(configuration instanceof ORMTransformationConfigurationEgres);
-			
-			// The message will still contain this segment because of the False rule configured in the annotation.
-			assertTrue(message.toString().contains("ZDS"));
-		} catch (IOException e) {
-			fail("Unable to read HL7 message", e);
-		} catch(HL7Exception e) {
-			fail("Unable to process HL7 message", e);			
-		}
-	}	
-	
-	
-	/**
-	 * Make sure a generic message config can be found eg. ORM instead of ORM^O01.
-	 */
-	@Test
-	public void testRemoveAllRepititionsg() {
+	public void testRemoveAllSegments() {
 		try (HapiContext context = new DefaultHapiContext();) {
 			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/MDM_T02.txt"));
 			hl7 = hl7.replaceAll("\n", "\r");
