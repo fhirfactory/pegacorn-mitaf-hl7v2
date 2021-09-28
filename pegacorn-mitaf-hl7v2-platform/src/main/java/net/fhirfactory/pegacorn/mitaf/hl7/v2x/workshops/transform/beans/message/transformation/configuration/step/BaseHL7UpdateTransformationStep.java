@@ -9,7 +9,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
 /**
- * Base class for all HL7 update transformation steps.
+ * Base class for all HL7 update transformation steps.  An update can be changing a segment
+ * value or creating a new segment.
  * 
  * Each step needs to perform 1 update only.  This is not enforced in the code but please
  * make sure it does.

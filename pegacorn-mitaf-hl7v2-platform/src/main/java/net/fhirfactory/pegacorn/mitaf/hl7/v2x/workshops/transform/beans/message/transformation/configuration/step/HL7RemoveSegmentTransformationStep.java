@@ -1,5 +1,8 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractGroup;
 import ca.uhn.hl7v2.model.Message;
@@ -12,14 +15,16 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
  * @author Brendan Douglas
  *
  */
-public abstract class BaseHL7RemoveSegmentTransformationStep extends BaseMitafMessageTransformStep {
+public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransformStep {
+	private static final Logger LOG = LoggerFactory.getLogger(HL7RemoveSegmentTransformationStep.class);
+	
 	protected String segmentCode;
 	
-	public BaseHL7RemoveSegmentTransformationStep(String segmentCode) {
-		this(new TrueRule(), segmentCode);
+	public HL7RemoveSegmentTransformationStep(String segmentCode) {
+		this(segmentCode, new TrueRule());
 	}
 
-	public BaseHL7RemoveSegmentTransformationStep(Rule rule, String segmentCode) {
+	public HL7RemoveSegmentTransformationStep(String segmentCode, Rule rule) {
 		super(rule);
 		
 		this.segmentCode = segmentCode;
@@ -27,10 +32,19 @@ public abstract class BaseHL7RemoveSegmentTransformationStep extends BaseMitafMe
 
 	@Override
 	public void process(Message message) throws HL7Exception {
-	
+
 		if (rule.executeRule(message)) {
 			AbstractGroup group = (AbstractGroup) message.getMessage();
+			
+			String[] names = group.getNames();
+			
 			group.removeRepetition(segmentCode, 0);
 		}
+	}
+	
+
+	@Override
+	public Logger getLogger() {
+		return LOG;
 	}
 }

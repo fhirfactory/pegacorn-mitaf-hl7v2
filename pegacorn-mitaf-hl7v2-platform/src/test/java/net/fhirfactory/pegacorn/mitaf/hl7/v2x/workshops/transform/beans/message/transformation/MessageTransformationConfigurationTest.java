@@ -23,11 +23,12 @@ import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01TransformationConfigurationEgres;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ORMTransformationConfigurationEgres;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ConfigurationUtil;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7TransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.MDMT02TransformationConfigurationEgres;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ORMTransformationConfigurationEgres;
 
 /**
  * Tests to make sure the message transformation configuration can instantiate
@@ -61,7 +62,7 @@ public class MessageTransformationConfigurationTest {
 
 			assertTrue(configuration instanceof ADTA01TransformationConfigurationEgres);
 
-			assertEquals(1, configuration.getMessageUpdateSteps().size());
+			assertEquals(2, configuration.getMessageUpdateSteps().size());
 			assertEquals(1, configuration.getSegmentsToBeRemoved().size());
 			
 			LOG.info("HL7 before transformation: {}", hl7);
@@ -70,12 +71,11 @@ public class MessageTransformationConfigurationTest {
 
 			LOG.info("HL7 after transformation: {}", message);
 
-			
-			
 			// Make sure the name has been updated
 			
 			PID pidSegment = ((ADT_A01) message).getPID();
 			assertEquals("Peter", pidSegment.getPatientName()[0].getGivenName().getValue());
+			assertEquals("Anderson", pidSegment.getPatientName()[0].getFamilyLastName().getFamilyName().getValue());
 			
 
 			// Make sure the EVN segment has been removed
@@ -107,7 +107,48 @@ public class MessageTransformationConfigurationTest {
 
 			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
 			
+			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
+			
+			message = transformation.transform();
+			
 			assertTrue(configuration instanceof ORMTransformationConfigurationEgres);
+			
+			// The message will still contain this segment because of the False rule configured in the annotation.
+			assertTrue(message.toString().contains("ZDS"));
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		} catch(HL7Exception e) {
+			fail("Unable to process HL7 message", e);			
+		}
+	}	
+	
+	
+	/**
+	 * Make sure a generic message config can be found eg. ORM instead of ORM^O01.
+	 */
+	@Test
+	public void testRemoveAllRepititionsg() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/MDM_T02.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+			
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
+			
+			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
+			
+			message = transformation.transform();
+			
+			assertTrue(configuration instanceof MDMT02TransformationConfigurationEgres);
+			
+			// All the QBR segments should be removed.
+			assertFalse(message.toString().contains("OBR"));
 		} catch (IOException e) {
 			fail("Unable to read HL7 message", e);
 		} catch(HL7Exception e) {
