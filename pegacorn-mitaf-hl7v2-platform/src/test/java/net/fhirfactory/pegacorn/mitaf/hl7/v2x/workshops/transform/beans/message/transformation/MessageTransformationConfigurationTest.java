@@ -18,9 +18,12 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v231.message.ADT_A01;
-import ca.uhn.hl7v2.model.v231.segment.NK1;
 import ca.uhn.hl7v2.model.v231.segment.PID;
+import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01TransformationConfigurationEgres;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ORMTransformationConfigurationEgres;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ConfigurationUtil;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7TransformationConfiguration;
@@ -45,8 +48,14 @@ public class MessageTransformationConfigurationTest {
 			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ADT_A01.txt"));
 			hl7 = hl7.replaceAll("\n", "\r");
 
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
 
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, "ADT_A01");
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
 				
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 
@@ -57,7 +66,7 @@ public class MessageTransformationConfigurationTest {
 			
 			LOG.info("HL7 before transformation: {}", hl7);
 			
-			Message message = transformation.transform();
+			message = transformation.transform();
 
 			LOG.info("HL7 after transformation: {}", message);
 
@@ -81,6 +90,33 @@ public class MessageTransformationConfigurationTest {
 	
 	
 	/**
+	 * Make sure a generic message config can be found eg. ORM instead of ORM^O01.
+	 */
+	@Test
+	public void testGenericMessageConfig() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ORM_O01.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+			
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
+			
+			assertTrue(configuration instanceof ORMTransformationConfigurationEgres);
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		} catch(HL7Exception e) {
+			fail("Unable to process HL7 message", e);			
+		}
+	}	
+	
+	
+	/**
 	 * Test to make sure the default configuration is used if no configuration class is found.
 	 */
 	@Test
@@ -88,8 +124,15 @@ public class MessageTransformationConfigurationTest {
 		try (HapiContext context = new DefaultHapiContext();) {
 
 			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/VXU_V04.txt"));
+			
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
 
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, "VXU_V04");
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
 			
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 			transformation.transform();
