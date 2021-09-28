@@ -6,13 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An annotation to use when adding a new HL7 segment to an existing message.
+ * An annotation to use when updating a message.
  * 
  * @author Brendan Douglas
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface AddHL7Segments {
-	public AddHL7Segment[] value();
+public @interface UpdateHL7Messages {
+	public UpdateHL7Message[] value();
 }

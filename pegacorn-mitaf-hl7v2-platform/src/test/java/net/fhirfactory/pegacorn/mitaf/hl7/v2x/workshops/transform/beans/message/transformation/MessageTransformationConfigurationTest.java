@@ -54,7 +54,6 @@ public class MessageTransformationConfigurationTest {
 
 			assertEquals(1, configuration.getSegmentsToBeUpdated().size());
 			assertEquals(1, configuration.getSegmentsToBeRemoved().size());
-			assertEquals(1, configuration.getSegmentsToBeAdded().size());
 			
 			LOG.info("HL7 before transformation: {}", hl7);
 			
@@ -69,9 +68,6 @@ public class MessageTransformationConfigurationTest {
 			PID pidSegment = ((ADT_A01) message).getPID();
 			assertEquals("Peter", pidSegment.getPatientName()[0].getGivenName().getValue());
 			
-			// Check to see if the new NK1 segment exists.
-			NK1 nk1Segment = (NK1) message.getMessage().get("NK1");
-			assertEquals("Employed full time", nk1Segment.getJobStatus().getValue());
 
 			// Make sure the EVN segment has been removed
 			assertFalse(message.getMessage().toString().contains("EVN"));

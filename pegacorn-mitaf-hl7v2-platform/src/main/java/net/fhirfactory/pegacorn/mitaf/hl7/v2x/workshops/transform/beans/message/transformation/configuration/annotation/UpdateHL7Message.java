@@ -11,15 +11,16 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
 /**
- * An annotation to use when updating a segment value.
+ * An annotation to use when updating a message.
+ * 
  * 
  * @author Brendan Douglas
  *
  */
-@Repeatable(UpdateHL7Segments.class)
+@Repeatable(UpdateHL7Messages.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface UpdateHL7Segment {
+public @interface UpdateHL7Message {
 	public Class<? extends BaseHL7UpdateTransformationStep> updateClass();
 
 	public Class<? extends Rule> ruleClass() default TrueRule.class;
