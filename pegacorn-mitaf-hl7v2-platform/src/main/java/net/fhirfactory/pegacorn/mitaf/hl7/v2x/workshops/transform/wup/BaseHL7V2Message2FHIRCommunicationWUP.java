@@ -32,6 +32,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRComm
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
@@ -69,6 +70,9 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 
 	@Inject
 	private HL7V2XTopicFactory topicFactory;
+	
+    @Inject
+    protected BaseMessageTransform messageTransform;
 
 	@Override
 	public void configure() throws Exception {
@@ -78,6 +82,7 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(hl7v2TextToMessage, "convertToMessage")
+				.bean(messageTransform, "doIngressTransform")
 				.bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
 				.bean(securityMarkerInjection, "injectSecurityMarkers")
 				.bean(communicationIntoUoW, "packageCommunicationResource")

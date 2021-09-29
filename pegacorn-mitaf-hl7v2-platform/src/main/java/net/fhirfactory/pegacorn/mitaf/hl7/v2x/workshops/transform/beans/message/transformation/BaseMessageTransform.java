@@ -32,13 +32,11 @@ public abstract class BaseMessageTransform {
 		return this.getClass().getPackageName();
 	}
 
-	public Message doTransform(Message message, Direction direction) throws HL7Exception, IOException {	
+	public Message doTransform(Message message, Direction direction) throws HL7Exception, IOException {
 		BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration(getBaseConfigurationPackageName(), direction, message.getName());
 		
-		getLogger().info("Brendan.  Config class: {}", configuration.getClass().getName());
-		
 		HL7MessageTransformation transformation = new HL7MessageTransformation(message, configuration);
-		
+
 		return transformation.transform();
 	}
 	
@@ -54,10 +52,20 @@ public abstract class BaseMessageTransform {
 			return doTransform(parser.parse(message), direction);
 		} 
 	}
-
+	
+	
+	public Message doIngressTransform(Message message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.INGRESS);
+	}
+	
 	
 	public Message doIngressTransform(String message) throws HL7Exception, IOException {
 		return doTransform(message, Direction.INGRESS);
+	}
+	
+	
+	public Message doEgresTransform(Message message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.EGRES);
 	}
 	
 	
