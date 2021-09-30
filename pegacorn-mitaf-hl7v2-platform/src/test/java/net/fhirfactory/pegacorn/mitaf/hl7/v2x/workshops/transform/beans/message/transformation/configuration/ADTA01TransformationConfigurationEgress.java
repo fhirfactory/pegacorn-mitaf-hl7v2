@@ -11,8 +11,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 @RemoveHL7Segment(segmentCode = "EVN")
 @UpdateHL7Message(updateClass = UpdatePersonIdentifierSegmentFirstName.class)
 @UpdateHL7Message(updateClass = UpdatePersonIdentifierSegmentLastName.class)
-public class ADTA01TransformationConfigurationEgres extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(ADTA01TransformationConfigurationEgres.class);
+public class ADTA01TransformationConfigurationEgress extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(ADTA01TransformationConfigurationEgress.class);
 
 	@Override
 	protected Logger getLogger() {

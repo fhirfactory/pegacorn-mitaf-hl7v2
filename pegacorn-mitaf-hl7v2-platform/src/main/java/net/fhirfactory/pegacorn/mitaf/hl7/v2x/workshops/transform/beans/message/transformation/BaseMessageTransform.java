@@ -54,22 +54,22 @@ public abstract class BaseMessageTransform {
 	}
 	
 	
-	public Message doIngressTransform(Message message) throws HL7Exception, IOException {
-		return doTransform(message, Direction.INGRESS);
+	public Message doIngresTransform(Message message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.INGRES);
 	}
 	
 	
-	public Message doIngressTransform(String message) throws HL7Exception, IOException {
-		return doTransform(message, Direction.INGRESS);
+	public Message doIngresTransform(String message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.INGRES);
 	}
 	
 	
-	public Message doEgresTransform(Message message) throws HL7Exception, IOException {
-		return doTransform(message, Direction.EGRES);
+	public Message doEgressTransform(Message message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.EGRESS);
 	}
 	
 	
-	public Message doEgresTransform(String message) throws HL7Exception, IOException {
-		return doTransform(message, Direction.EGRES);
+	public Message doEgressTransform(String message) throws HL7Exception, IOException {
+		return doTransform(message, Direction.EGRESS);
 	}
 }

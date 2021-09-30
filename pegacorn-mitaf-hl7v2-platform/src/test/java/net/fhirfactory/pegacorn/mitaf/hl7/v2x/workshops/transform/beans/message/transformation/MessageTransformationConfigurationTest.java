@@ -22,12 +22,12 @@ import ca.uhn.hl7v2.model.v231.segment.PID;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01TransformationConfigurationEgres;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ADTA01TransformationConfigurationEgress;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ConfigurationUtil;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.DefaultHL7TransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.MDMT02TransformationConfigurationEgres;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.MDMT02TransformationConfigurationEgress;
 
 /**
  * Tests to make sure the message transformation configuration can instantiate
@@ -55,11 +55,11 @@ public class MessageTransformationConfigurationTest {
 			context.setModelClassFactory(cmf);
 			Message message = parser.parse(hl7);
 
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRESS, message.getName());
 				
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 
-			assertTrue(configuration instanceof ADTA01TransformationConfigurationEgres);
+			assertTrue(configuration instanceof ADTA01TransformationConfigurationEgress);
 
 			assertEquals(2, configuration.getMessageUpdateSteps().size());
 			assertEquals(1, configuration.getSegmentsToBeRemoved().size());
@@ -104,13 +104,13 @@ public class MessageTransformationConfigurationTest {
 			context.setModelClassFactory(cmf);
 			Message message = parser.parse(hl7);
 
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRESS, message.getName());
 			
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 			
 			message = transformation.transform();
 			
-			assertTrue(configuration instanceof MDMT02TransformationConfigurationEgres);
+			assertTrue(configuration instanceof MDMT02TransformationConfigurationEgress);
 			
 			// All the QBR segments should be removed.
 			assertFalse(message.toString().contains("OBR"));
@@ -138,7 +138,7 @@ public class MessageTransformationConfigurationTest {
 			context.setModelClassFactory(cmf);
 			Message message = parser.parse(hl7);
 
-			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRES, message.getName());
+			BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation", Direction.EGRESS, message.getName());
 			
 			HL7MessageTransformation transformation = new HL7MessageTransformation(hl7, configuration);
 			transformation.transform();

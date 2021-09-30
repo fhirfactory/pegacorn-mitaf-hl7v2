@@ -9,8 +9,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 @RemoveHL7Segment(segmentCode = "OBR2")
 @RemoveHL7Segment(segmentCode = "OBR3")
 @RemoveHL7Segment(segmentCode = "OBR4")
-public class MDMT02TransformationConfigurationEgres extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(MDMT02TransformationConfigurationEgres.class);
+public class MDMT02TransformationConfigurationEgress extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(MDMT02TransformationConfigurationEgress.class);
 
 	@Override
 	protected Logger getLogger() {
