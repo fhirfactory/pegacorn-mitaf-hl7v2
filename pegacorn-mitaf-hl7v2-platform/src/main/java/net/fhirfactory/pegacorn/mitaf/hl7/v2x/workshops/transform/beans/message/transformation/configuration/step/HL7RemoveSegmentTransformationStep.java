@@ -36,9 +36,11 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 		if (rule.executeRule(message)) {
 			AbstractGroup group = (AbstractGroup) message.getMessage();
 			
-			String[] names = group.getNames();
-			
-			group.removeRepetition(segmentCode, 0);
+			try {
+				group.removeRepetition(segmentCode, 0);
+			} catch(HL7Exception e) {
+				LOG.info("Attept to remove a segment which does not exist");
+			}
 		}
 	}
 	
