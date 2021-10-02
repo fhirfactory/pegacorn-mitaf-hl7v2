@@ -27,14 +27,16 @@ public class ConfigurationUtil {
 	}
 
 	/**
-	 * Returns the appropriate configuration object.
+	 * Returns the configuration classes.  
 	 * 
 	 * @param configurationType
 	 * @param basePackageName
 	 * @param filenamePrefix
 	 * @return
 	 */
-	public static BaseHL7MessageTransformationConfiguration getConfiguration(List<String> packageNames, Direction direction, String messageName) {
+	public static List<BaseHL7MessageTransformationConfiguration> getConfiguration(List<String> packageNames, Direction direction, String messageName) {
+		
+		List<BaseHL7MessageTransformationConfiguration>configClasses = new ArrayList<>();
 		
 		for (String packageName : packageNames) {
 		
@@ -61,12 +63,12 @@ public class ConfigurationUtil {
 						if (direction == Direction.EGRESS) {
 							Egress messageFlowDirectionAnnotation = classWithAnnotation.getAnnotation(Egress.class);
 							if (messageFlowDirectionAnnotation != null) {
-								return instantiateConfigurationClass(classWithAnnotation.getName());
+								configClasses.add(instantiateConfigurationClass(classWithAnnotation.getName()));
 							}
 						} else if (direction == Direction.INGRES) {
 							Ingress messageFlowDirectionAnnotation = classWithAnnotation.getAnnotation(Ingress.class);
 							if (messageFlowDirectionAnnotation != null) {
-								return instantiateConfigurationClass(classWithAnnotation.getName());
+								configClasses.add(instantiateConfigurationClass(classWithAnnotation.getName()));
 							}							
 						}
 					}
@@ -74,7 +76,7 @@ public class ConfigurationUtil {
 			}
 		}
 		
-		return null; // null is valid.  Calling classes will check the return value.  If null then no transformation is required.
+		return configClasses;
 	}
 	
 	

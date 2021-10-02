@@ -44,16 +44,17 @@ public abstract class BaseMessageTransform {
 			packageNames.add(((ConfigPath)locationAnnotation).value());
 		}
 		
-		BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration(packageNames, direction, message.getName());
+		List<BaseHL7MessageTransformationConfiguration> messageTransformationConfigurations = ConfigurationUtil.getConfiguration(packageNames, direction, message.getName());
 
 		
-		if (configuration != null) {
-			HL7MessageTransformation transformation = new HL7MessageTransformation(message, configuration);
+		// Transform the message using all of the found config classes.	
+		for (BaseHL7MessageTransformationConfiguration config : messageTransformationConfigurations) {
+			HL7MessageTransformation transformation = new HL7MessageTransformation(message, config);
 
-			return transformation.transform();
+			message = transformation.transform();
 		}
 		
-		return message; // Just returns the original message
+		return message;
 	}
 	
 	

@@ -136,8 +136,7 @@ public class MessageTransformationConfigurationTest {
 	
 	
 	/**
-	 * Test to make sure the correct config class is found when multiple packages are
-	 * supplied in the annotation.
+	 * Test to make sure the transformation rules in multiple config classes can be executed.
 	 */
 	@Test
 	public void testUpdateMessageMultiplePackages() {
@@ -156,10 +155,10 @@ public class MessageTransformationConfigurationTest {
 			
 			transformation.doEgressTransform(message);
 
-			// Make sure the name has not been updated
+			// Make sure the name has been updated.
 			PID pidSegment = ((ADT_A01) message).getPID();
-			assertEquals("ADAM", pidSegment.getPatientName()[0].getGivenName().getValue());
-			assertEquals("EVERYMAN", pidSegment.getPatientName()[0].getFamilyLastName().getFamilyName().getValue());
+			assertEquals("Peter", pidSegment.getPatientName()[0].getGivenName().getValue());
+			assertEquals("Anderson", pidSegment.getPatientName()[0].getFamilyLastName().getFamilyName().getValue());
 			
 			// Make sure the EVN segment has been removed
 			assertFalse(message.getMessage().toString().contains("EVN"));
