@@ -21,6 +21,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
  */
 public class ConfigurationUtil {
 	private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtil.class);
+	
+	private static final String MESSAGE_TYPE_WILDCARD = "*";
 
 	private ConfigurationUtil() {
 		// Hide the constructor.
@@ -55,8 +57,11 @@ public class ConfigurationUtil {
 			
 			for (Class<?> classWithAnnotation : classesWithAnnotation) {
 				for (MessageType messageTypeAnnotation : classWithAnnotation.getAnnotationsByType(MessageType.class)) {
-	
-					if (messageTypeAnnotation.value().equals(messageName)) {
+					
+					boolean messageTypeContainsWildcard = messageTypeAnnotation.value().endsWith(MESSAGE_TYPE_WILDCARD);
+
+					// Check to see if the message name matches or a partial match if a wildcard was supplied.
+					if (messageTypeAnnotation.value().equals(messageName) || (messageTypeContainsWildcard && messageTypeAnnotation.value().substring(0, 3).equals(messageName.substring(0, 3)))) {
 						
 						// A class has been found. Now check the message flow direction.
 
