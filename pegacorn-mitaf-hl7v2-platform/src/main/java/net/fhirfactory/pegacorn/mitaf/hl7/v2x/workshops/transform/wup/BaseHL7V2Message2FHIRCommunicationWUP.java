@@ -82,7 +82,7 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(hl7v2TextToMessage, "convertToMessage")
-				.bean(messageTransform, "doIngressTransform")
+				.bean(messageTransform, "doIngresTransform")
 				.bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
 				.bean(securityMarkerInjection, "injectSecurityMarkers")
 				.bean(communicationIntoUoW, "packageCommunicationResource")

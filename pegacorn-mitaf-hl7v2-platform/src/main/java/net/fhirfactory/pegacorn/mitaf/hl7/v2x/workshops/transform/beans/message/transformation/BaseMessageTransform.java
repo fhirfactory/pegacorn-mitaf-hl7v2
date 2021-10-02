@@ -1,6 +1,8 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 
@@ -14,7 +16,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.ConfigurationUtil;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
-
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.ConfigPath;
 /**
  * Performs message transformations.  An appropriate transformation class is instantiated
  * based on the message type and the message flow.
@@ -33,11 +35,25 @@ public abstract class BaseMessageTransform {
 	}
 
 	public Message doTransform(Message message, Direction direction) throws HL7Exception, IOException {
-		BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration(getBaseConfigurationPackageName(), direction, message.getName());
+	
+		List<String>packageNames = new ArrayList<>(); 
 		
-		HL7MessageTransformation transformation = new HL7MessageTransformation(message, configuration);
+		ConfigPath[] locationAnnotations = this.getClass().getAnnotationsByType(ConfigPath.class);
+		
+		for (ConfigPath locationAnnotation :  locationAnnotations) {
+			packageNames.add(((ConfigPath)locationAnnotation).value());
+		}
+		
+		BaseHL7MessageTransformationConfiguration configuration = (BaseHL7MessageTransformationConfiguration) ConfigurationUtil.getConfiguration(packageNames, direction, message.getName());
 
-		return transformation.transform();
+		
+		if (configuration != null) {
+			HL7MessageTransformation transformation = new HL7MessageTransformation(message, configuration);
+
+			return transformation.transform();
+		}
+		
+		return message; // Just returns the original message
 	}
 	
 	

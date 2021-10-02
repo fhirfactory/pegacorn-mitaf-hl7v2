@@ -64,7 +64,7 @@ public abstract class BaseHL7MessageTransformationConfiguration {
 						
 						// Instantiate the update class
 						try {
-							String segmentCode = ((RemoveHL7Segment)removeAnnotation).segmentCode();
+							String segmentCode = ((RemoveHL7Segment)removeAnnotation).value();
 							
 							HL7RemoveSegmentTransformationStep segmentRemove = new HL7RemoveSegmentTransformationStep(segmentCode, rule);
 	

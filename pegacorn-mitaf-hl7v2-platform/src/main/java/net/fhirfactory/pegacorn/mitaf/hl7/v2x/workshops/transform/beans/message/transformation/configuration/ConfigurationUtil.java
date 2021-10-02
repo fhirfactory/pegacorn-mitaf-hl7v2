@@ -1,9 +1,17 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.Egress;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.Ingress;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.MessageType;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.MessageTypes;
 
 /**
  * A class to instantiate the appropriate transformation class or the default configuration.
@@ -26,22 +34,52 @@ public class ConfigurationUtil {
 	 * @param filenamePrefix
 	 * @return
 	 */
-	public static BaseHL7MessageTransformationConfiguration getConfiguration( String basePackageName, Direction direction, String filenamePrefix) {
-		StringBuilder sb = new StringBuilder();
+	public static BaseHL7MessageTransformationConfiguration getConfiguration(List<String> packageNames, Direction direction, String messageName) {
+		
+		for (String packageName : packageNames) {
+		
+			Reflections ref = new Reflections(packageName);
+			
+			List<Class<?>>classesWithAnnotation = new ArrayList<>();
+		
+			for (Class<?> cl : ref.getTypesAnnotatedWith(MessageType.class)) {
+				classesWithAnnotation.add(cl);
+			}
+			
+			for (Class<?> cl : ref.getTypesAnnotatedWith(MessageTypes.class)) {
+				classesWithAnnotation.add(cl);
+			}			
+			
+			
+			for (Class<?> classWithAnnotation : classesWithAnnotation) {
+				for (MessageType messageTypeAnnotation : classWithAnnotation.getAnnotationsByType(MessageType.class)) {
+	
+					if (messageTypeAnnotation.value().equals(messageName)) {
+						
+						// A class has been found. Now check the message flow direction.
 
-		sb.append(basePackageName);
-		sb.append(".");
-		sb.append("configuration");
-		sb.append(".");
-		sb.append(filenamePrefix.replaceAll("_", ""));
-		sb.append("TransformationConfiguration");
-		sb.append(direction);
-
-		// Now try and instantiate the class.
-		return instantiateConfigurationClass(sb.toString(), DefaultHL7TransformationConfiguration.class);
+						if (direction == Direction.EGRESS) {
+							Egress messageFlowDirectionAnnotation = classWithAnnotation.getAnnotation(Egress.class);
+							if (messageFlowDirectionAnnotation != null) {
+								return instantiateConfigurationClass(classWithAnnotation.getName());
+							}
+						} else if (direction == Direction.INGRES) {
+							Ingress messageFlowDirectionAnnotation = classWithAnnotation.getAnnotation(Ingress.class);
+							if (messageFlowDirectionAnnotation != null) {
+								return instantiateConfigurationClass(classWithAnnotation.getName());
+							}							
+						}
+					}
+				}
+			}
+		}
+		
+		return null; // null is valid.  Calling classes will check the return value.  If null then no transformation is required.
 	}
+	
+	
 
-	private static BaseHL7MessageTransformationConfiguration instantiateConfigurationClass(String classname, Class<?>defaultConfiguration) {
+	private static BaseHL7MessageTransformationConfiguration instantiateConfigurationClass(String classname) {
 		BaseHL7MessageTransformationConfiguration configuration = null;
 
 		// Use reflection to instantiate the message transformer class.
@@ -53,25 +91,9 @@ public class ConfigurationUtil {
 			LOG.info("Found a transformer configuration file: {}", configuration);
 
 			return configuration;
-		} catch (ClassNotFoundException e) {
+		} catch (Exception e ) {
+			throw new RuntimeException("Unable to create the configuration class.  Class name: " + classname);
 			
-			if (defaultConfiguration != null) {
-				LOG.info("No transformation class found so using the default");
-				
-
-				try {
-					Constructor<?> constructor = defaultConfiguration.getConstructor();
-					configuration = (BaseHL7MessageTransformationConfiguration) constructor.newInstance();
-				} catch(Exception e1) {
-					throw new RuntimeException("Unable to instantiate the default configuration", e);
-				}
-				
-				return configuration;
-			} 
-			
-			throw new RuntimeException("Unable to find a configuration class");
-		} catch (Exception e) {
-			throw new RuntimeException("Error constructing a transformation class.  The configuration might be incorrect", e);
 		}
 	}
 }

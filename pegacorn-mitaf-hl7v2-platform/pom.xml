@@ -206,6 +206,13 @@
             <version>${version-ch.qos.logback-classic}</version>
             <scope>compile</scope>
         </dependency>
+        
+		<dependency>
+		    <groupId>org.reflections</groupId>
+		    <artifactId>reflections</artifactId>
+		    <version>0.9.12</version>
+		</dependency>
+
     </dependencies>
     <profiles>
         <profile>
