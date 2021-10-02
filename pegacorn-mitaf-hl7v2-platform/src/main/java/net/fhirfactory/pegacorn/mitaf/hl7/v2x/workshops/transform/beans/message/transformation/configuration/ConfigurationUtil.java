@@ -46,7 +46,7 @@ public class ConfigurationUtil {
 
 		// Use reflection to instantiate the message transformer class.
 		try {
-			LOG.info("Brendan.  class name: " + classname);
+			LOG.info("class name: {}", classname);
 			
 			Class<?> transformationClass = Class.forName(classname);
 			Constructor<?> constructor = transformationClass.getConstructor();

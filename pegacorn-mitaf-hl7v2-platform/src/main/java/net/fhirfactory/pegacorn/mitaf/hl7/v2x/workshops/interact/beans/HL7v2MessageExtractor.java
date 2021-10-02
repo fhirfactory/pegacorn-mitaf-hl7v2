@@ -32,20 +32,24 @@ import javax.enterprise.context.Dependent;
 public class HL7v2MessageExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
 
+    protected Logger getLogger(){
+        return(LOG);
+    }
+
 	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
-		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
 		//
 		// Because auditing is not running yet
 		// Remove once Auditing is in place
 		//
 		//getLogger().info("IncomingMessage-----------------------------------------------------------------");
-		LOG.warn("OutgoingMessage->{}", messageAsString); // Log at WARN level so always seen in TEST
+		getLogger().warn("OutgoingMessage->{}", messageAsString); // Log at WARN level so always seen in TEST
 		//getLogger().info("IncomingMessage-----------------------------------------------------------------");
 		//
 		//
 		//
-		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+		getLogger().debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
 		return (messageAsString);
 	}
 }

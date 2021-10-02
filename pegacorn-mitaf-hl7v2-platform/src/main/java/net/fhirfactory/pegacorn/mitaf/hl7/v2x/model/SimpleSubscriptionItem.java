@@ -53,7 +53,7 @@ public class SimpleSubscriptionItem {
     @Override
     public String toString() {
         return "SimpleSubscriptionItem{" +
-                "sourceSystem='" + sourceSystem + '\'' +
+                "sourceSystem=" + sourceSystem +
                 ", descriptorList=" + descriptorList +
                 '}';
     }
