@@ -14,11 +14,13 @@
     <artifactId>pegacorn-mitaf-hl7v2</artifactId>
     <packaging>pom</packaging>
 
-    <name>Pegacorn :: Mitaf :: HL7v2</name>
+    <name>Pegacorn :: MITaF :: HL7v2</name>
     <description></description>
 
     <modules>
-	<module>../pegacorn-mitaf-hl7v2-platform</module>
+	    <module>../pegacorn-mitaf-hl7v2-platform</module>
+        <module>../pegacorn-mitaf-hl7v231</module>
+        <module>../pegacorn-mitaf-hl7v24</module>
     </modules>
 
     <properties>

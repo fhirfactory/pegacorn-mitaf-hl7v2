@@ -12,10 +12,10 @@
         <relativePath>../pegacorn-mitaf-hl7v2</relativePath>
     </parent>
 
-    <artifactId>pegacorn-mitaf-hl7v2-platform</artifactId>
+    <artifactId>pegacorn-mitaf-hl7v231</artifactId>
     <packaging>jar</packaging>
 
-    <name>Pegacorn :: MITaF :: HL7v2.x :: Platform</name>
+    <name>Pegacorn :: MITaF :: HL7v2.3.1 (Base)</name>
     <description></description>
 
     <properties>
@@ -140,20 +140,6 @@
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-components</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-fhir</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-platform-petasos-core</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
@@ -176,6 +162,13 @@
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-buildingblocks-edge-model</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-mitaf-hl7v2-platform</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
