@@ -39,17 +39,16 @@ public class HL7v2MessageExtractor {
 	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
 		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
-		//
 		// Because auditing is not running yet
 		// Remove once Auditing is in place
 		//
 		//getLogger().info("IncomingMessage-----------------------------------------------------------------");
-		getLogger().warn("OutgoingMessage->{}", messageAsString); // Log at WARN level so always seen in TEST
+		LOG.warn("HL7 Egress Message->{}", messageAsString); // Log at WARN level so always seen in TEST
 		//getLogger().info("IncomingMessage-----------------------------------------------------------------");
 		//
 		//
 		//
-		getLogger().debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
 		return (messageAsString);
 	}
 }

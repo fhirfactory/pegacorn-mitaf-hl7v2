@@ -22,6 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
@@ -41,6 +42,8 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
 
     public PegacornEdgeHL7v2xPolicyEnforcementPoint(){
         jsonMapper = new ObjectMapper();
+        JavaTimeModule module = new JavaTimeModule();
+        jsonMapper.registerModule(module);
     }
 
     public UoW enforceIngresPolicy(UoW uow, Exchange camelExchange){

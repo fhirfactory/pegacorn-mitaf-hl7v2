@@ -1,7 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
 import net.fhirfactory.pegacorn.petasos.audit.brokers.MOAServicesAuditBroker;
-import net.fhirfactory.pegacorn.petasos.core.common.resilience.processingplant.cache.ProcessingPlantParcelCacheDM;
+import net.fhirfactory.pegacorn.petasos.core.moa.resilience.processingplant.cache.ProcessingPlantResilienceParcelCacheDM;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.resilience.activitymatrix.moa.ParcelStatusElement;
 import net.fhirfactory.pegacorn.petasos.model.resilience.parcel.ResilienceParcel;
@@ -16,7 +16,7 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private ProcessingPlantParcelCacheDM parcelCacheDM;
+    private ProcessingPlantResilienceParcelCacheDM parcelCacheDM;
 
     @Inject
     private MOAServicesAuditBroker servicesBroker;

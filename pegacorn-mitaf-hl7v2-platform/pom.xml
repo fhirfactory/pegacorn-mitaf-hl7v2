@@ -124,20 +124,7 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-model</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-datasets</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
+
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-buildingblocks-datamodels-components</artifactId>
@@ -152,13 +139,7 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-petasos-core</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
+
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-buildingblocks-processingplant</artifactId>
@@ -176,6 +157,58 @@
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-buildingblocks-edge-model</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
+        <!-- Pegacorn (Petasos) Libraries                                                  -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-platform-petasos-model</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-platform-petasos-core</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-platform-petasos-datasets</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
+        <!-- Pegacorn (Petasos Audit) Libraries                                            -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-platform-petasos-audit</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
+        <!-- Pegacorn (Petasos IT-Ops) Libraries                                           -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-platform-petasos-itops</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>

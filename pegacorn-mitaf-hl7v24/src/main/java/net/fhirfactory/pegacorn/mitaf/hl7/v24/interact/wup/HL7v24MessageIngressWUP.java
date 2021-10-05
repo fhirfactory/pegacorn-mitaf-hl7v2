@@ -38,7 +38,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
 
     @Inject
     private MLLPActivityAuditTrail mllpAuditTrail;
-
+    
     @Override
     protected String specifyWUPInstanceName() {
         return (this.getClass().getSimpleName());
@@ -54,7 +54,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
         getLogger().warn("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
-        fromInteractIngresService(ingresFeed())
+        fromIngresMLLP(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
