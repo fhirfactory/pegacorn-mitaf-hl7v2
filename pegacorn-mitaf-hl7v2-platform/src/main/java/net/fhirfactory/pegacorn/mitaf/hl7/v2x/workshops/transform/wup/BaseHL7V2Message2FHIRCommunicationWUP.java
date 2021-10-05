@@ -76,8 +76,8 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 
 	@Override
 	public void configure() throws Exception {
-		getLogger().info(this.getClass().getName() + ":: ingresFeed() --> {}", this.ingresFeed());
-		getLogger().info(this.getClass().getName() + ":: egressFeed() --> {}", this.egressFeed());
+        getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
+        getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())

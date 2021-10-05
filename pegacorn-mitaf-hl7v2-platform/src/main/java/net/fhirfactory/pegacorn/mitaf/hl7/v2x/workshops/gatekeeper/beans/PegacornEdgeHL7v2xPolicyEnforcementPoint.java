@@ -33,6 +33,10 @@ import org.slf4j.LoggerFactory;
 public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
     private static final Logger LOG = LoggerFactory.getLogger(PegacornEdgeHL7v2xPolicyEnforcementPoint.class);
 
+    protected Logger getLogger(){
+        return(LOG);
+    }
+
     ObjectMapper jsonMapper;
 
     public PegacornEdgeHL7v2xPolicyEnforcementPoint(){
@@ -40,7 +44,7 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
     }
 
     public UoW enforceIngresPolicy(UoW uow, Exchange camelExchange){
-        LOG.debug(".enforceIngresPolicy(): Entry, uow->{}", uow);
+        getLogger().debug(".enforceIngresPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }
@@ -54,7 +58,7 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
     }
 
     public UoW enforceEgressPolicy(UoW uow, Exchange camelExchange){
-        LOG.debug(".enforceEgressPolicy(): Entry, uow->{}", uow);
+        getLogger().debug(".enforceEgressPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }

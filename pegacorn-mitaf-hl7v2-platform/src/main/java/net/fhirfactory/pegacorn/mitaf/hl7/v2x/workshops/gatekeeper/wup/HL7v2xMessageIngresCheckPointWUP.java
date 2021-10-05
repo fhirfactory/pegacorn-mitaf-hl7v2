@@ -82,7 +82,7 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
 
     @Override
     protected List<DataParcelManifest> specifySubscriptionTopics() {
-        LOG.debug(".specifySubscriptionTopics(): Entry");
+        getLogger().debug(".specifySubscriptionTopics(): Entry");
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
         DataParcelManifest communicationEvents = new DataParcelManifest();
         DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
@@ -116,8 +116,8 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
 
     @Override
     public void configure() throws Exception {
-        getLogger().info(this.getClass().getName() + ":: ingresFeed() --> {}", this.ingresFeed());
-        getLogger().info(this.getClass().getName() + ":: egressFeed() --> {}", this.egressFeed());
+        getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
+        getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
