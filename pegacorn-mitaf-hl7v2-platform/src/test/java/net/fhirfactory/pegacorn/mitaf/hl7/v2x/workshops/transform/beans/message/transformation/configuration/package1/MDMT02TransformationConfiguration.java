@@ -1,4 +1,4 @@
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.package4;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.package1;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,17 +9,19 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.RemoveHL7Segment;
 
 /**
- * A test transformation config class used by all ADT messages.  The * in the @MessageType
- * annotation is a wildcard so in this config it is for all ADT message types.
+ * A test transformation config class.  Removes multiple segments.
  * 
  * @author Brendan Douglas
  *
  */
 @Egress
-@MessageType("ADT_*")
-@RemoveHL7Segment("PID")
-public class TransformationConfigurationADTCommon extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(TransformationConfigurationADTCommon.class);
+@MessageType("MDM_T02")
+@RemoveHL7Segment("OBR")
+@RemoveHL7Segment("OBR2")
+@RemoveHL7Segment("OBR3")
+@RemoveHL7Segment("OBR4")
+public class MDMT02TransformationConfiguration extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(MDMT02TransformationConfiguration.class);
 
 	@Override
 	protected Logger getLogger() {

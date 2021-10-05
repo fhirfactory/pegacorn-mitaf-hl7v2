@@ -95,7 +95,7 @@ public class ConfigurationUtil {
 			Constructor<?> constructor = transformationClass.getConstructor();
 			configuration = (BaseHL7MessageTransformationConfiguration) constructor.newInstance();
 
-			LOG.info("Found a transformer configuration file: {}", configuration);
+			LOG.debug("Found a transformer configuration class: {}", configuration);
 
 			return configuration;
 		} catch (Exception e ) {

@@ -7,7 +7,7 @@ import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 
 /**
- * Base class for all HL7 transformation classes.
+ * Base class for all HL7 transformation step classes.
  *
  *
  */

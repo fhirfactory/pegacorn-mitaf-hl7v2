@@ -8,11 +8,17 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.MessageType;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.RemoveHL7Segment;
 
+/**
+ * A test transformation config class.  Performs a single remove
+ * 
+ * @author Brendan Douglas
+ *
+ */
 @Egress
 @MessageType("ADT_A01")
 @RemoveHL7Segment("EVN")
-public class TransformationConfigurationThree extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(TransformationConfigurationThree.class);
+public class ADTA01TransformationConfiguration extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(ADTA01TransformationConfiguration.class);
 
 	@Override
 	protected Logger getLogger() {

@@ -10,7 +10,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
 /**
- * Base class for all HL7 remove segment transformation steps.
+ * Removes a segment.
  * 
  * @author Brendan Douglas
  *

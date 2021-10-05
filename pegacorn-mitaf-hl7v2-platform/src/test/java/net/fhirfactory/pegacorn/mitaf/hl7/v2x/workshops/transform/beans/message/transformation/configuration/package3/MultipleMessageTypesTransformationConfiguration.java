@@ -8,12 +8,18 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.MessageType;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.RemoveHL7Segment;
 
+/**
+ * A test transformation config class.  Has multiple message types.
+ * 
+ * @author Brendan Douglas
+ *
+ */
 @Egress
 @MessageType("ADT_A01")
 @MessageType("MDM_T02")
 @RemoveHL7Segment("PID")
-public class TransformationConfigurationThree extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(TransformationConfigurationThree.class);
+public class MultipleMessageTypesTransformationConfiguration extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(MultipleMessageTypesTransformationConfiguration.class);
 
 	@Override
 	protected Logger getLogger() {

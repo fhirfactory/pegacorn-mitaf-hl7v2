@@ -7,7 +7,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 
 @ConfigPath("net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.package4") // This config has a wildcard.
 public class MessageTransformationBeanWithWildcardConfig extends BaseMessageTransform {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7MessageTransformation.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MessageTransformationBeanWithWildcardConfig.class);
 
 	@Override
 	protected Logger getLogger() {

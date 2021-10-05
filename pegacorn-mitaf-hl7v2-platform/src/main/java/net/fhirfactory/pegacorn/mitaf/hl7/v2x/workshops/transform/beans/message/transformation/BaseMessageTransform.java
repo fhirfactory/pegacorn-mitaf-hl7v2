@@ -18,10 +18,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Direction;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.ConfigPath;
 /**
- * Performs message transformations.  An appropriate transformation class is instantiated
- * based on the message type and the message flow.
- * 
- * An implementation of this class is required even if no transformation is needed.
+ * Performs message transformations.  Instantiates one or more transformation config classes and executes ALL the steps.
  * 
  * @author Brendan Douglas
  *
@@ -47,7 +44,7 @@ public abstract class BaseMessageTransform {
 		List<BaseHL7MessageTransformationConfiguration> messageTransformationConfigurations = ConfigurationUtil.getConfiguration(packageNames, direction, message.getName());
 
 		
-		// Transform the message using all of the found config classes.	
+		// Transform the message using ALL of the found config classes.	
 		for (BaseHL7MessageTransformationConfiguration config : messageTransformationConfigurations) {
 			HL7MessageTransformation transformation = new HL7MessageTransformation(message, config);
 

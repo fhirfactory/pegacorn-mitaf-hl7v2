@@ -16,6 +16,7 @@ import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.BaseHL7MessageTransformationConfiguration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseHL7UpdateTransformationStep;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.BaseMitafMessageTransformStep;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step.HL7RemoveSegmentTransformationStep;
 
 /**
@@ -56,15 +57,10 @@ public class HL7MessageTransformation  {
 	 * @throws HL7Exception
 	 */
 	public Message transform() throws HL7Exception {
-		for (BaseHL7UpdateTransformationStep updateTransformationStep : config.getMessageUpdateSteps()) {
-			updateTransformationStep.process(message);
-		}
-		
-		for (HL7RemoveSegmentTransformationStep segmentToBeRemoved : config.getSegmentsToBeRemoved()) {
-			segmentToBeRemoved.process(message);
+		for (BaseMitafMessageTransformStep transformationStep : config.getTransformationSteps()) {
+			transformationStep.process(message);
 		}
 				
-
 		return message;
 	}
 

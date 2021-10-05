@@ -2,6 +2,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -185,7 +186,7 @@ public class MessageTransformationConfigurationTest {
 			context.setModelClassFactory(cmf);
 			Message adtMessage = parser.parse(adt);
 			
-			MessageTransformationBeanPackage3 transformation = new MessageTransformationBeanPackage3();
+			MessageTransformationBeanMultipleMessageTypes transformation = new MessageTransformationBeanMultipleMessageTypes();
 			
 			transformation.doEgressTransform(adtMessage);
 			
@@ -241,5 +242,81 @@ public class MessageTransformationConfigurationTest {
 		} catch (IOException e) {
 			fail("Unable to read HL7 message", e);
 		}
+	}
+	
+	
+	/**
+	 * Tests the required segment codes annotation.  All segments which are not one of the 
+	 * required ones are removed.
+	 */
+	@Test
+	public void testRequiredSegmentCodes() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ADT_A01.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+			
+			MessageTransformationBeanWithRequiredSegmentsConfig transformation = new MessageTransformationBeanWithRequiredSegmentsConfig();
+			
+			transformation.doEgressTransform(message);
+	
+			// Make sure the following 2 segments have been removed
+			assertFalse(message.getMessage().toString().contains("PID"));
+			assertFalse(message.getMessage().toString().contains("PV1"));
+			
+			// Make sure the following 2 segments still exist
+			assertTrue(message.getMessage().toString().contains("MSH"));
+			assertTrue(message.getMessage().toString().contains("EVN"));
+			
+		} catch (HL7Exception e) {
+			fail("Unable to process HL7 message", e);
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		}		
+	}
+	
+	
+	/**
+	 * Tests the false rule.  Make sure the transformation does not occur.
+	 */
+	@Test
+	public void testFalseRule() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ADT_A01.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+			
+			MessageTransformationBeanWithRequiredSegmentsFalseRuleConfig transformation = new MessageTransformationBeanWithRequiredSegmentsFalseRuleConfig();
+			
+			transformation.doEgressTransform(message);
+	
+			// Make sure the following 4 segments have not been removed
+			assertTrue(message.getMessage().toString().contains("PID"));
+			assertTrue(message.getMessage().toString().contains("PV1"));
+			assertTrue(message.getMessage().toString().contains("MSH"));
+			assertTrue(message.getMessage().toString().contains("EVN"));
+			
+			// Make sure the name has not been updated
+			PID pidSegment = ((ADT_A01) message).getPID();
+			assertEquals("ADAM", pidSegment.getPatientName()[0].getGivenName().getValue());
+			assertEquals("EVERYMAN", pidSegment.getPatientName()[0].getFamilyLastName().getFamilyName().getValue());
+			
+		} catch (HL7Exception e) {
+			fail("Unable to process HL7 message", e);
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		}		
 	}
 }

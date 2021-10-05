@@ -11,13 +11,19 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.RemoveHL7Segment;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation.UpdateHL7Message;
 
+/**
+ * A test transformation config class.  Performs both a remove and updates.
+ * 
+ * @author Brendan Douglas
+ *
+ */
 @Egress
 @MessageType("ADT_A01")
 @RemoveHL7Segment("EVN")
 @UpdateHL7Message(updateClass = UpdatePersonIdentifierSegmentFirstName.class)
 @UpdateHL7Message(updateClass = UpdatePersonIdentifierSegmentLastName.class)
-public class TransformationConfigurationOne extends BaseHL7MessageTransformationConfiguration {
-	private static final Logger LOG = LoggerFactory.getLogger(TransformationConfigurationOne.class);
+public class ADTO01TransformationConfiguration extends BaseHL7MessageTransformationConfiguration {
+	private static final Logger LOG = LoggerFactory.getLogger(ADTO01TransformationConfiguration.class);
 
 	@Override
 	protected Logger getLogger() {
