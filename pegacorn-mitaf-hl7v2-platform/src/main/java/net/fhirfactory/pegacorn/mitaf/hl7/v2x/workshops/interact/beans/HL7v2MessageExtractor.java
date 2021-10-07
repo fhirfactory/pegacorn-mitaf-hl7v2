@@ -39,9 +39,13 @@ public class HL7v2MessageExtractor {
 	@Inject
 	private WorkUnitProcessorMetricsCollectionAgent metricsAgent;
 
+    protected Logger getLogger(){
+        return(LOG);
+    }
+
 	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
-		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 		WorkUnitProcessorTopologyNode node = camelExchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorTopologyNode.class);
+		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
 		// Because auditing is not running yet
 		// Remove once Auditing is in place
