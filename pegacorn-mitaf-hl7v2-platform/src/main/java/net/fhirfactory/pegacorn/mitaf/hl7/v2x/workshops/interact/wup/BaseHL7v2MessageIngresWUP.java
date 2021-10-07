@@ -28,12 +28,11 @@ import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.component.seda.SedaEndpoint;
 import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.common.PetasosEndpointTopologyTypeEnum;
-import net.fhirfactory.pegacorn.petasos.itops.collectors.ITOpsMetricsCollectionAgent;
+import net.fhirfactory.pegacorn.petasos.itops.collectors.metrics.WorkUnitProcessorMetricsCollectionAgent;
 import org.thymeleaf.util.StringUtils;
 
 /**
@@ -51,7 +50,7 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
     private InteractWorkshop interactWorkshop;
     
     @Inject
-    private ITOpsMetricsCollectionAgent metricsCollectionAgent;
+    private WorkUnitProcessorMetricsCollectionAgent metricsCollectionAgent;
 
     @Override
     protected WorkshopInterface specifyWorkshop() {
@@ -101,19 +100,16 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
         String componentID = wupTopologyNode.getComponentID();
         if(StringUtils.isEmpty(mllpRemoteAddress)){
             getLogger().info(".captureMetrics(): componentID->{}, mllpRemoteAddress->Not Reported", componentID);
-            metricsCollectionAgent.updateRemoteEndpointDetail(wupTopologyNode.getComponentID(), "Not Reported");
+//            metricsCollectionAgent.updateRemoteEndpointDetail(wupTopologyNode.getComponentID(), "Not Reported");
         } else {
             getLogger().info(".captureMetrics(): componentID->{}, mllpRemoteAddress->{}", componentID, mllpRemoteAddress);
-            metricsCollectionAgent.updateRemoteEndpointDetail(wupTopologyNode.getComponentID(), mllpRemoteAddress);
+//            metricsCollectionAgent.updateRemoteEndpointDetail(wupTopologyNode.getComponentID(), mllpRemoteAddress);
         }
     }
 
-    private void captureSEDAQueueSize(Exchange camelExchange, WorkUnitProcessorTopologyNode wupTopologyNode){
-        String ingresProcessorIngresName = getNameSet().getEndPointWUPContainerIngresProcessorIngres();
-        if(ingresProcessorIngresName.contains("seda")){
-            SedaEndpoint seda = (SedaEndpoint)getCamelContext().getEndpoint(ingresProcessorIngresName);
-            int size = seda.getExchanges().size();
-            metricsCollectionAgent.updateWUPIngresSEDAQueueSize(wupTopologyNode.getComponentID(), size);
-        }
+    @Override
+    protected String specifyWUPInstanceName() {
+        String wupName = this.getClass().getSimpleName();
+        return (wupName);
     }
 }

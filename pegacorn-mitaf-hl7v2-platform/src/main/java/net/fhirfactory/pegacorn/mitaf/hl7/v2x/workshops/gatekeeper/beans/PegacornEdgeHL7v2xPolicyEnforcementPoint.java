@@ -26,6 +26,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
         ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
         uow.getEgressContent().addPayloadElement(ingresPayload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
 
@@ -67,6 +69,7 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
         ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
         uow.getEgressContent().addPayloadElement(ingresPayload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
 }

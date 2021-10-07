@@ -29,15 +29,8 @@ public abstract class HL7v24MessageEgressWUP extends BaseHL7v2MessageEgressWUP {
     private String CAMEL_COMPONENT_TYPE="mllp";
 
     @Override
-    protected String specifyWUPInstanceName() {
-        return (this.getClass().getSimpleName());
-    }
-
-    @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
     }
-
-
 
 }

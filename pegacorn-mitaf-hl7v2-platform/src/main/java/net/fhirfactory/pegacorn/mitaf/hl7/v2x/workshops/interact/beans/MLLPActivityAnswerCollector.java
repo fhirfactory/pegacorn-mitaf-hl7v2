@@ -21,11 +21,11 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.deployment.topology.model.nodes.WorkUnitProcessorTopologyNode;
+import net.fhirfactory.pegacorn.petasos.itops.collectors.metrics.WorkUnitProcessorMetricsCollectionAgent;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
@@ -36,15 +36,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 @ApplicationScoped
 public class MLLPActivityAnswerCollector {
     private static final Logger LOG = LoggerFactory.getLogger(MLLPActivityAnswerCollector.class);
 
-    private HapiContext context = new DefaultHapiContext();
+    @Inject
+    private WorkUnitProcessorMetricsCollectionAgent metricsAgent;
 
     public UoW extractUoWAndAnswer(Message answer, Exchange camelExchange){
         LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
+        WorkUnitProcessorTopologyNode node = camelExchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorTopologyNode.class);
+        // Stop the timer on the sending of the message
+        metricsAgent.touchEventDistributionFinishInstant(node.getComponentID());
+        metricsAgent.incrementDistributedMessageCount(node.getComponentID());
+        
         UoW uow = (UoW)camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
         UoWPayload payload = new UoWPayload();
         DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());

@@ -39,11 +39,6 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
     private MLLPActivityAuditTrail mllpAuditTrail;
 
     @Override
-    protected String specifyWUPInstanceName() {
-        return (this.getClass().getSimpleName());
-    }
-
-    @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
     }

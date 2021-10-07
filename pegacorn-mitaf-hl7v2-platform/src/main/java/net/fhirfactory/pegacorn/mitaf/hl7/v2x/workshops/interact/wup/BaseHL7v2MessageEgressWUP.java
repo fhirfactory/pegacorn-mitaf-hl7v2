@@ -89,8 +89,11 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 	@Override
 	protected MessageBasedWUPEndpoint specifyEgressEndpoint() {
+		getLogger().warn(".specifyEgressEndpoint(): Entry");
 		MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
+		getLogger().warn(".specifyEgressEndpoint(): specifyEgressTopologyEndpointName()->{}", specifyEgressTopologyEndpointName());
 		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+		getLogger().warn(".specifyEgressEndpoint(): clientTopologyEndpoint->{}", clientTopologyEndpoint);
 		ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
 		ExternalSystemIPCEndpoint externalSystemIPCEndpoint = targetSystem.getTargetPorts().get(0);
 		int portValue = externalSystemIPCEndpoint.getTargetPortValue();
@@ -122,12 +125,16 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	 */
 	protected RouteDefinition fromIncludingEgressEndpointDetails(String uri) {
 		PortDetailInjector portDetailInjector = new PortDetailInjector();
-		RouteDefinition route = fromWithStandardExceptionHandling(uri);
+		RouteDefinition route = fromIncludingPetasosServices(uri);
 		route
 				.process(portDetailInjector)
 		;
 		return route;
 	}
 
-
+	@Override
+	protected String specifyWUPInstanceName() {
+		String wupName = this.getClass().getSimpleName();
+		return (wupName);
+	}
 }

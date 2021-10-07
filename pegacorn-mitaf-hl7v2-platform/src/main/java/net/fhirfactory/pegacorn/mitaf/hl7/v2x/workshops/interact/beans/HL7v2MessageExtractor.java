@@ -21,19 +21,27 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
+import net.fhirfactory.pegacorn.deployment.topology.model.nodes.WorkUnitProcessorTopologyNode;
+import net.fhirfactory.pegacorn.petasos.itops.collectors.metrics.WorkUnitProcessorMetricsCollectionAgent;
+import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
 @Dependent
 public class HL7v2MessageExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(HL7v2MessageExtractor.class);
 
+	@Inject
+	private WorkUnitProcessorMetricsCollectionAgent metricsAgent;
+
 	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
 		LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+		WorkUnitProcessorTopologyNode node = camelExchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorTopologyNode.class);
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
 		// Because auditing is not running yet
 		// Remove once Auditing is in place
@@ -44,6 +52,7 @@ public class HL7v2MessageExtractor {
 		//
 		//
 		//
+		metricsAgent.touchEventDistributionStartInstant(node.getComponentID());
 		LOG.debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
 		return (messageAsString);
 	}
