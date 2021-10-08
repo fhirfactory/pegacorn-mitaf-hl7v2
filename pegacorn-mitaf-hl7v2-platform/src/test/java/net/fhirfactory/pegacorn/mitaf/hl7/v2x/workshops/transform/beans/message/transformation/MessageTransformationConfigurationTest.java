@@ -319,4 +319,41 @@ public class MessageTransformationConfigurationTest {
 			fail("Unable to read HL7 message", e);
 		}		
 	}
+	
+	
+	/**
+	 * Make sure the rules defined in super classes are also executed.
+	 */
+	@Test
+	public void testRulesFromClassHierrachy() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ADT_A01.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+			
+			MessageTransformationBeanExtendsTheDefaultConfig transformation = new MessageTransformationBeanExtendsTheDefaultConfig();
+			
+			transformation.doEgressTransform(message);
+	
+			// Make sure the following 2 segments have been removed
+			assertFalse(message.getMessage().toString().contains("PV1"));
+			assertFalse(message.getMessage().toString().contains("EVN"));
+			
+			// Make sure the name has not been updated
+			PID pidSegment = ((ADT_A01) message).getPID();
+			assertEquals("Peter", pidSegment.getPatientName()[0].getGivenName().getValue());
+			assertEquals("Anderson", pidSegment.getPatientName()[0].getFamilyLastName().getFamilyName().getValue());
+			
+		} catch (HL7Exception e) {
+			fail("Unable to process HL7 message", e);
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		}		
+	}
 }

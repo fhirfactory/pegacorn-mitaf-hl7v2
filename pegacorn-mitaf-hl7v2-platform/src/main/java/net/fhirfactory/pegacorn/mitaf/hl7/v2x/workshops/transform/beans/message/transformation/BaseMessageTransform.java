@@ -2,6 +2,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -35,10 +36,27 @@ public abstract class BaseMessageTransform {
 	
 		List<String>packageNames = new ArrayList<>(); 
 		
-		ConfigPath[] locationAnnotations = this.getClass().getAnnotationsByType(ConfigPath.class);
+		// Get the class in the hierarchy so we can get the config location
+		// annotations.
+		List<Class<?>>classes = new ArrayList<>();
+		Class<?> currentClass = this.getClass();
+		while (!currentClass.getName().equals(BaseMessageTransform.class.getName())) {
+			classes.add(currentClass);
+			
+			currentClass = currentClass.getSuperclass();
+		}
 		
-		for (ConfigPath locationAnnotation :  locationAnnotations) {
-			packageNames.add(((ConfigPath)locationAnnotation).value());
+		// Reverse so the rules higher up the hierarchy are execute first. 
+		Collections.reverse(classes);
+		
+		// Get the config location annotations from the class hierarchy.  
+		for (Class<?> clazz : classes) {
+		
+			ConfigPath[] locationAnnotations = clazz.getAnnotationsByType(ConfigPath.class);
+		
+			for (ConfigPath locationAnnotation :  locationAnnotations) {
+				packageNames.add(((ConfigPath)locationAnnotation).value());
+			}
 		}
 		
 		List<BaseHL7MessageTransformationConfiguration> messageTransformationConfigurations = ConfigurationUtil.getConfiguration(packageNames, direction, message.getName());
