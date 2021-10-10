@@ -6,6 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.filter.AllowMessageFilterCondition;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.filter.FilterCondition;
 
 /**
@@ -21,5 +22,5 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.f
 public @interface FilterMessage {
 	public String messageType();
 
-	public Class<? extends FilterCondition> filterConditionClass();
+	public Class<? extends FilterCondition> filterConditionClass() default AllowMessageFilterCondition.class;
 }

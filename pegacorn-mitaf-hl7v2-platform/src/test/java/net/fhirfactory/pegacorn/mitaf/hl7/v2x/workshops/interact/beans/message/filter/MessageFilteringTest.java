@@ -64,5 +64,31 @@ public class MessageFilteringTest {
 			fail("Unable to read HL7 message", e);
 		}				
 	}
+	
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void testDefaultAllowMessageT() {
+		try (HapiContext context = new DefaultHapiContext();) {
+			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/ADT_A01.txt"));
+			hl7 = hl7.replaceAll("\n", "\r");
+
+			PipeParser parser = context.getPipeParser();
+			parser.getParserConfiguration().setValidating(false);
+
+			ModelClassFactory cmf = new DefaultModelClassFactory();
+			context.setModelClassFactory(cmf);
+			Message message = parser.parse(hl7);
+			
+			FilterConfigUsingDefaultAllowMessage filter = new FilterConfigUsingDefaultAllowMessage();
+			assertTrue(filter.doFilter(message));
+		} catch (HL7Exception e) {
+			fail("Unable to process HL7 message", e);
+		} catch (IOException e) {
+			fail("Unable to read HL7 message", e);
+		}				
+	}
 
 }
