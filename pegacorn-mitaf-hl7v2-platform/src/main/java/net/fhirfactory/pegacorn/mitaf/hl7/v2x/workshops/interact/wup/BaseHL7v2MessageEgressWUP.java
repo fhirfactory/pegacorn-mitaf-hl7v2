@@ -30,6 +30,7 @@ import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.Sta
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
@@ -66,6 +67,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 	@Inject
 	private MLLPActivityAuditTrail mllpAuditTrail;
+	
+	@Inject
+	private HL7v2xMessageFilter hl7v2xMessageFilter;
 
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
@@ -80,10 +84,14 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		fromIncludingEgressEndpointDetails(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-				.bean(messageExtractor, "convertToMessage(*, Exchange)")
-				.to(egressFeed())
-				.bean(answerCollector, "extractUoWAndAnswer")
-				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.choice()
+					.when().method(hl7v2xMessageFilter, "filter(*, Exchange)") // Execute the filter logic.  True = send the message, false = do not send.
+						.bean(messageExtractor, "convertToMessage(*, Exchange)")
+						.to(egressFeed())
+						.bean(answerCollector, "extractUoWAndAnswer")
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+					.end()
+				.end()
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
