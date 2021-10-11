@@ -46,5 +46,5 @@ public abstract class BaseHL7UpdateTransformationStep extends BaseMitafMessageTr
 	 * @param segment
 	 * @param fieldValueRetriever
 	 */
-	protected abstract void doUpdate(Message message) throws DataTypeException;
+	protected abstract void doUpdate(Message message) throws HL7Exception;
 }
