@@ -26,7 +26,6 @@ import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.task.PetasosTaskOld;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import org.apache.camel.Exchange;
@@ -52,8 +51,7 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
     public Message convertToMessage(UoW incomingUoW, Exchange camelExchange){
         LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
         if(incomingUoW == null){
-            PetasosTaskOld wupTransportPacket = camelExchange.getProperty(PetasosPropertyConstants.WUP_TRANSPORT_PACKET_EXCHANGE_PROPERTY_NAME, PetasosTaskOld.class);
-            UoW uowFromExchange = wupTransportPacket.getPayload();
+            UoW uowFromExchange = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
             if(uowFromExchange == null){
                 throw(new RuntimeException(".convertToMessage(): UoW is NULL, Petasos has Failed!"));
             } else {

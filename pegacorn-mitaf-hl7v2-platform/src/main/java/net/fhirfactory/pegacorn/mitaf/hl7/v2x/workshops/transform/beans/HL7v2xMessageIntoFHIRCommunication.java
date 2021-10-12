@@ -29,11 +29,11 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extens
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.task.PetasosTaskOld;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +86,8 @@ public class HL7v2xMessageIntoFHIRCommunication {
         String messageTrigger = messageInformationExtractionInterface.extractMessageTrigger(message);
         String messageVersion = messageInformationExtractionInterface.extractMessageVersion(message);
         DataParcelTypeDescriptor parcelTypeDescriptor = hl7v2TopicFactory.newDataParcelDescriptor(messageType, messageTrigger, messageVersion);
-        //
-        // Add payload to the UoW
-        //
-        PetasosTaskOld wupTransportPacket = exchange.getProperty(PetasosPropertyConstants.WUP_TRANSPORT_PACKET_EXCHANGE_PROPERTY_NAME, PetasosTaskOld.class);
-        UoW uowFromExchange = wupTransportPacket.getPayload();
+
+        UoW uowFromExchange = exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
         DataParcelManifest manifestFromUoW = uowFromExchange.getPayloadTopicID();
         DataParcelTypeDescriptor descriptorFromUoW = manifestFromUoW.getContentDescriptor();
         if(descriptorFromUoW.hasDataParcelDiscriminatorType()){

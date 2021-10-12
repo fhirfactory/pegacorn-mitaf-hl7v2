@@ -27,7 +27,6 @@ import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.WorkUnitProcessorTopologyNode;
 import net.fhirfactory.pegacorn.petasos.itops.collectors.metrics.WorkUnitProcessorMetricsCollectionAgent;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.task.PetasosTaskOld;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
@@ -48,32 +47,18 @@ public class MLLPActivityAnswerCollector {
 
     public UoW extractUoWAndAnswer(Message answer, Exchange camelExchange){
         LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
-
-        //
-        // Get details from the camelExchange
-        //
         WorkUnitProcessorTopologyNode node = camelExchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorTopologyNode.class);
-        PetasosTaskOld wupTransportPacket = camelExchange.getProperty(PetasosPropertyConstants.WUP_TRANSPORT_PACKET_EXCHANGE_PROPERTY_NAME, PetasosTaskOld.class);
-        UoW uow = wupTransportPacket.getPayload();
-
         // Stop the timer on the sending of the message
         metricsAgent.touchEventDistributionFinishInstant(node.getComponentID());
         metricsAgent.incrementDistributedMessageCount(node.getComponentID());
-
-        //
-        // Build new Payload
-        //
+        
+        UoW uow = (UoW)camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
         UoWPayload payload = new UoWPayload();
         DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());
         DataParcelTypeDescriptor descriptor = payloadTopicID.getContentDescriptor();
         descriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
         descriptor.setDataParcelDiscriminatorValue("External-MLLP");
         String acknowledgeString = (String)camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString");
-        payload.setPayload(acknowledgeString);
-        payload.setPayloadManifest(payloadTopicID);
-        uow.getEgressContent().addPayloadElement(payload);
-        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-
         // Because auditing is not running yet
         // Remove once Auditing is in place
         //
@@ -83,6 +68,10 @@ public class MLLPActivityAnswerCollector {
         //
         //
         //
+        payload.setPayload(acknowledgeString);
+        payload.setPayloadManifest(payloadTopicID);
+        uow.getEgressContent().addPayloadElement(payload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
 
         LOG.debug(".extractUoWAndAnswer(): Exit, uow->{}", uow);
         return(uow);
