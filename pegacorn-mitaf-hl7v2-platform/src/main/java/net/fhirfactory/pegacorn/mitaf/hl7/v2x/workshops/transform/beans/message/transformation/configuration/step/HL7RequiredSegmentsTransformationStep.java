@@ -1,6 +1,5 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
