@@ -8,6 +8,12 @@ import ca.uhn.hl7v2.model.Message;
  * @author Brendan Douglas
  *
  */
-public interface Rule {
-	boolean executeRule(Message message);
+public class Rule {
+	public boolean executeRule(Message message) {
+		return true;
+	}
+	
+	public boolean executeRule(Message message, int repetition) {
+		return true;
+	}
 }

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractGroup;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.Structure;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
@@ -42,11 +43,16 @@ public class HL7RequiredSegmentsTransformationStep extends BaseMitafMessageTrans
 	
 			for (String name : group.getNames()) {
 				if (!allowedSegmentCodes.contains(name)) {
-					try {
-						group.removeRepetition(name, 0);
-					} catch(HL7Exception e) {
-						LOG.info("Attept to remove a segment which does not exist");
-					}					
+					
+					Structure[] segments = message.getAll(name);
+					
+					for (int i = 0; i < segments.length; i++) {
+						try {
+							group.removeRepetition(name, i);
+						} catch(HL7Exception e) {
+							LOG.info("Attept to remove a segment which does not exist");
+						}
+					}				
 				}
 			}
 		}

@@ -2,16 +2,16 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message
 
 public enum Repetition {
 	ALL("All"),
-	FIRST(""), // This is correct.  The value is the prefix of the segment
-	SECOND("2"),
-	THIRD("3"),
-	FOURTH("4"),
-	FIFTH("5"),
-	SIX("6"),
-	SEVENTH("7"),
-	EIGHT("8"),
-	NINTH("9"),
-	TENTH("10");
+	FIRST("0"),
+	SECOND("1"),
+	THIRD("2"),
+	FOURTH("3"),
+	FIFTH("4"),
+	SIX("5"),
+	SEVENTH("6"),
+	EIGHT("7"),
+	NINTH("8"),
+	TENTH("9");
 	
 	private String value;
 	

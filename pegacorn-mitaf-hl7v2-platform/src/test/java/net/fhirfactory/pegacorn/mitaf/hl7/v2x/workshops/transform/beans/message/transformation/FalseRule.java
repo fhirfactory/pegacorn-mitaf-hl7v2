@@ -9,13 +9,18 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
  * @author Brendan Douglas
  *
  */
-public class FalseRule implements Rule {
+public class FalseRule extends Rule {
 
 	@Override
 	public boolean executeRule(Message message) {
 		return false;
 	}
+
+	@Override
+	public boolean executeRule(Message message, int repetition) {
+		return false;
+	}
+}
 	
 	
 
-}
