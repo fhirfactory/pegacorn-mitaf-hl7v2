@@ -40,6 +40,8 @@ import javax.inject.Inject;
  */
 public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingGatewayWUP {
 
+	private static String MLLP_CONFIGURATION_STRING="?acceptTimeout=45000&bindTimeout=20000&maxConcurrentConsumers=30";
+
 	@Inject
 	private InteractWorkshop interactWorkshop;
 
@@ -52,4 +54,12 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 	abstract protected String specifyIntendedTargetSystem();
 	abstract protected String specifyMessageDiscriminatorType();
 	abstract protected String specifyMessageDiscriminatorValue();
+
+	//
+	// Getters (and Setters)
+	//
+
+	public static String getMllpConfigurationString() {
+		return MLLP_CONFIGURATION_STRING;
+	}
 }
