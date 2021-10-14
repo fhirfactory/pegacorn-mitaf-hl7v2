@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2Me
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.beans.HL7v231MessageEncapsulator;
+import org.apache.camel.ExchangePattern;
 
 import javax.inject.Inject;
 
@@ -58,7 +59,7 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
                 .bean(HL7v231MessageEncapsulator.class, "encapsulateMessage(*, Exchange)")
                 .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
                 .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-                .to(egressFeed());
+                .to(ExchangePattern.InOnly, egressFeed());
     }
 
     @Override
@@ -69,7 +70,7 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
         getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getPortValue();
         String interfaceDNSName = serverTopologyEndpoint.getHostDNSName();
-        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue));
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue) + getMllpConfigurationString());
         endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
         getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);
