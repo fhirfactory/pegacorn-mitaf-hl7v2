@@ -36,6 +36,9 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 
 	@Override
 	public void process(Message message) throws HL7Exception {
+		if (!doesStructureExist(message, segmentCode)) {
+			return;
+		}
 
 		AbstractGroup group = (AbstractGroup) message.getMessage();
 		

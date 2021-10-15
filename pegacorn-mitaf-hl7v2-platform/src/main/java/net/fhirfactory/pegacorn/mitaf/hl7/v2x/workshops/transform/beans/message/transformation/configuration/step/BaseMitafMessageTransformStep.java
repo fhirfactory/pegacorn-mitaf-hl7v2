@@ -37,12 +37,6 @@ public abstract class BaseMitafMessageTransformStep {
 	 * @throws HL7Exception
 	 */
 	public boolean doesStructureExist(Message message, String name) throws HL7Exception {
-		try {
-			message.get(name);
-		} catch(HL7Exception e) {
-			return false;
-		}
-		
-		return true;
+		return message.toString().contains(name + "|");
 	}
 }
