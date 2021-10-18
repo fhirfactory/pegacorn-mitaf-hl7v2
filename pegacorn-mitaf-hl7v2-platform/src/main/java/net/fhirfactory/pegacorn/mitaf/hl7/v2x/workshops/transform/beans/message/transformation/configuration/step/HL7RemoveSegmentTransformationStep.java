@@ -7,6 +7,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractGroup;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Structure;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.MessageUtils;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Repetition;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
@@ -36,7 +37,7 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 
 	@Override
 	public void process(Message message) throws HL7Exception {
-		if (!doesStructureExist(message, segmentCode)) {
+		if (!MessageUtils.doesSegmentExist(message, segmentCode)) {
 			return;
 		}
 

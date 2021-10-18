@@ -26,17 +26,4 @@ public abstract class BaseMitafMessageTransformStep {
 	 * @param message
 	 */
 	public abstract void process(Message message) throws HL7Exception;
-	
-	
-	/**
-	 * Checks to see if a structure is part of a message.
-	 * 
-	 * @param message
-	 * @param name
-	 * @return
-	 * @throws HL7Exception
-	 */
-	public boolean doesStructureExist(Message message, String name) throws HL7Exception {
-		return message.toString().contains(name + "|");
-	}
 }
