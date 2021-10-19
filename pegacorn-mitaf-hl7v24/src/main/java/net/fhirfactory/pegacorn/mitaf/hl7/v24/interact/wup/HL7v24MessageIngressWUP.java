@@ -59,7 +59,7 @@ public abstract class HL7v24MessageIngressWUP extends BaseHL7v2MessageIngresWUP 
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
-                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
                 .to(ExchangePattern.InOnly, egressFeed());
     }
 
