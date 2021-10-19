@@ -41,7 +41,18 @@ public class HL7RequiredSegmentsTransformationStep extends BaseMitafMessageTrans
 			
 	
 			for (String name : group.getNames()) {
-				if (!allowedSegmentCodes.contains(name)) {
+				
+				// Allow all segments which start with one of the allowed segment names.
+				boolean matchFound = false;
+				
+				for (String allowedSegment : allowedSegmentCodes) {
+					if (name.startsWith(allowedSegment)) {
+						matchFound = true;
+						break;
+					}
+				}
+				
+				if (!matchFound) {
 					
 					Structure[] segments = message.getAll(name);
 					
