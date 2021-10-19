@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.components.topology.interfaces.WorkshopInterface;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
