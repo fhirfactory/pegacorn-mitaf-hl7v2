@@ -38,9 +38,14 @@ import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
+import org.apache.camel.model.OnExceptionDefinition;
 import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
+import java.net.ConnectException;
 
 /**
  * Base class for all Mitaf Egress WUPs.
@@ -81,6 +86,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
 		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
+		getMLLPAckException();
+		getMLLPConnectionException();
+
 		fromIncludingEgressEndpointDetails(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
@@ -89,8 +97,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 						.bean(messageExtractor, "convertToMessage(*, Exchange)")
 						.to(egressFeed())
 						.bean(answerCollector, "extractUoWAndAnswer")
-						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-					.end()
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress, false)")
+					.otherwise()
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress, true)")
 				.end()
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
@@ -137,5 +146,19 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		return route;
 	}
 
+	protected OnExceptionDefinition getMLLPAckException() {
+		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
+				.bean(mllpAuditTrail, "logExceptionMLLPActivity(*, Exchange)");
+		return(exceptionDef);
+	}
 
+	protected OnExceptionDefinition getMLLPConnectionException() {
+		OnExceptionDefinition exceptionDef = onException(ConnectException.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "MLLP Connection Exception...")
+				.bean(mllpAuditTrail, "logConnectionException(*, Exchange)");
+		return(exceptionDef);
+	}
 }
