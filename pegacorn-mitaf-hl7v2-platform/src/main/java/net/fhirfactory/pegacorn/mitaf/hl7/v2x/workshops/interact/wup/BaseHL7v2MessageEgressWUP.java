@@ -21,26 +21,36 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
+import java.net.ConnectException;
+
+import javax.inject.Inject;
+
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
+import org.apache.camel.model.OnExceptionDefinition;
+import org.apache.camel.model.RouteDefinition;
+
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
-import org.apache.camel.model.RouteDefinition;
-
-import javax.inject.Inject;
 
 /**
  * Base class for all Mitaf Egress WUPs.
@@ -81,6 +91,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
 		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
+		getMLLPAckException();
+		getMLLPConnectionException();
+
 		fromIncludingEgressEndpointDetails(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
@@ -89,7 +102,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 						.bean(messageExtractor, "convertToMessage(*, Exchange)")
 						.to(egressFeed())
 						.bean(answerCollector, "extractUoWAndAnswer")
-						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress)")
 					.end()
 				.end()
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
@@ -137,5 +150,19 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		return route;
 	}
 
+	protected OnExceptionDefinition getMLLPAckException() {
+		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
+				.bean(mllpAuditTrail, "logExceptionMLLPActivity(*, Exchange)");
+		return(exceptionDef);
+	}
 
+	protected OnExceptionDefinition getMLLPConnectionException() {
+		OnExceptionDefinition exceptionDef = onException(ConnectException.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "MLLP Connection Exception...")
+				.bean(mllpAuditTrail, "logConnectionException(*, Exchange)");
+		return(exceptionDef);
+	}
 }
