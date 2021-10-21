@@ -1,5 +1,9 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +17,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
 /**
- * Removes a segment.
+ * Removes segments.  
  * 
  * @author Brendan Douglas
  *
@@ -42,34 +46,57 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 		}
 
 		AbstractGroup group = (AbstractGroup) message.getMessage();
-		
-	  	Structure[] segments = message.getAll(segmentCode);
-			
-		try {
-			if (repetition == Repetition.ALL) {
-				
-				for (int i = 0; i < segments.length; i++) {
-					
-					try {
-						if (rule.executeRule(message, i)) {
-							group.removeRepetition(segmentCode, i);
-							i--;
-						}
-						
-					} catch(HL7Exception e) {
-						LOG.info("Attept to remove a segment which does not exist");
-					}					
-				}
-				
-			} else {
 
-				if (rule.executeRule(message, Integer.valueOf(repetition.getValue()).intValue())) {
-					group.removeRepetition(segmentCode, Integer.valueOf(repetition.getValue()).intValue());
+	  	Structure[] segments = message.getAll(segmentCode);
+	  	
+	  	List<String> allSegmentsCodes = new ArrayList<String>();
+	  	allSegmentsCodes.add(segmentCode);
+	  	
+
+	  	// We need to get the segment code from each group that exists in the message.  Groups are named like OBX, OBX2, OBX3 etc
+	  	// Groups are created by the HL7 library when the same segment codes are not grouped together in the message.
+	  	int groupIndex = 2;
+
+	  	boolean found = true;
+	  	
+	  	while (found) {
+	  		try {
+	  			message.get(segmentCode + String.valueOf(groupIndex));
+	  			allSegmentsCodes.add(segmentCode + String.valueOf(groupIndex));
+	  			groupIndex++;
+	  		} catch(HL7Exception e ) {
+	  			found = false;
+	  		}
+	  	}
+	  	
+	  	for (String segmentToRemove : allSegmentsCodes) {
+	  	
+			try {
+				if (repetition == Repetition.ALL) {
+					
+					for (int i = 0; i < segments.length; i++) {
+						
+						try {
+							if (rule.executeRule(message, i)) {
+								group.removeRepetition(segmentToRemove, i);
+								i--;
+							}
+							
+						} catch(HL7Exception e) {
+							LOG.info("Attept to remove a segment which does not exist");
+						}					
+					}
+					
+				} else {
+	
+					if (rule.executeRule(message, Integer.valueOf(repetition.getValue()).intValue())) {
+						group.removeRepetition(segmentToRemove, Integer.valueOf(repetition.getValue()).intValue());
+					}
 				}
+			} catch(HL7Exception e) {
+				LOG.info("Attept to remove a segment which does not exist");
 			}
-		} catch(HL7Exception e) {
-			LOG.info("Attept to remove a segment which does not exist");
-		}
+	  	}
 	}
 	
 
