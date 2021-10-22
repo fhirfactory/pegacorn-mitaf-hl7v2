@@ -29,8 +29,10 @@ import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.components.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
@@ -46,6 +48,9 @@ public abstract class HL7v2MessageEncapsulator {
 
     @Inject
     private HL7V2XTopicFactory topicFactory;
+
+    @Inject
+    private ProcessingPlantInterface processingPlant;
 
     //
     // Constructor(s)
@@ -100,6 +105,10 @@ public abstract class HL7v2MessageEncapsulator {
             String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
             getLogger().trace(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
             String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
+            getLogger().trace(".encapsulateMessage(): message::MessageVersion --> {}", messageVersion);
+            String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
+            String portValue = exchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
+
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
             if(messageVersion.equalsIgnoreCase(getSupportedVersion().getVersionText())){
@@ -153,8 +162,10 @@ public abstract class HL7v2MessageEncapsulator {
             newPayload.setPayload(encodedString);
             newPayload.setPayloadManifest(messageManifest);
             getLogger().trace(".encapsulateMessage(): newPayload created->{}", newPayload);
+            String activityTrigger = messageTimeStamp + "-" + messageEventType + "-" + messageTriggerEvent + "-" + portValue + "-" + processingPlant.getIPCServiceName();
             getLogger().trace(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
+            newUoW.setSource(activityTrigger);
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);
