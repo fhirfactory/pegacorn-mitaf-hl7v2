@@ -1,7 +1,6 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import ca.uhn.hl7v2.model.AbstractGroup;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Structure;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.MessageUtils;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.Repetition;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
@@ -26,13 +24,13 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 	private static final Logger LOG = LoggerFactory.getLogger(HL7RemoveSegmentTransformationStep.class);
 	
 	protected String segmentCode;
-	protected Repetition repetition;
+	protected int repetition;
 	
 	public HL7RemoveSegmentTransformationStep(String segmentCode) {
-		this(segmentCode, new TrueRule(), Repetition.FIRST);
+		this(segmentCode, new TrueRule(), -1);
 	}
 
-	public HL7RemoveSegmentTransformationStep(String segmentCode, Rule rule, Repetition repetition) {
+	public HL7RemoveSegmentTransformationStep(String segmentCode, Rule rule, int repetition) {
 		super(rule);
 		
 		this.segmentCode = segmentCode;
@@ -51,6 +49,9 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 	  	
 	  	List<String> allSegmentsCodes = new ArrayList<String>();
 	  	allSegmentsCodes.add(segmentCode);
+	  	
+	  	// Remove one because index is 0 based.
+	  	repetition--;
 	  	
 
 	  	// We need to get the segment code from each group that exists in the message.  Groups are named like OBX, OBX2, OBX3 etc
@@ -72,7 +73,7 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 	  	for (String segmentToRemove : allSegmentsCodes) {
 	  	
 			try {
-				if (repetition == Repetition.ALL) {
+				if (repetition < 0) {
 					
 					for (int i = 0; i < segments.length; i++) {
 						
@@ -89,8 +90,8 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 					
 				} else {
 	
-					if (rule.executeRule(message, Integer.valueOf(repetition.getValue()).intValue())) {
-						group.removeRepetition(segmentToRemove, Integer.valueOf(repetition.getValue()).intValue());
+					if (rule.executeRule(message, repetition)) {
+						group.removeRepetition(segmentToRemove, Integer.valueOf(repetition));
 					}
 				}
 			} catch(HL7Exception e) {
