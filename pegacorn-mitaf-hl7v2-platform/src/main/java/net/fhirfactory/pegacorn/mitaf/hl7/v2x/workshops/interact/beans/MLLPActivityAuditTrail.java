@@ -29,7 +29,7 @@ public class MLLPActivityAuditTrail {
     @Inject
     private MOAServicesAuditBroker servicesBroker;
 
-    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String activity) {
+    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String activity, String filtered) {
         ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_PARCEL_STATUS_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
         ResilienceParcel parcelInstance = parcelCacheDM.getParcelInstance(statusElement.getParcelInstanceID());
         String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
@@ -38,7 +38,7 @@ public class MLLPActivityAuditTrail {
             parcelInstance.setAssociatedPortValue(portValue);
             parcelInstance.setAssociatedPortType(portType);
             UoW cloneUoW = SerializationUtils.clone(incomingUoW);
-            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, activity, true);
+            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, activity, filtered, true);
         }
         return (incomingUoW);
     }
@@ -74,7 +74,7 @@ public class MLLPActivityAuditTrail {
             parcelInstance.setAssociatedPortType(portType);
             updatedUoW = updateUoWWithErrorDetails(uow, "ConnectionError", "Could Not Connect to:"+portValue);
             UoW cloneUoW = SerializationUtils.clone(updatedUoW);
-            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, "Exception",true);
+            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, "Exception","false", true);
         }
         return (updatedUoW);
     }

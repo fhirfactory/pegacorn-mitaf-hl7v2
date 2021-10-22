@@ -102,8 +102,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 						.bean(messageExtractor, "convertToMessage(*, Exchange)")
 						.to(egressFeed())
 						.bean(answerCollector, "extractUoWAndAnswer")
-						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress)")
-					.end()
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress, false)")
+					.otherwise()
+						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress, true)")
 				.end()
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
