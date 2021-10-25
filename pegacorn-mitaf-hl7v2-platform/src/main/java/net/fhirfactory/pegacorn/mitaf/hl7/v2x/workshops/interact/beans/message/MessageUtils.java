@@ -21,7 +21,7 @@ public class MessageUtils {
 	 * @return
 	 */
 	public static boolean doesSegmentExist(Message message, String segment) {
-		 String regex = "\r" + segment + "\\|";
+		 String regex = segment + "\\|";
 		 Pattern pattern = Pattern.compile(regex);
 		 Matcher matcher = pattern.matcher(message.toString());
 		 
