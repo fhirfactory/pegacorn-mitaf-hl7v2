@@ -162,10 +162,12 @@ public abstract class HL7v2MessageEncapsulator {
             newPayload.setPayload(encodedString);
             newPayload.setPayloadManifest(messageManifest);
             getLogger().trace(".encapsulateMessage(): newPayload created->{}", newPayload);
-            String activityTrigger = messageTimeStamp + "-" + messageEventType + "-" + messageTriggerEvent + "-" + portValue + "-" + processingPlant.getIPCServiceName();
+            String sourceId = processingPlant.getIPCServiceName() + ":" + portValue + ":" + messageEventType + "-" + messageTriggerEvent ;
+            String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimeStamp;
             getLogger().trace(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
-            newUoW.setSource(activityTrigger);
+            newUoW.setSource(sourceId);
+            newUoW.setTransactionID(transactionId);
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);

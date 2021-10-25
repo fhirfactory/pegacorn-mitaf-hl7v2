@@ -5,7 +5,7 @@ import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.petasos.audit.brokers.MOAServicesAuditBroker;
-import net.fhirfactory.pegacorn.petasos.core.common.resilience.processingplant.cache.ProcessingPlantParcelCacheDM;
+import net.fhirfactory.pegacorn.petasos.core.tasks.processingplant.LocalPetasosFulfillmentTaskDM;
 import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.resilience.activitymatrix.moa.ParcelStatusElement;
 import net.fhirfactory.pegacorn.petasos.model.resilience.parcel.ResilienceParcel;
@@ -24,14 +24,14 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private ProcessingPlantParcelCacheDM parcelCacheDM;
+    private LocalPetasosFulfillmentTaskDM parcelCacheDM;
 
     @Inject
     private MOAServicesAuditBroker servicesBroker;
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String activity, String filtered) {
         ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_PARCEL_STATUS_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
-        ResilienceParcel parcelInstance = parcelCacheDM.getParcelInstance(statusElement.getParcelInstanceID());
+        ResilienceParcel parcelInstance = parcelCacheDM.getFulfillmentTask(statusElement.getParcelInstanceID());
         String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
         String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
         if (portType != null && portValue != null) {
@@ -65,7 +65,7 @@ public class MLLPActivityAuditTrail {
     public UoW logExceptionError(Object incoming, Exchange camelExchange, String errorType, String errorText){
         UoW uow = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
         ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_PARCEL_STATUS_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
-        ResilienceParcel parcelInstance = parcelCacheDM.getParcelInstance(statusElement.getParcelInstanceID());
+        ResilienceParcel parcelInstance = parcelCacheDM.getFulfillmentTask(statusElement.getParcelInstanceID());
         String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
         String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
         UoW updatedUoW = updateUoWWithExceptionDetails(uow, camelExchange);

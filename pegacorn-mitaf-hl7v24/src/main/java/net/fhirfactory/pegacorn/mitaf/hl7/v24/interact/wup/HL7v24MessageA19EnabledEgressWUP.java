@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 import net.fhirfactory.pegacorn.components.capabilities.CapabilityFulfillmentInterface;
 import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
 import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
-import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
+import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.ExternalSystemIPCEndpoint;
 import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
