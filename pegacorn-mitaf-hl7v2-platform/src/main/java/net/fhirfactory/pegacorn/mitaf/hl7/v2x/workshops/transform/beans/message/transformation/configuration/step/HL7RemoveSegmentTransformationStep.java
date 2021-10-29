@@ -39,6 +39,10 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 
 	@Override
 	public void process(Message message) throws HL7Exception {
+		//TODO fix this.  This works fine for the current remove segments but will not work on some messages where the HL7 library groups them eg. ORM groups PID under PATIENT.  This only works when the segment
+		// is a child of the root message.  
+		// I would prefer not to use the HL7 library and just process the message as a string.  Same as the logic for the required segment annotation.
+		
 		if (!MessageUtils.doesSegmentExist(message, segmentCode)) {
 			return;
 		}

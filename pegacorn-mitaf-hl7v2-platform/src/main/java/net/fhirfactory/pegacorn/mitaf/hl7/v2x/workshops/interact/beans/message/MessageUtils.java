@@ -39,7 +39,10 @@ public class MessageUtils {
 	 * @param requiredSegments
 	 * @throws HL7Exception
 	 */
-	public static void removeNotRequiredSegments(Message message, List<String> requiredSegments) throws HL7Exception {		
+	public static void removeNotRequiredSegments(Message message, List<String> requiredSegments) throws HL7Exception {	
+		// This implementation does not use the HL7 library as it is much simpler breaking the message up into string (1 for each segment) and
+		// removing the segments not required.  The HL7 library solution was ugly.
+		
 		String segments[] = message.toString().split("\r");
 		
 		List<Integer>indexesToKeep = new ArrayList<>();
