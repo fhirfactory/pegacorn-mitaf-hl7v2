@@ -61,7 +61,14 @@ public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2Me
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
-                .bean(mllpAsynchronousMessageACKCollector, "extractAndSaveACKMessage(*, Exchange)");
+                .choice()
+                    .when(header("CamelMllpEventType").isEqualTo("ACK"))
+                        .bean(mllpAsynchronousMessageACKCollector, "extractAndSaveACKMessage(*, Exchange)")
+                .otherwise()
+                        .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                        .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
+                        .to(ExchangePattern.InOnly, egressFeed())
+                .end();
     }
 
     @Override
