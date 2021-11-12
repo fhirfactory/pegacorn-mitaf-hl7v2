@@ -44,9 +44,9 @@ import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.Connect
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
@@ -78,9 +78,6 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	@Inject
 	private MLLPActivityAuditTrail mllpAuditTrail;
 	
-	@Inject
-	private HL7v2xMessageFilter hl7v2xMessageFilter;
-
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (interactWorkshop);
@@ -95,17 +92,13 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getMLLPConnectionException();
 
 		fromIncludingEgressEndpointDetails(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
-				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-				.choice()
-					.when().method(hl7v2xMessageFilter, "filter(*, Exchange)") // Execute the filter logic.  True = send the message, false = do not send.
-						.bean(messageExtractor, "convertToMessage(*, Exchange)")
-						.to(egressFeed())
-						.bean(answerCollector, "extractUoWAndAnswer")
-						.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress)")
-					.end()
-				.end()
-				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+			.routeId(getNameSet().getRouteCoreWUP())
+			.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+			.bean(messageExtractor, "convertToMessage(*, Exchange)")
+			.to(egressFeed())
+			.bean(answerCollector, "extractUoWAndAnswer")
+			.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress)")
+			.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
 	@Override

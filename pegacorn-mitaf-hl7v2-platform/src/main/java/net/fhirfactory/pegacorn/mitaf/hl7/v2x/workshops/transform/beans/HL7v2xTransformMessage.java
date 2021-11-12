@@ -28,12 +28,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.hl7.fhir.r4.model.Communication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
@@ -42,9 +42,15 @@ import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
+/**
+ * Transforms a HL7 message
+ * 
+ * @author Brendan Douglas
+ *
+ */
 @ApplicationScoped
-public class HL7v2xMessageOutOfFHIRCommunication {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageOutOfFHIRCommunication.class);
+public class HL7v2xTransformMessage {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTransformMessage.class);
 
     private IParser fhirResourceParser;
 
@@ -60,44 +66,46 @@ public class HL7v2xMessageOutOfFHIRCommunication {
     public void initialise(){
         fhirResourceParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
     }
+   
+    public UoW transformMessage(UoW uow) throws IOException, HL7Exception {
+        getLogger().info(".transformMessage(): Entry, uow->{}", uow);
+        
+        
+        String hl7Message = null;
+        
+    	// get the first and only payload element.
+    	for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
+    		hl7Message = payload.getPayload();
+    		break;
+    	}
 
-    public UoW extractMessage(UoW uow) throws IOException, HL7Exception {
-        getLogger().debug(".extractMessage(): Entry, uow->{}", uow);
-
-        getLogger().trace(".extractMessage(): Extracting payload from uow (UoW)");
-        String communicationAsString = uow.getIngresContent().getPayload();
-
-        getLogger().trace(".extractMessage(): Converting into (FHIR::Communication) from JSON String");
-        Communication communication = fhirResourceParser.parseResource(Communication.class, communicationAsString);
-
-        getLogger().trace(".extractMessage(): Pull the HL7v2x Message (as Text) from the Communication Payload");
-        Communication.CommunicationPayloadComponent communicationPayload = communication.getPayloadFirstRep();
-        String contentMessage = communicationPayload.getContentStringType().getValue();
+        // Transform the message
+        Message message = messageTransform.doEgressTransform(hl7Message);
                 
-        getLogger().trace(".extractMessage(): Clone the content for injection into the UoW egress payload");
-        String clonedMessage = SerializationUtils.clone(contentMessage);
-
-        getLogger().trace(".extractMessage(): Create the egress payload (UoWPayload) to contain the message");
+        getLogger().trace(".transformMessage(): Create the egress payload (UoWPayload) to contain the message");
         UoWPayload newPayload = new UoWPayload();
 
-        getLogger().trace(".extractMessage(): Clone the manifest (DataParcelManifest) of the incoming payload");
         DataParcelManifest newManifest = SerializationUtils.clone(uow.getIngresContent().getPayloadManifest());
 
-        getLogger().trace(".extractMessage(): Now, set the containerDescriptor to null, as we've removed payload from the Communication resource");
+        getLogger().trace(".transformMessage(): Now, set the containerDescriptor to null, as we've removed payload from the Communication resource");
         newManifest.setContainerDescriptor(null);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
 
-        getLogger().trace(".extractMessage(): Populate the new Egress payload object");
-        newPayload.setPayload(clonedMessage);
+        getLogger().trace(".transformMessage(): Populate the new Egress payload object");
+        newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);
 
-        getLogger().trace(".extractMessage(): Add the new Egress payload to the UoW");
-        uow.getEgressContent().addPayloadElement(newPayload);
+        getLogger().trace(".transformMessage(): Add the new Egress payload to the UoW");
+        
+        
+        UoW newUoW = new UoW(uow);
+        newUoW.getEgressContent().getPayloadElements().clear();
+        newUoW.getEgressContent().addPayloadElement(newPayload);
 
-        getLogger().trace(".extractMessage(): Assign the processing outcome to the UoW");
-        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+        getLogger().trace(".transformMessage(): Assign the processing outcome to the UoW");
+        newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
 
-        getLogger().debug(".extractMessage(): Exit, uow->{}", uow);
-        return (uow);
+        getLogger().debug(".transformMessage(): Exit, uow->{}", newUoW);
+        return (newUoW);
     }
 }

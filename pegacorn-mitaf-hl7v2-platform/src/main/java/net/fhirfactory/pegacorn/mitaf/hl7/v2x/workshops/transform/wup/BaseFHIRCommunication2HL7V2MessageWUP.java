@@ -21,14 +21,17 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
+import javax.inject.Inject;
+
 import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FilterType;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.UoWToFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xPreventFilteredMessageSending;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-
-import javax.inject.Inject;
 
 
 /**
@@ -40,8 +43,6 @@ import javax.inject.Inject;
  */
 public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardWUP {
 
-	private String WUP_VERSION = "1.0.0";
-
 	public BaseFHIRCommunication2HL7V2MessageWUP(){
 		super();
 	}
@@ -51,9 +52,6 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 
 	@Inject
 	private TransformWorkshop workshop;
-
-	@Inject
-	private UoWToFHIRCommunication uowToFHIRCommunication;
 
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
@@ -67,8 +65,26 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
-		        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
-				.to(egressFeed());
+		        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+				
+				
+				.choice()
+					.when().method(HL7v2xMessageFilter.class, "filter(*," + FilterType.PRE_TRANSFORMATION + ")") // pre transfomation filtering
+			        	.bean(HL7v2xTransformMessage.class, "transformMessage") // Transform the message is pre filtering has passed.
+			        	
+			        	.choice()
+							.when().method(HL7v2xMessageFilter.class, "filter(*," + FilterType.POST_TRANSFORMATION + ")") // Post transformation filtering
+								.to(egressFeed())
+							.otherwise()
+								.bean(HL7v2xPreventFilteredMessageSending.class, "stopMessageProcessing") // Prevent the message sending
+								.to(egressFeed())
+							.end()
+						.endChoice()
+					.otherwise()
+						.bean(HL7v2xPreventFilteredMessageSending.class, "stopMessageProcessing") // Prevent the message sending
+						.to(egressFeed())
+				.end();
+				
 
 	}
 }
