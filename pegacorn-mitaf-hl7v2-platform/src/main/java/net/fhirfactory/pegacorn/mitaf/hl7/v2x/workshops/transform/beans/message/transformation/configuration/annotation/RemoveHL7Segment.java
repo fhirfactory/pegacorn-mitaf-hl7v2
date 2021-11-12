@@ -22,6 +22,4 @@ public @interface RemoveHL7Segment {
 	public Class<? extends Rule> ruleClass() default TrueRule.class;
 	
 	public String value();
-	
-	public int repetition() default -1;
 }

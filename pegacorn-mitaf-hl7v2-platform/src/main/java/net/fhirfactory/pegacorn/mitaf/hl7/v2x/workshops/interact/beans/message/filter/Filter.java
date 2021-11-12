@@ -54,9 +54,9 @@ public abstract class Filter {
 		FilterCondition filterCondition = null;
 		
 		if (filterType == FilterType.PRE_TRANSFORMATION) {
-			preTransformationFilters.get(message.getName());
+			filterCondition = preTransformationFilters.get(message.getName());
 		} else {
-			postTransformationFilters.get(message.getName());
+			filterCondition = postTransformationFilters.get(message.getName());
 		}
 		
 		if (filterCondition == null) {

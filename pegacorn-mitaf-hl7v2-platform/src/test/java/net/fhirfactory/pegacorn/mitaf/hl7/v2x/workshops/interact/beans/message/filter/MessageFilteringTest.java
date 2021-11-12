@@ -45,7 +45,7 @@ public class MessageFilteringTest {
 	
 	
 	@Test
-	public void testFalseFilterADT() {
+	public void testFalseFilteMDMT() {
 		try (HapiContext context = new DefaultHapiContext();) {
 			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/MDM_T02.txt"));
 			hl7 = hl7.replaceAll("\n", "\r");

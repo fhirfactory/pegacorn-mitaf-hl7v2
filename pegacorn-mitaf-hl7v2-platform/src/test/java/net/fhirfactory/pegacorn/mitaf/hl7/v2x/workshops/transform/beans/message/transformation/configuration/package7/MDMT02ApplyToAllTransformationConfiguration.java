@@ -16,10 +16,10 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
  */
 @Egress
 @MessageType("MDM_T02")
-@RemoveHL7Segment(value = "OBR", repetition = 1)
-@RemoveHL7Segment(value = "OBR", repetition = 2)
-@RemoveHL7Segment(value = "OBR", repetition = 3)
-@RemoveHL7Segment(value = "OBR", repetition = 4)
+@RemoveHL7Segment(value = "OBR")
+@RemoveHL7Segment(value = "OBR")
+@RemoveHL7Segment(value = "OBR")
+@RemoveHL7Segment(value = "OBR")
 public class MDMT02ApplyToAllTransformationConfiguration extends BaseHL7MessageTransformationConfiguration {
 	private static final Logger LOG = LoggerFactory.getLogger(MDMT02ApplyToAllTransformationConfiguration.class);
 
