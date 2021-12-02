@@ -126,28 +126,29 @@ public class HL7v2xTransformMessage {
      * @throws IOException
      * @throws HL7Exception
      */
-    public Message setHL7MessageAsExchangeProperty(UoW uow, Exchange exchange) throws IOException, HL7Exception {
+    public Message setHL7MessageAsExchangeBody(UoW uow, Exchange exchange) throws IOException, HL7Exception {
     	String hl7Message = null;
-         
-    	// get the first and only payload element.
-    	for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
-    		hl7Message = payload.getPayload();
-	     	break;
-    	}
+        
+     	// get the first and only payload element.
+     	for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
+     		hl7Message = payload.getPayload();
+     		break;
+     	}
      	
      	
-    	try (HapiContext hapiContext = new DefaultHapiContext();) {            
-    		PipeParser parser = hapiContext.getPipeParser();
-     		parser.getParserConfiguration().setValidating(false);
+     	 try (HapiContext hapiContext = new DefaultHapiContext();) {            
+     		 PipeParser parser = hapiContext.getPipeParser();
+     		 parser.getParserConfiguration().setValidating(false);
     
-     		ModelClassFactory cmf = new DefaultModelClassFactory();
-     		hapiContext.setModelClassFactory(cmf);
+     		 ModelClassFactory cmf = new DefaultModelClassFactory();
+     		 hapiContext.setModelClassFactory(cmf);
 
-     		Message message = parser.parse(hl7Message);
+     		 Message message = parser.parse(hl7Message);
      		 
-            exchange.setProperty("hl7Message", message);
+             exchange.getMessage().setBody(message);
+             exchange.getIn().setBody(message);
             
-     		return parser.parse(hl7Message); 	            
+     		 return parser.parse(hl7Message); 	  
     	}              	
     }
 
@@ -158,11 +159,10 @@ public class HL7v2xTransformMessage {
      * @param exchange
      * @param message
      */
-    public UoW postTransformProcessing(Exchange exchange) {   	
-    	
+    public UoW postTransformProcessing(Message message, Exchange exchange) {   	
     	UoW uow = (UoW) exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
     	uow.getEgressContent().getPayloadElements().clear();
-		    
+	    
         UoWPayload newPayload = new UoWPayload();
 
         DataParcelManifest newManifest = SerializationUtils.clone(uow.getIngresContent().getPayloadManifest());
@@ -170,7 +170,7 @@ public class HL7v2xTransformMessage {
         newManifest.setContainerDescriptor(null);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
 
-        newPayload.setPayload( exchange.getProperty("hl7Message").toString());
+        newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);
         
         
