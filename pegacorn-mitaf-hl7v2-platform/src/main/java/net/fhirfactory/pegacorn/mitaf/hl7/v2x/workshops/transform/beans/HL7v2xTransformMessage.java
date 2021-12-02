@@ -153,12 +153,13 @@ public class HL7v2xTransformMessage {
 
     
     /**
-     * Adds the message to the original unit of work.
+     * Adds the message to the original unit of work and sets the processing outcomes to no processing required if the message was filtered.
      * 
      * @param exchange
      * @param message
      */
-    public UoW updateUowWithHL7Message(Exchange exchange) {
+    public UoW postTransformProcessing(Exchange exchange) {   	
+    	
     	UoW uow = (UoW) exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
     	uow.getEgressContent().getPayloadElements().clear();
 		    
@@ -180,21 +181,12 @@ public class HL7v2xTransformMessage {
         exchange.getMessage().setBody(uow);
         exchange.getIn().setBody(uow);
         
+        String sendMessage = (String)exchange.getProperty("sendMessage");
+        
+        if (!sendMessage.isBlank() && !Boolean.valueOf(sendMessage)) {
+        	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
+        }
+        
         return uow;
-    }
-    
-    
-    /**
-     * Sets the processing outcome to no processing required so the message does not get sent.
-     * 
-     * @param uow
-     * @return
-     * @throws IOException
-     * @throws HL7Exception
-     */
-    public UoW preventMessageSendingFiltered(UoW uow) throws IOException, HL7Exception {   	   	
-    	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
-
-        return (uow);
     }
 }
