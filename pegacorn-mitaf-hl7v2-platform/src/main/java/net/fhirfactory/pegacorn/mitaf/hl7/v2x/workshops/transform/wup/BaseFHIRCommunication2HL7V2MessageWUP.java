@@ -25,10 +25,7 @@ import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FilterType;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageFilter;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xPreventFilteredMessageSending;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
@@ -52,7 +49,7 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 
 	@Inject
 	private TransformWorkshop workshop;
-
+	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (workshop);
@@ -64,27 +61,11 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
 		fromIncludingPetasosServices(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
-		        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
-				
-				
-				.choice()
-					.when().method(HL7v2xMessageFilter.class, "filter(*," + FilterType.PRE_TRANSFORMATION + ")") // pre transfomation filtering
-			        	.bean(HL7v2xTransformMessage.class, "transformMessage") // Transform the message is pre filtering has passed.
-			        	
-			        	.choice()
-							.when().method(HL7v2xMessageFilter.class, "filter(*," + FilterType.POST_TRANSFORMATION + ")") // Post transformation filtering
-								.to(egressFeed())
-							.otherwise()
-								.bean(HL7v2xPreventFilteredMessageSending.class, "stopMessageProcessing") // Prevent the message sending
-								.to(egressFeed())
-							.end()
-						.endChoice()
-					.otherwise()
-						.bean(HL7v2xPreventFilteredMessageSending.class, "stopMessageProcessing") // Prevent the message sending
-						.to(egressFeed())
-				.end();
-				
-
+			.routeId(getNameSet().getRouteCoreWUP())
+	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+	        .bean(HL7v2xTransformMessage.class, "setHL7MessageAsExchangeProperty(*, Exchange)")
+			.setHeader("systemName", constant(System.getenv("KUBERNETES_SERVICE_NAME")))
+			.to("direct-vm:" + "transform-filter-egress-start")
+			.to(egressFeed());
 	}
 }

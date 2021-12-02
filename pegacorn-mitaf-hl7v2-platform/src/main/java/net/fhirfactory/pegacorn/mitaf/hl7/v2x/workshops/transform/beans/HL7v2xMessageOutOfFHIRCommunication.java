@@ -99,5 +99,5 @@ public class HL7v2xMessageOutOfFHIRCommunication {
 
         getLogger().debug(".extractMessage(): Exit, uow->{}", uow);
         return (uow);
-    }
+    }    
 }

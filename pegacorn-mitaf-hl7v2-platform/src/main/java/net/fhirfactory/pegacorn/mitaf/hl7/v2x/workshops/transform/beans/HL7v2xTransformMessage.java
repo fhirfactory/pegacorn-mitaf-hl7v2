@@ -27,16 +27,23 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.fhir.parser.IParser;
+import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
+import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
@@ -107,5 +114,87 @@ public class HL7v2xTransformMessage {
 
         getLogger().debug(".transformMessage(): Exit, uow->{}", newUoW);
         return (newUoW);
+    }
+    
+    
+    
+    /**
+     * Sets the HL7 message from the unit of work payload as the exchange message body to be use in the transformation component.
+     * 
+     * @param uow
+     * @return
+     * @throws IOException
+     * @throws HL7Exception
+     */
+    public Message setHL7MessageAsExchangeProperty(UoW uow, Exchange exchange) throws IOException, HL7Exception {
+    	String hl7Message = null;
+         
+    	// get the first and only payload element.
+    	for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
+    		hl7Message = payload.getPayload();
+	     	break;
+    	}
+     	
+     	
+    	try (HapiContext hapiContext = new DefaultHapiContext();) {            
+    		PipeParser parser = hapiContext.getPipeParser();
+     		parser.getParserConfiguration().setValidating(false);
+    
+     		ModelClassFactory cmf = new DefaultModelClassFactory();
+     		hapiContext.setModelClassFactory(cmf);
+
+     		Message message = parser.parse(hl7Message);
+     		 
+            exchange.setProperty("hl7Message", message);
+            
+     		return parser.parse(hl7Message); 	            
+    	}              	
+    }
+
+    
+    /**
+     * Adds the message to the original unit of work.
+     * 
+     * @param exchange
+     * @param message
+     */
+    public UoW updateUowWithHL7Message(Exchange exchange) {
+    	UoW uow = (UoW) exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
+    	uow.getEgressContent().getPayloadElements().clear();
+		    
+        UoWPayload newPayload = new UoWPayload();
+
+        DataParcelManifest newManifest = SerializationUtils.clone(uow.getIngresContent().getPayloadManifest());
+
+        newManifest.setContainerDescriptor(null);
+        newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+
+        newPayload.setPayload( exchange.getProperty("hl7Message").toString());
+        newPayload.setPayloadManifest(newManifest);
+        
+        
+        uow.getEgressContent().getPayloadElements().clear();
+        uow.getEgressContent().addPayloadElement(newPayload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+        
+        exchange.getMessage().setBody(uow);
+        exchange.getIn().setBody(uow);
+        
+        return uow;
+    }
+    
+    
+    /**
+     * Sets the processing outcome to no processing required so the message does not get sent.
+     * 
+     * @param uow
+     * @return
+     * @throws IOException
+     * @throws HL7Exception
+     */
+    public UoW preventMessageSendingFiltered(UoW uow) throws IOException, HL7Exception {   	   	
+    	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
+
+        return (uow);
     }
 }
