@@ -181,9 +181,15 @@ public class HL7v2xTransformMessage {
         exchange.getMessage().setBody(uow);
         exchange.getIn().setBody(uow);
         
-        String sendMessage = (String)exchange.getProperty("sendMessage");
+        String sendMessagStr = (String)exchange.getProperty("sendMessage");
         
-        if (!sendMessage.isBlank() && !Boolean.valueOf(sendMessage)) {
+        Boolean sendMessage = false;
+        
+        if (sendMessagStr != null) {
+        	sendMessage = Boolean.valueOf(sendMessagStr);
+        }
+
+        if (!sendMessage) {
         	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
         }
         
