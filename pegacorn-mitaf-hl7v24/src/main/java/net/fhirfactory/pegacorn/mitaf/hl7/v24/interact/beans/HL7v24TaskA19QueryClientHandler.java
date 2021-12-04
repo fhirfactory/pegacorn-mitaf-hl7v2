@@ -27,11 +27,9 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.segment.QRD;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
-import net.fhirfactory.pegacorn.components.capabilities.CapabilityUtilisationBrokerInterface;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
-import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTask;
-import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTaskOutcome;
+import net.fhirfactory.pegacorn.core.model.capabilities.CapabilityUtilisationBrokerInterface;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +112,7 @@ public class HL7v24TaskA19QueryClientHandler {
         task.setRequestID(UUID.randomUUID().toString());
         task.setRequestContent(queryString);
         task.setRequiredCapabilityName("A19QueryFulfillment");
-        task.setRequestDate(Instant.now());
+        task.setRequestInstant(Instant.now());
         //
         // Do Query
         //
@@ -122,7 +120,7 @@ public class HL7v24TaskA19QueryClientHandler {
         //
         // Extract the response
         //
-        String resultString = a19QueryTaskOutcome.getResponseContent();
+        String resultString = a19QueryTaskOutcome.getResponseStringContent();
         return(resultString);
     }
 

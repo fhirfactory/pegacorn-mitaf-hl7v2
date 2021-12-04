@@ -42,11 +42,11 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
@@ -87,7 +87,7 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
         DataParcelManifest communicationEvents = new DataParcelManifest();
         DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
         communicationEvents.setContainerDescriptor(fhirCommunicationDescriptor);
-        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INBOUND_DATA_PARCEL);
+        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
         communicationEvents.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         communicationEvents.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
         communicationEvents.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
@@ -123,5 +123,10 @@ public class HL7v2xMessageIngresCheckPointWUP extends MOAStandardWUP {
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceIngresPolicy")
                 .to(egressFeed());
+    }
+
+    @Override
+    protected List<DataParcelManifest> declarePublishedTopics() {
+        return (new ArrayList<>());
     }
 }

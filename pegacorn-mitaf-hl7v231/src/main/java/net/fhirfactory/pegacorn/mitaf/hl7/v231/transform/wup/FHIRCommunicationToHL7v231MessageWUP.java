@@ -21,10 +21,10 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v231.transform.wup;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseFHIRCommunication2HL7V2MessageWUP;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -61,7 +61,7 @@ public class FHIRCommunicationToHL7v231MessageWUP extends BaseFHIRCommunication2
         manifest.setContainerDescriptor(parcelDescriptor);
         manifest.setSourceSystem("*");
         manifest.setIntendedTargetSystem("*");
-        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.OUTBOUND_DATA_PARCEL);
+        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
         manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
@@ -78,5 +78,10 @@ public class FHIRCommunicationToHL7v231MessageWUP extends BaseFHIRCommunication2
     @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
+    }
+
+    @Override
+    protected List<DataParcelManifest> declarePublishedTopics() {
+        return (new ArrayList<>());
     }
 }

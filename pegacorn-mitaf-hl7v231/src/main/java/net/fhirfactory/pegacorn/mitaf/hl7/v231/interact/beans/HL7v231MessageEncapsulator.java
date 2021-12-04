@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.beans;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageEncapsulator;
 import org.slf4j.Logger;

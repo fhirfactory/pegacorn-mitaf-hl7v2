@@ -1,12 +1,34 @@
+/*
+ * Copyright (c) 2021 Mark A. Hunter
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
 import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalPetasosFulfillmentTaskDM;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -28,15 +50,14 @@ public class MLLPActivityAuditTrail {
     private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String activity, String filtered) {
-        ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_FULFILLMENT_TASK_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
-        ResilienceParcel parcelInstance = parcelCacheDM.getFulfillmentTask(statusElement.getParcelInstanceID());
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
         String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
         String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
         if (portType != null && portValue != null) {
-            parcelInstance.setAssociatedPortValue(portValue);
-            parcelInstance.setAssociatedPortType(portType);
+//            parcelInstance.setAssociatedPortValue(portValue);
+//            parcelInstance.setAssociatedPortType(portType);
             UoW cloneUoW = SerializationUtils.clone(incomingUoW);
-            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, activity, filtered, true);
+            servicesBroker.logMLLPTransactions(fulfillmentTask, activity, filtered, true);
         }
         return (incomingUoW);
     }
@@ -61,18 +82,17 @@ public class MLLPActivityAuditTrail {
     }
 
     public UoW logExceptionError(Object incoming, Exchange camelExchange, String errorType, String errorText){
-        UoW uow = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
-        ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_FULFILLMENT_TASK_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
-        ResilienceParcel parcelInstance = parcelCacheDM.getFulfillmentTask(statusElement.getParcelInstanceID());
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        UoW uow = fulfillmentTask.getTaskWorkItem();
         String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
         String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
         UoW updatedUoW = updateUoWWithExceptionDetails(uow, camelExchange);
         if (portType != null && portValue != null) {
-            parcelInstance.setAssociatedPortValue(portValue);
-            parcelInstance.setAssociatedPortType(portType);
+//            parcelInstance.setAssociatedPortValue(portValue);
+//            parcelInstance.setAssociatedPortType(portType);
             updatedUoW = updateUoWWithErrorDetails(uow, "ConnectionError", "Could Not Connect to:"+portValue);
             UoW cloneUoW = SerializationUtils.clone(updatedUoW);
-            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, "Exception","false", true);
+            servicesBroker.logMLLPTransactions(fulfillmentTask, "Exception","false", true);
         }
         return (updatedUoW);
     }

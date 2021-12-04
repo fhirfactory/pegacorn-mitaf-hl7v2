@@ -21,11 +21,11 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.components.capabilities.CapabilityFulfillmentInterface;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.ExternalSystemIPCEndpoint;
+import net.fhirfactory.pegacorn.core.model.capabilities.CapabilityFulfillmentInterface;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.mllp.adapters.MLLPClientAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19ResponseACKExtractor;
@@ -81,9 +81,9 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
         StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
         ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
-        ExternalSystemIPCEndpoint externalSystemIPCEndpoint = targetSystem.getTargetPorts().get(0);
-        int portValue = externalSystemIPCEndpoint.getTargetPortValue();
-        String targetInterfaceDNSName = externalSystemIPCEndpoint.getTargetPortDNSName();
+        MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter)targetSystem.getTargetPorts().get(0);
+        int portValue = externalSystemIPCEndpoint.getPortNumber();
+        String targetInterfaceDNSName = externalSystemIPCEndpoint.getHostName();
         endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue)+"?requireEndOfData=false");
         endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
@@ -94,11 +94,11 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     @Override
     public CapabilityUtilisationResponse executeTask(CapabilityUtilisationRequest request) {
         getLogger().info(".executeTask(): Entry, request->{}", request);
-        String queryString = request.getRequestContent();
+        String queryString = request.getRequestStringContent();
         String response = hl7MessageInjector.requestBody(getA19DirectCamelEndpointName(), queryString, String.class);
         getLogger().info(".executeTask(): response->{}", response);
         CapabilityUtilisationResponse outcome = new CapabilityUtilisationResponse();
-        outcome.setDateCompleted(Instant.now());
+        outcome.setInstantCompleted(Instant.now());
         outcome.setSuccessful(true);
         outcome.setAssociatedRequestID(request.getRequestID());
         outcome.setResponseContent(response);

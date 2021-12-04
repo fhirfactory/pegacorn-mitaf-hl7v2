@@ -22,6 +22,11 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 
@@ -40,6 +45,9 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 	@Inject
 	private InteractWorkshop interactWorkshop;
 
+	@Inject
+	private HL7V2XTopicFactory hl7v2xTopicIDBuilder;
+
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (interactWorkshop);
@@ -56,5 +64,20 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 
 	public static String getMllpConfigurationString() {
 		return MLLP_CONFIGURATION_STRING;
+	}
+
+	protected DataParcelManifest createPublishedManifestForInteractIngresHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
+		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+		DataParcelManifest manifest = new DataParcelManifest();
+		manifest.setContentDescriptor(descriptor);
+		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
+		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+		manifest.setIntendedTargetSystem("*");
+		manifest.setSourceSystem("*");
+		manifest.setInterSubsystemDistributable(false);
+		return manifest;
 	}
 }
