@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,28 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation;
+package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageAsynchronousACKEgressWUP;
 
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
+public abstract class HL7v24MessageAsynchronousACKEgressWUP extends BaseHL7v2MessageAsynchronousACKEgressWUP {
 
-/**
- * An annotation to use when removing a segment.
- * 
- * @author Brendan Douglas
- *
- */
-@Repeatable(RemoveHL7Segments.class)
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RemoveHL7Segment {
-	public Class<? extends Rule> ruleClass() default TrueRule.class;
-	
-	public String value();
+    private String WUP_VERSION="1.0.0";
+    private String CAMEL_COMPONENT_TYPE="mllp";
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (this.getClass().getSimpleName());
+    }
+
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
 }

@@ -24,11 +24,9 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.UoWToFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-
-import javax.inject.Inject;
 
 
 /**
@@ -40,8 +38,6 @@ import javax.inject.Inject;
  */
 public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardWUP {
 
-	private String WUP_VERSION = "1.0.0";
-
 	public BaseFHIRCommunication2HL7V2MessageWUP(){
 		super();
 	}
@@ -51,10 +47,7 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 
 	@Inject
 	private TransformWorkshop workshop;
-
-	@Inject
-	private UoWToFHIRCommunication uowToFHIRCommunication;
-
+	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (workshop);
@@ -66,9 +59,11 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
 		fromIncludingPetasosServices(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
-		        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
-				.to(egressFeed());
-
+			.routeId(getNameSet().getRouteCoreWUP())
+	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+	        .bean(HL7v2xTransformMessage.class, "setHL7MessageAsExchangeBody(*, Exchange)")
+			.setHeader("systemName", constant(System.getenv("KUBERNETES_SERVICE_NAME")))
+			.to("direct-vm:" + "transform-filter-egress-start")
+			.to(egressFeed());
 	}
 }

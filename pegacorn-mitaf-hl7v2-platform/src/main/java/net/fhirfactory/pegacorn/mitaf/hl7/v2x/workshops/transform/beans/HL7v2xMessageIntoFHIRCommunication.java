@@ -21,6 +21,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
+import java.util.Date;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import org.apache.camel.Exchange;
+import org.apache.commons.lang3.SerializationUtils;
+import org.hl7.fhir.r4.model.Communication;
+import org.hl7.fhir.r4.model.StringType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
@@ -36,10 +48,6 @@ import org.hl7.fhir.r4.model.Communication;
 import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.util.Date;
 
 @ApplicationScoped
 public class HL7v2xMessageIntoFHIRCommunication {

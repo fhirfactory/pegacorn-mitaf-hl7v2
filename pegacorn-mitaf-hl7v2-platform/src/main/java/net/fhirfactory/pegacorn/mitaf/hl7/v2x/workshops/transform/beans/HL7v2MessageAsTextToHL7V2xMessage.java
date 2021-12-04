@@ -22,8 +22,11 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
@@ -48,7 +51,7 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
     @Inject
     HL7v2xInformationExtractionInterface informationExtractionInterface;
 
-    public Message convertToMessage(UoW incomingUoW, Exchange camelExchange){
+    public Message convertToMessage(UoW incomingUoW, Exchange camelExchange) throws HL7Exception{
         LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
         if(incomingUoW == null){
             UoW uowFromExchange = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
@@ -61,8 +64,23 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
                 return(null);
             }
         }
-        String messageAsText= incomingUoW.getIngresContent().getPayload();
+        String messageAsText= incomingUoW.getIngresContent().getPayload();     
         Message message = informationExtractionInterface.convertToHL7v2Message(messageAsText);
+        
+        
+        // This is temporary.  Change a versio which is not 2.3x or 2.4x to 2.4
+    	PipeParser parser = context.getPipeParser();
+		parser.getParserConfiguration().setValidating(false);
+		Terser terser = new Terser(message);
+		
+		String messageVersion = terser.get("/MSH-12");
+		if (!(messageVersion.startsWith("2.4") || messageVersion.startsWith("2.3"))) {
+			terser.set("/MSH-12", "2.4");
+			message = parser.parse(message.toString());
+		
+			message.parse(message.toString());
+		}
+        
         LOG.debug(".convertToMessage(): Exit, message->{}", message);
         return(message);
     }

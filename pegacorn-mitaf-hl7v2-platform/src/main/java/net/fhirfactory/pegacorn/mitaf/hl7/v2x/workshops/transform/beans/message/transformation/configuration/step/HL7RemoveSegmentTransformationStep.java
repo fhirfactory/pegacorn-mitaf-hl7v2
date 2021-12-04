@@ -21,17 +21,15 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.step;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.AbstractGroup;
+import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Structure;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message.MessageUtils;
+import ca.uhn.hl7v2.util.SegmentFinder;
+import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
 
@@ -48,77 +46,43 @@ public class HL7RemoveSegmentTransformationStep extends BaseMitafMessageTransfor
 	protected int repetition;
 	
 	public HL7RemoveSegmentTransformationStep(String segmentCode) {
-		this(segmentCode, new TrueRule(), -1);
+		this(segmentCode, new TrueRule());
 	}
 
-	public HL7RemoveSegmentTransformationStep(String segmentCode, Rule rule, int repetition) {
+	public HL7RemoveSegmentTransformationStep(String segmentCode, Rule rule) {
 		super(rule);
 		
 		this.segmentCode = segmentCode;
-		this.repetition = repetition;
 	}
 
 	@Override
 	public void process(Message message) throws HL7Exception {
-		if (!MessageUtils.doesSegmentExist(message, segmentCode)) {
-			return;
-		}
-
-		AbstractGroup group = (AbstractGroup) message.getMessage();
-
-	  	Structure[] segments = message.getAll(segmentCode);
-	  	
-	  	List<String> allSegmentsCodes = new ArrayList<String>();
-	  	allSegmentsCodes.add(segmentCode);
-	  	
-	  	// Remove one because index is 0 based.
-	  	repetition--;
-	  	
-
-	  	// We need to get the segment code from each group that exists in the message.  Groups are named like OBX, OBX2, OBX3 etc
-	  	// Groups are created by the HL7 library when the same segment codes are not grouped together in the message.
-	  	int groupIndex = 2;
-
-	  	boolean found = true;
-	  	
-	  	while (found) {
-	  		try {
-	  			message.get(segmentCode + String.valueOf(groupIndex));
-	  			allSegmentsCodes.add(segmentCode + String.valueOf(groupIndex));
-	  			groupIndex++;
-	  		} catch(HL7Exception e ) {
-	  			found = false;
-	  		}
-	  	}
-	  	
-	  	for (String segmentToRemove : allSegmentsCodes) {
-	  	
+		Terser terser = new Terser(message);
+		
+		SegmentFinder finder = terser.getFinder();
+		
+		while(true) {
 			try {
-				if (repetition < 0) {
+				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
+				
+				if (name.startsWith(segmentCode)) {
 					
-					for (int i = 0; i < segments.length; i++) {
+					for (int i = 0; i < finder.getCurrentChildReps().length; i++) {
+						Structure structure = finder.getCurrentStructure(i);
 						
-						try {
-							if (rule.executeRule(message, i)) {
-								group.removeRepetition(segmentToRemove, i);
-								i--;
-							}
-							
-						} catch(HL7Exception e) {
-							LOG.info("Attept to remove a segment which does not exist");
-						}					
-					}
-					
-				} else {
-	
-					if (rule.executeRule(message, repetition)) {
-						group.removeRepetition(segmentToRemove, Integer.valueOf(repetition));
+						if (rule.executeRule(message,i)) {
+							AbstractSegment segment = (AbstractSegment)structure;
+							segment.clear();
+						}
 					}
 				}
 			} catch(HL7Exception e) {
-				LOG.info("Attept to remove a segment which does not exist");
+				break;
 			}
-	  	}
+		}
+		
+		// Update the message object with the changes.
+		message.parse(message.toString());
 	}
 	
 

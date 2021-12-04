@@ -19,28 +19,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.configuration.annotation;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
+import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.Rule;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule.TrueRule;
+import javax.inject.Inject;
 
 /**
- * An annotation to use when removing a segment.
+ * Base class for all Mitaf Ingres WUPs.
  * 
  * @author Brendan Douglas
  *
  */
-@Repeatable(RemoveHL7Segments.class)
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RemoveHL7Segment {
-	public Class<? extends Rule> ruleClass() default TrueRule.class;
-	
-	public String value();
+public abstract class BaseHL7v2MessageAsynchronousACKIngresWUP extends InteractIngresMessagingGatewayWUP {
+
+	private static String MLLP_CONFIGURATION_STRING="?acceptTimeout=45000&bindTimeout=20000&maxConcurrentConsumers=30";
+
+	@Inject
+	private InteractWorkshop interactWorkshop;
+
+	@Override
+	protected WorkshopInterface specifyWorkshop() {
+		return (interactWorkshop);
+	}
+
+	abstract protected String specifySourceSystem();
+	abstract protected String specifyIntendedTargetSystem();
+	abstract protected String specifyMessageDiscriminatorType();
+	abstract protected String specifyMessageDiscriminatorValue();
+
+	//
+	// Getters (and Setters)
+	//
+
+	public static String getMllpConfigurationString() {
+		return MLLP_CONFIGURATION_STRING;
+	}
 }

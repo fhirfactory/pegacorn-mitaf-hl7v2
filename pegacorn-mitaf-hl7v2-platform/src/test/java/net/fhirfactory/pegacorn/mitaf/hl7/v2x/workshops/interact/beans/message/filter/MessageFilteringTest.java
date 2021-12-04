@@ -17,6 +17,7 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FilterType;
 
 public class MessageFilteringTest {
 	
@@ -34,7 +35,7 @@ public class MessageFilteringTest {
 			Message message = parser.parse(hl7);
 			
 			SegmentFilterConfig filter = new SegmentFilterConfig();
-			assertTrue(filter.doFilter(message));
+			assertTrue(filter.doFilter(message, FilterType.POST_TRANSFORMATION));
 		} catch (HL7Exception e) {
 			fail("Unable to process HL7 message", e);
 		} catch (IOException e) {
@@ -44,7 +45,7 @@ public class MessageFilteringTest {
 	
 	
 	@Test
-	public void testFalseFilterADT() {
+	public void testFalseFilteMDMT() {
 		try (HapiContext context = new DefaultHapiContext();) {
 			String hl7 = Files.readString(Paths.get("src/test/resources/hl7/MDM_T02.txt"));
 			hl7 = hl7.replaceAll("\n", "\r");
@@ -57,7 +58,7 @@ public class MessageFilteringTest {
 			Message message = parser.parse(hl7);
 			
 			SegmentFilterConfig filter = new SegmentFilterConfig();
-			assertFalse(filter.doFilter(message));
+			assertFalse(filter.doFilter(message, FilterType.POST_TRANSFORMATION));
 		} catch (HL7Exception e) {
 			fail("Unable to process HL7 message", e);
 		} catch (IOException e) {
@@ -83,7 +84,7 @@ public class MessageFilteringTest {
 			Message message = parser.parse(hl7);
 			
 			FilterConfigUsingDefaultAllowMessage filter = new FilterConfigUsingDefaultAllowMessage();
-			assertTrue(filter.doFilter(message));
+			assertTrue(filter.doFilter(message, FilterType.POST_TRANSFORMATION));
 		} catch (HL7Exception e) {
 			fail("Unable to process HL7 message", e);
 		} catch (IOException e) {

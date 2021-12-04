@@ -96,9 +96,8 @@ public abstract class BaseHL7MessageTransformationConfiguration {
 						// Instantiate the update class
 						try {
 							String segmentCode = ((RemoveHL7Segment)removeAnnotation).value();
-							int repetition = ((RemoveHL7Segment)removeAnnotation).repetition();
 							
-							HL7RemoveSegmentTransformationStep segmentRemoveStep = new HL7RemoveSegmentTransformationStep(segmentCode, rule, repetition);
+							HL7RemoveSegmentTransformationStep segmentRemoveStep = new HL7RemoveSegmentTransformationStep(segmentCode, rule);
 	
 							this.transformationSteps.add(segmentRemoveStep);
 						} catch (Exception e) {
