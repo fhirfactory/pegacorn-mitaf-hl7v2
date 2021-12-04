@@ -312,7 +312,7 @@ public class HL7MessageUtils {
 		StringBuilder sb = new StringBuilder();
 
 		for (String row : messageRows) {
-			if (!row.startsWith(segmentName + "\\|")) {
+			if (!row.startsWith(segmentName + "|")) {
 				sb.append(row).append("\r");
 			}
 		}
