@@ -21,17 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import java.io.IOException;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.SerializationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -40,14 +29,23 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
-import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
+import org.apache.camel.Exchange;
+import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.io.IOException;
 
 /**
  * Transforms a HL7 message

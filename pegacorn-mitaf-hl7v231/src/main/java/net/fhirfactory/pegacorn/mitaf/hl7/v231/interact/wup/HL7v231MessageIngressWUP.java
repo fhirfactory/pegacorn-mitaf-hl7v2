@@ -68,7 +68,7 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
         MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
         InteractMLLPServerEndpoint serverTopologyEndpoint = (InteractMLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
-        getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
+        getLogger().info(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getPortNumber();
         String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();
         endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue) + getMllpConfigurationString());

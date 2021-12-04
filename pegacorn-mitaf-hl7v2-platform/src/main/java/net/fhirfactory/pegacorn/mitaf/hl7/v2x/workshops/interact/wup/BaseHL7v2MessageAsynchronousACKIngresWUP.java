@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 

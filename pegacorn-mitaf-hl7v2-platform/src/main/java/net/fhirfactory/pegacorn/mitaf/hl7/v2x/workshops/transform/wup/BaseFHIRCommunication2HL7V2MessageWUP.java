@@ -28,6 +28,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTr
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
+import javax.inject.Inject;
+
 
 /**
  * Base class for all Mitaf WUPs to transform FHIR Communication resource to a
@@ -60,7 +62,7 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 
 		fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
-	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
 	        .bean(HL7v2xTransformMessage.class, "setHL7MessageAsExchangeBody(*, Exchange)")
 			.setHeader("systemName", constant(System.getenv("KUBERNETES_SERVICE_NAME")))
 			.to("direct-vm:" + "transform-filter-egress-start")
