@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
-import org.apache.camel.component.jms.MessageCreatedStrategy;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -99,7 +98,7 @@ public class FreeMarkerConfiguration {
 	 * @throws IOException
 	 * @throws HL7Exception
 	 */
-	public Message convertToMessage(String message) throws IOException, HL7Exception {
+	public Message convertToMessage(String message, Exchange exchange) throws IOException, HL7Exception {
 		try (HapiContext hapiContext = new DefaultHapiContext();) {
 			PipeParser parser = hapiContext.getPipeParser();
 			parser.getParserConfiguration().setValidating(false);
