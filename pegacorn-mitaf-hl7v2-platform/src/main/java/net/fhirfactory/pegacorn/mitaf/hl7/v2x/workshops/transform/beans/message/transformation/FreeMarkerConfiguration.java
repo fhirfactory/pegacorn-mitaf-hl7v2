@@ -39,10 +39,24 @@ public class FreeMarkerConfiguration {
 	 * 
 	 * @param uow
 	 * @param exchange
+	 * @throws HL7Exception
+	 * @throws IOException
 	 */
 	public void configure(UoW uow, Exchange exchange) throws HL7Exception, IOException {	
 		Message message = extractHL7Message(uow, exchange);
-		
+		configure(message, exchange);		
+	}
+	
+	
+	/**
+	 * Configure Freemarker
+	 * 
+	 * @param message
+	 * @param exchange
+	 * @throws HL7Exception
+	 * @throws IOException
+	 */
+	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException {		
 		Map<String, Object> variableMap = new HashMap<>();
 		variableMap.put("message", message);
 		variableMap.put("exchange", exchange);

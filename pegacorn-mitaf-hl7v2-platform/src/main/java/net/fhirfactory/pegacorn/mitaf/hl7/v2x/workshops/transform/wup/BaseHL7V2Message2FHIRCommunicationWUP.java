@@ -22,9 +22,15 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
 
+import javax.inject.Inject;
+
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
@@ -32,11 +38,9 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRComm
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-
-import javax.inject.Inject;
 
 /**
  * Base class for all Mitaf WUPs to transform HL7 v2 messages to a FHIR
@@ -70,9 +74,9 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 
 	@Inject
 	private HL7V2XTopicFactory topicFactory;
-	
-    @Inject
-    protected BaseMessageTransform messageTransform;
+    
+	@Inject
+	private FreeMarkerConfiguration freemarkerConfig;
 
 	@Override
 	public void configure() throws Exception {
@@ -82,7 +86,8 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(hl7v2TextToMessage, "convertToMessage")
-				.bean(messageTransform, "doIngresTransform")
+				.bean(freemarkerConfig,"configure(*, Exchange)")
+				.to("freemarker:file:" + System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl?allowTemplateFromHeader=true&allowContextMapAll=true")
 				.bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
 				.bean(securityMarkerInjection, "injectSecurityMarkers")
 				.bean(communicationIntoUoW, "packageCommunicationResource")
