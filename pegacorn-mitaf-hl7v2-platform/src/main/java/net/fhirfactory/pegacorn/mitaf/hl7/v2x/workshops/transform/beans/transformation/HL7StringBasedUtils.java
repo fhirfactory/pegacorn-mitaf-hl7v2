@@ -3,6 +3,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 
 /**
@@ -42,6 +43,25 @@ class HL7StringBasedUtils {
 		}
 
 		return segmentIndexes;
+	}
+	
+	
+	/**
+	 * Returns the message row index of the first occurence of the supplied segment name.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getFirstSegmentIndex(Message message, String segmentName) throws Exception {
+		List<Integer>indexes = getSegmentIndexes(message, segmentName);
+		
+		if (indexes.isEmpty()) {
+			return null;
+		}
+		
+		return indexes.get(0);
 	}
 	
 
@@ -124,8 +144,8 @@ class HL7StringBasedUtils {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		deleteAllSegment(message, segmentName, fieldIndex, value, ComparisionType.MATCHES);
+	public static void deleteAllSegmentsMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		deleteAllSegments(message, segmentName, fieldIndex, value, ComparisionType.MATCHES);
 	}
 	
 	
@@ -138,8 +158,8 @@ class HL7StringBasedUtils {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		deleteAllSegment(message, segmentName, fieldIndex, value, ComparisionType.CONTAINS);
+	public static void deleteAllSegmentsContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		deleteAllSegments(message, segmentName, fieldIndex, value, ComparisionType.CONTAINS);
 	}
 	
 	
@@ -151,7 +171,7 @@ class HL7StringBasedUtils {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	private static void deleteAllSegment(Message message, String segmentName, int fieldIndex, String value, ComparisionType compareType) throws Exception {
+	private static void deleteAllSegments(Message message, String segmentName, int fieldIndex, String value, ComparisionType compareType) throws Exception {
 		String[] messageRows = message.toString().split("\r");
 
 		StringBuilder sb = new StringBuilder();
@@ -222,7 +242,7 @@ class HL7StringBasedUtils {
 
 		return false;
 	}
-	
+
 	
 	/**
 	 * Gets a field value from a segment. This does not use the HL7 terser.
@@ -260,7 +280,100 @@ class HL7StringBasedUtils {
 		String fieldValue = segmentFields[fieldIndex];
 		return fieldValue;
 	}
+
 	
+	/**
+	 * Appends a non standard segments at the end of the message.
+	 * 
+	 * @param semgmentName
+	 */
+	public static String appendNonStandardSegment(Message message, String newSegmentName) throws HL7Exception {
+		return message.addNonstandardSegment(newSegmentName);
+	}
+
+	
+	/**
+	 * Inserts a non standard segments at the specified index.
+	 * 
+	 * @param segmentName
+	 * @param index
+	 */
+	public static String insertNonStandardSegment(Message message, int index, String newSegmentName) throws HL7Exception {	
+		return message.addNonstandardSegment(newSegmentName, index);
+	}
+
+	
+	/**
+	 * Inserts a non standard segments after the the supplied afterSegmentName (1st occurence).
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentAfter(Message message, String newSegmentName, String afterSegmentName) throws Exception {
+		Integer index = getFirstSegmentIndex(message, afterSegmentName);
+		
+		if (index == null) {
+			throw new HL7Exception("Segment does not exist: " + afterSegmentName);
+		}
+		
+		return insertNonStandardSegment(message, ++index, newSegmentName);
+	}
+
+	
+	/**
+	 * Inserts a non standard segments before the the supplied afterSegmentName
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentBefore(Message message, String newSegmentName, String beforeSegmentName) throws Exception {
+		Integer index = getFirstSegmentIndex(message, beforeSegmentName);
+		
+		if (index == null) {
+			throw new HL7Exception("Segment does not exist: " + index);
+		}
+
+		return insertNonStandardSegment(message, index, newSegmentName);
+	}	
+	
+	
+	/**
+	 * Adds a mew segment after all occurences of an existing segment.
+	 * 
+	 * @param message
+	 * @param newSegmentName
+	 * @param afterSegmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<String> insertNonStandardSegmentAfterEvery(Message message, String newSegmentName, String afterSegmentName) throws Exception {
+		int count = getSegmentCount(message, afterSegmentName);
+		List<String>segmentNames = new ArrayList<>();
+		
+		for (int i = 0; i < count; i++) {
+			int segmentIndex = getSegmentIndex(message, afterSegmentName, i);
+			segmentNames.add(insertNonStandardSegment(message, ++segmentIndex, newSegmentName));
+		}
+		
+		return segmentNames;
+	}
+	
+	
+	/**
+	 * Gets a segment index.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getSegmentIndex(Message message, String segmentName, int occurence) throws Exception {
+		List<Integer>indexes = getSegmentIndexes(message, segmentName);
+		
+		return indexes.get(occurence);
+	}
+
 	
 	private static boolean compare(String messageField, String compareField, ComparisionType comparisionType) {
 	
@@ -280,5 +393,4 @@ class HL7StringBasedUtils {
 		
 		throw new IllegalArgumentException("Unknown comparison type: " + comparisionType);
 	}
-
 }

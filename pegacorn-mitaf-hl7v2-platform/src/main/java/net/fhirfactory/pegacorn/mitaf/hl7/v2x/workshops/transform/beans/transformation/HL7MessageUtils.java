@@ -197,8 +197,8 @@ public class HL7MessageUtils {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		HL7StringBasedUtils.deleteAllSegmentMatchingFieldValue(message, segmentName, fieldIndex, value);
+	public static void deleteAllSegmentsMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		HL7StringBasedUtils.deleteAllSegmentsMatchingFieldValue(message, segmentName, fieldIndex, value);
 	}
 
 	
@@ -210,8 +210,8 @@ public class HL7MessageUtils {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		HL7StringBasedUtils.deleteAllSegmentContainingFieldValue(message, segmentName, fieldIndex, value);
+	public static void deleteAllSegmentsContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		HL7StringBasedUtils.deleteAllSegmentsContainingFieldValue(message, segmentName, fieldIndex, value);
 	}
 
 	
@@ -393,5 +393,59 @@ public class HL7MessageUtils {
 	 */
 	public static void segmentAction(Message message, String sourcePathSpec, String actionClassName) throws Exception {
 		HL7TerserBasedUtils.segmentAction(message, sourcePathSpec, actionClassName);
+	}
+	
+	
+	/**
+	 * Appends non standard segment at the end of the message.
+	 * 
+	 * @param semgmentName
+	 */
+	public static String appendNonStandardSegment(Message message, String newSegmentName) throws Exception {	
+		return HL7StringBasedUtils.appendNonStandardSegment(message, newSegmentName);
+	}
+	
+	
+	/**
+	 * Inserts non standard segment at the specified index.
+	 * 
+	 * @param segmentName
+	 * @param index
+	 */
+	public static String insertNonStandardSegment(Message message, int index, String newSegmentName) throws Exception {	
+		return HL7StringBasedUtils.insertNonStandardSegment(message, index, newSegmentName);
+	}
+	
+	
+	/**
+	 * Inserts non standard segment after the the supplied afterSegmentName (1st occurence).
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentAfter(Message message, String newSegmentName, String afterSegmentName) throws Exception {
+		return HL7StringBasedUtils.insertNonStandardSegmentAfter(message, newSegmentName, afterSegmentName);
+	}
+	
+	
+	/**
+	 * Inserts non standard segment before the the supplied afterSegmentName
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentBefore(Message message, String newSegmentName, String afterSegmentName) throws Exception {
+		return HL7StringBasedUtils.insertNonStandardSegmentBefore(message, newSegmentName, afterSegmentName);
+	}	
+	
+	
+	/**
+	 * Insert non standard segment after every afterSegmentName.
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static List<String> insertNonStandardSegmentAfterEvery(Message message, String newSegmentName, String afterSegmentName) throws Exception{	
+		return HL7StringBasedUtils.insertNonStandardSegmentAfterEvery(message, newSegmentName, afterSegmentName);
 	}
 }

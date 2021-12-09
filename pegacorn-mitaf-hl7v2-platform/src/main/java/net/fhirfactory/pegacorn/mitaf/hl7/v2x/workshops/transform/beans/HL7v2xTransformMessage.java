@@ -115,42 +115,6 @@ public class HL7v2xTransformMessage {
         getLogger().debug(".transformMessage(): Exit, uow->{}", newUoW);
         return (newUoW);
     }
-    
-    
-    
-    /**
-     * Sets the HL7 message from the unit of work payload as the exchange message body to be use in the transformation component.
-     * 
-     * @param uow
-     * @return
-     * @throws IOException
-     * @throws HL7Exception
-     */
-    public Message setHL7MessageAsExchangeBody(UoW uow, Exchange exchange) throws IOException, HL7Exception {
-    	String hl7Message = null;
-        
-     	// get the first and only payload element.
-     	for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
-     		hl7Message = payload.getPayload();
-     		break;
-     	}
-     	
-     	
-     	 try (HapiContext hapiContext = new DefaultHapiContext();) {            
-     		 PipeParser parser = hapiContext.getPipeParser();
-     		 parser.getParserConfiguration().setValidating(false);
-    
-     		 ModelClassFactory cmf = new DefaultModelClassFactory();
-     		 hapiContext.setModelClassFactory(cmf);
-
-     		 Message message = parser.parse(hl7Message);
-     		 
-             exchange.getMessage().setBody(message);
-             exchange.getIn().setBody(message);
-            
-     		 return parser.parse(hl7Message); 	  
-    	}              	
-    }
 
     
     /**
@@ -159,7 +123,7 @@ public class HL7v2xTransformMessage {
      * @param exchange
      * @param message
      */
-    public UoW postTransformProcessing(Message message, Exchange exchange) {   	
+    public UoW postTransformProcessing(String message, Exchange exchange) {   	
     	UoW uow = (UoW) exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
     	uow.getEgressContent().getPayloadElements().clear();
 	    
@@ -170,7 +134,7 @@ public class HL7v2xTransformMessage {
         newManifest.setContainerDescriptor(null);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
 
-        newPayload.setPayload(message.toString());
+        newPayload.setPayload(message);
         newPayload.setPayloadManifest(newManifest);
         
         
@@ -181,14 +145,8 @@ public class HL7v2xTransformMessage {
         exchange.getMessage().setBody(uow);
         exchange.getIn().setBody(uow);
         
-        String sendMessagStr = (String)exchange.getProperty("sendMessage");
+        Boolean sendMessage = (Boolean)exchange.getProperty("sendMessage");
         
-        Boolean sendMessage = false;
-        
-        if (sendMessagStr != null) {
-        	sendMessage = Boolean.valueOf(sendMessagStr);
-        }
-
         if (!sendMessage) {
         	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
         }

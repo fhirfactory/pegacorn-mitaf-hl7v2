@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.components.interfaces.topology.WorkshopInterface
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
@@ -50,6 +51,9 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 	@Inject
 	private TransformWorkshop workshop;
 	
+	@Inject
+	private FreeMarkerConfiguration freemarkerConfig;
+	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (workshop);
@@ -63,9 +67,9 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 		fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
 	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
-	        .bean(HL7v2xTransformMessage.class, "setHL7MessageAsExchangeBody(*, Exchange)")
-			.setHeader("systemName", constant(System.getenv("KUBERNETES_SERVICE_NAME")))
-			.to("direct-vm:" + "transform-filter-egress-start")
+			.bean(freemarkerConfig,"configure(*, Exchange)")
+			.to("freemarker:file:" + System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-egress-transformation-config.ftl?allowTemplateFromHeader=true&allowContextMapAll=true")
+			.bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
 			.to(egressFeed());
 	}
 }
