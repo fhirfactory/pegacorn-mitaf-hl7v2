@@ -22,6 +22,8 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
 
+import java.io.File;
+
 import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.components.dataparcel.DataParcelManifest;
@@ -82,12 +84,20 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 	public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
+        
+        // This will make sure the file exists during app startup
+        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl";
+        File file = new File(fileName);
+        
+        if (!file.exists()) {
+        	throw new RuntimeException("Transformation file not found: " + fileName);
+        }
 
 		fromIncludingPetasosServices(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(hl7v2TextToMessage, "convertToMessage")
 				.bean(freemarkerConfig,"configure(*, Exchange)")
-				.to("freemarker:file:" + System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl?allowTemplateFromHeader=true&allowContextMapAll=true")
+				.to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
 				.bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
 				.bean(securityMarkerInjection, "injectSecurityMarkers")
 				.bean(communicationIntoUoW, "packageCommunicationResource")
