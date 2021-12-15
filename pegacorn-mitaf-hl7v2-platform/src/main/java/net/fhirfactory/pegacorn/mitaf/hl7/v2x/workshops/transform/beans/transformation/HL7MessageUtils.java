@@ -1,6 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -16,6 +17,12 @@ import ca.uhn.hl7v2.util.Terser;
  */
 public class HL7MessageUtils {
 	
+	/**
+	 * Gets the message type.
+	 * 
+	 * @param message
+	 * @return
+	 */
 	public static String getType(Message message) {
 		return message.getName();
 	}
@@ -34,10 +41,11 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Returns all 
+	 * Removes a patient identifier.
 	 * 
 	 * @param message
-	 * @param identifierTypes
+	 * @param identifier
+	 * @throws Exception
 	 */
 	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
 		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier);
@@ -45,7 +53,7 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Returns a list of identifiers in the PID segment.
+	 * Returns a list of patient identifiers in the PID segment.
 	 * 
 	 * @param message
 	 * @return
@@ -70,7 +78,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Set a field value.
+	 * Set the target field to the supplied value.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
@@ -83,17 +91,82 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Set a field value from another field.
+	 * Copies the content of one field to another.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
 	 * @param sourcePathSpec
 	 * @throws HL7Exception
 	 */
-	public static void copy(Message message, String sourcePathSpec, String targetPathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
-		HL7TerserBasedUtils.copy(message, sourcePathSpec, targetPathSpec, copyIfSourceIsBlank, copyIfTargetIsBlank);
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, copyIfSourceIsBlank, copyIfTargetIsBlank);
+	}
+
+	
+	/**
+	 * Copies the content of one field to another.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @throws Exception
+	 */
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec) throws Exception {	
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, true, true);
+	}
+
+	
+	/**
+	 * Copies the content from one field to another.  If the source field is null then the default source path is used.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param defaultIfSourceIsNull
+	 */
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, String defaultSourcepathSpec) throws Exception {
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, defaultSourcepathSpec);
 	}
 	
+	
+	/**
+	 * Copies the content of the source path before the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringBefore(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		HL7TerserBasedUtils.copySubstringBefore(message, targetPathSpec, sourcePathSpec, seperator);			
+	}
+	
+	
+	/**
+	 * Copies the content of the source path after the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringAfter(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		HL7TerserBasedUtils.copySubstringAfter(message, targetPathSpec, sourcePathSpec, seperator);
+	}
+
+	
+	/**
+	 * Concatenates the content of the source fields.
+	 * 
+	 * @param message
+	 * @param targetpathSpec
+	 * @param seperator
+	 * @param sourcePathSpecs
+	 */
+	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.concatenate(message, targetPathSpec, seperator, sourcePathSpecs);
+	}
+
 	
 	/**
 	 * Uses a lookup table to change a fields value.
@@ -147,10 +220,57 @@ public class HL7MessageUtils {
 	 * @param message
 	 * @param segmentName
 	 * @return
+	 * @throws Exception
 	 */
 	public static List<Integer> getSegmentIndexes(Message message, String segmentName) throws Exception {
 		return HL7StringBasedUtils.getSegmentIndexes(message, segmentName);
 	}
+	
+	
+	/**
+	 * Returns the index of a matching segment starting from the supplied starting from index.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param startingFrom
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getNextIndex(Message message, String segmentName, int startFromIndex) throws Exception {
+		String[] messageRows = message.toString().split("\r");
+
+		for (int i = startFromIndex; i < messageRows.length; i++) {
+			if (messageRows[i].startsWith(segmentName + "|")) {
+				return i;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Returns all the indexes of a matching segment startinf from the supplied start from index,
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param startFromIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static  List<Integer> getSegmentIndexes(Message message, String segmentName, int startFromIndex) throws Exception {
+		List<Integer> segmentIndexes = new ArrayList<>();
+		
+		String[] messageRows = message.toString().split("\r");
+
+		for (int i = startFromIndex; i < messageRows.length; i++) {
+			if (messageRows[i].startsWith(segmentName + "|")) {
+				segmentIndexes.add(i);
+			}
+		}
+		
+		return segmentIndexes;
+	}	
 
 	
 	/**
@@ -307,7 +427,6 @@ public class HL7MessageUtils {
 		Terser terser = new Terser(message);
 		return terser.get(sourcePathSpec);
 	}
-	
 
 	
 	/**
@@ -320,7 +439,7 @@ public class HL7MessageUtils {
 	public static void removeSegment(Message message, String sourcePathSpec) throws Exception {
 		HL7TerserBasedUtils.removeSegment(message, sourcePathSpec);
 	}
-	
+
 	
 	/**
 	 * Removes all segments matching the segment name no matter where they appear in the message.  Please note the segment name is not a path spec.
@@ -335,7 +454,7 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Sets the segments to send.  All other segments are removed.  
+	 * Sets the segments to keep. 
 	 * 
 	 * @param message
 	 * @param requiredSegments
@@ -345,10 +464,16 @@ public class HL7MessageUtils {
 	}
 
 	
+	/**
+	 * Sets the segments to keep.  The segments to keep are a comma delimited list.
+	 * 
+	 * @param message
+	 * @param setSegmentsToKeep
+	 * @throws Exception
+	 */
 	public static void setSegmentsToKeep(Message message, String setSegmentsToKeep) throws Exception {		
 		setSegmentsToKeep(message, setSegmentsToKeep.split(","));
 	}
-	
 
 	/**
 	 * Returns a list of all matching segments.  Please note the segment name is not a path spec.
@@ -356,12 +481,13 @@ public class HL7MessageUtils {
 	 * @param message
 	 * @param segmentName
 	 * @return
+	 * @throws Exception
 	 */
 	public static List<Segment>getAllSegments(Message message, String segmentName) throws Exception {
 		return HL7TerserBasedUtils.getAllSegments(message, segmentName);
 	}
+
 	
-		
 	/**
 	 * Check if a segment exists.
 	 * 
@@ -394,10 +520,10 @@ public class HL7MessageUtils {
 	public static void segmentAction(Message message, String sourcePathSpec, String actionClassName) throws Exception {
 		HL7TerserBasedUtils.segmentAction(message, sourcePathSpec, actionClassName);
 	}
-	
+
 	
 	/**
-	 * Appends non standard segment at the end of the message.
+	 * Appends a non standard segment at the end of the message.
 	 * 
 	 * @param semgmentName
 	 */
@@ -407,18 +533,18 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Inserts non standard segment at the specified index.
+	 * Inserts a non standard segment at the specified index.
 	 * 
 	 * @param segmentName
 	 * @param index
 	 */
-	public static String insertNonStandardSegment(Message message, int index, String newSegmentName) throws Exception {	
-		return HL7StringBasedUtils.insertNonStandardSegment(message, index, newSegmentName);
+	public static String insertNonStandardSegment(Message message, String newSegmentName, int index) throws Exception {	
+		return HL7StringBasedUtils.insertNonStandardSegment(message, newSegmentName, index);
 	}
-	
+
 	
 	/**
-	 * Inserts non standard segment after the the supplied afterSegmentName (1st occurence).
+	 * Inserts a non standard segment after the the supplied afterSegmentName (1st occurence).
 	 * 
 	 * @param segmentName
 	 * @param afterSegmentName
@@ -426,26 +552,85 @@ public class HL7MessageUtils {
 	public static String insertNonStandardSegmentAfter(Message message, String newSegmentName, String afterSegmentName) throws Exception {
 		return HL7StringBasedUtils.insertNonStandardSegmentAfter(message, newSegmentName, afterSegmentName);
 	}
-	
+
 	
 	/**
-	 * Inserts non standard segment before the the supplied afterSegmentName
+	 * Inserts a non standard segment before the the supplied afterSegmentName (1st occurence)
 	 * 
 	 * @param segmentName
 	 * @param afterSegmentName
 	 */
-	public static String insertNonStandardSegmentBefore(Message message, String newSegmentName, String afterSegmentName) throws Exception {
-		return HL7StringBasedUtils.insertNonStandardSegmentBefore(message, newSegmentName, afterSegmentName);
+	public static String insertNonStandardSegmentBefore(Message message, String newSegmentName, String beforeSegmentName) throws Exception {
+		return HL7StringBasedUtils.insertNonStandardSegmentBefore(message, newSegmentName, beforeSegmentName);
 	}	
-	
+
 	
 	/**
-	 * Insert non standard segment after every afterSegmentName.
+	 * Insert a non standard segment after every afterSegmentName.
 	 * 
 	 * @param segmentName
 	 * @param afterSegmentName
 	 */
 	public static List<String> insertNonStandardSegmentAfterEvery(Message message, String newSegmentName, String afterSegmentName) throws Exception{	
 		return HL7StringBasedUtils.insertNonStandardSegmentAfterEvery(message, newSegmentName, afterSegmentName);
+	}
+
+	
+	/**
+	 * Gets a segment a the specified index.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getSegment(String message, int segmentIndex) throws Exception {
+		return HL7StringBasedUtils.getSegment(message, segmentIndex);
+	}
+
+	
+	/**
+	 * Returns the index of a matching segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getSegmentIndex(Message message, String segmentName, int occurence) throws Exception {
+		return HL7StringBasedUtils.getSegmentIndex(message, segmentName, occurence);
+	}
+	
+	
+	/**
+	 * Returns the message row index of the first occurence of the supplied segment name.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getFirstSegmentIndex(Message message, String segmentName) throws Exception {
+		return getSegmentIndex(message, segmentName, 0);
+	}
+
+	/**
+	 * Returns a segment content as a string.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getSegment(Message message, String segmentName, int occurence) throws Exception {
+		Integer index = getSegmentIndex(message, segmentName, occurence);
+		
+		if (index == null) {
+			return null;
+		}
+		
+		return getSegment(segmentName, index);
 	}
 }

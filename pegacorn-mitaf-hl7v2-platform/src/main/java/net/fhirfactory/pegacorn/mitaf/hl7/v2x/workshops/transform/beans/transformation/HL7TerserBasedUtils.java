@@ -125,7 +125,7 @@ class HL7TerserBasedUtils {
 	 * @param sourcePathSpec
 	 * @throws HL7Exception
 	 */
-	public static void copy(Message message, String sourcePathSpec, String targetPathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
 		Terser terser = new Terser(message);
 		
 		String sourceValue = terser.get(sourcePathSpec);
@@ -141,6 +141,73 @@ class HL7TerserBasedUtils {
 		
 		terser.set(targetPathSpec, sourceValue);	
 	}
+	
+	
+	/**
+	 * Copies from one field to another.  If the source value is null a default value is used.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param defaultIfSourceIsNull
+	 * @throws Exception
+	 */
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, String defaultSourcepathSpec) throws Exception {
+		Terser terser = new Terser(message);
+		
+		String sourceValue = terser.get(sourcePathSpec);
+		
+		if (sourceValue == null) {
+			sourceValue = terser.get(defaultSourcepathSpec);
+		}
+		
+		terser.set(targetPathSpec, sourceValue);			
+	}
+
+	
+	/**
+	 * Copies the content of the source path before the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringBefore(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		Terser terser = new Terser(message);
+		
+		String sourceValue = terser.get(sourcePathSpec);	
+		int indexOfSeperator = StringUtils.indexOf(sourceValue, seperator);
+		
+		if (indexOfSeperator == -1) {
+			terser.set(targetPathSpec, sourceValue);
+		} else {
+			terser.set(targetPathSpec, StringUtils.substring(sourceValue, 0, indexOfSeperator));
+		}
+	}
+	
+	
+	/**
+	 * Copies the content of the source path after the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringAfter(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		Terser terser = new Terser(message);
+		
+		String sourceValue = terser.get(sourcePathSpec);	
+		int indexOfSeperator = StringUtils.indexOf(sourceValue, seperator);
+		
+		if (indexOfSeperator == -1) {
+			terser.set(targetPathSpec, sourceValue);
+		} else {
+			terser.set(targetPathSpec, StringUtils.substring(sourceValue, indexOfSeperator + 1, sourceValue.length()));
+		}
+	}
+	
 	
 	
 	/**
@@ -461,9 +528,35 @@ class HL7TerserBasedUtils {
 			Constructor<?> actionClassConstructor = actionClass.getConstructor();
 			SegmentAction segmentAction = (SegmentAction) actionClassConstructor.newInstance();
 			
-			segmentAction.equals(segment);
+			segmentAction.execute(segment);
 		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
 			throw new HL7Exception("Unable to construct segment action class", e);
 		}		
+	}
+	
+	
+	/**
+	 * Concatenate field values.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param seperator
+	 * @param sourcePathSpecs
+	 */
+	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
+		Terser terser = new Terser(message);
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for (String sourcePathSpec : sourcePathSpecs) {
+			if (sb.length() > 0) {
+				sb.append(seperator);
+			}
+			
+			String sourceFieldValue = terser.get(sourcePathSpec);
+			sb.append(sourceFieldValue);
+		}
+		
+		terser.set(targetPathSpec, sb.toString());
 	}
 }

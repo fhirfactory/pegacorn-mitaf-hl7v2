@@ -55,13 +55,7 @@ class HL7StringBasedUtils {
 	 * @throws Exception
 	 */
 	public static Integer getFirstSegmentIndex(Message message, String segmentName) throws Exception {
-		List<Integer>indexes = getSegmentIndexes(message, segmentName);
-		
-		if (indexes.isEmpty()) {
-			return null;
-		}
-		
-		return indexes.get(0);
+		return getSegmentIndex(message, segmentName, 1);
 	}
 	
 
@@ -84,6 +78,47 @@ class HL7StringBasedUtils {
 		}
 
 		return segmentCount;
+	}
+
+	
+	/**
+	 * Returns the index of a matching segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getSegmentIndex(Message message, String segmentName, int occurence) throws Exception {
+		List<Integer>segmentIndexes = getSegmentIndexes(message, segmentName);
+		
+		if (segmentIndexes.isEmpty()) {
+			return null;
+		}
+		
+		return segmentIndexes.get(--occurence);
+	}
+
+	
+	/**
+	 * Returns a segment as a string.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getSegment(Message message, String segmentName, int occurence) throws Exception {
+		
+		Integer index = getSegmentIndex(message, segmentName, occurence);
+		
+		if (index == null) {
+			return null;
+		}
+		
+		return getSegment(segmentName, index);
 	}
 
 	
@@ -280,6 +315,20 @@ class HL7StringBasedUtils {
 		String fieldValue = segmentFields[fieldIndex];
 		return fieldValue;
 	}
+	
+	
+	/**
+	 * Returns a segment at the specified index.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @return
+	 */
+	public static String getSegment(String message, int segmentIndex) {
+		String[] messageRows = message.toString().split("\r");
+
+		return messageRows[segmentIndex];
+	}
 
 	
 	/**
@@ -298,7 +347,7 @@ class HL7StringBasedUtils {
 	 * @param segmentName
 	 * @param index
 	 */
-	public static String insertNonStandardSegment(Message message, int index, String newSegmentName) throws HL7Exception {	
+	public static String insertNonStandardSegment(Message message,String newSegmentName, int index) throws HL7Exception {	
 		return message.addNonstandardSegment(newSegmentName, index);
 	}
 
@@ -316,7 +365,7 @@ class HL7StringBasedUtils {
 			throw new HL7Exception("Segment does not exist: " + afterSegmentName);
 		}
 		
-		return insertNonStandardSegment(message, ++index, newSegmentName);
+		return insertNonStandardSegment(message, newSegmentName, ++index);
 	}
 
 	
@@ -333,7 +382,7 @@ class HL7StringBasedUtils {
 			throw new HL7Exception("Segment does not exist: " + index);
 		}
 
-		return insertNonStandardSegment(message, index, newSegmentName);
+		return insertNonStandardSegment(message, newSegmentName, index);
 	}	
 	
 	
@@ -352,26 +401,10 @@ class HL7StringBasedUtils {
 		
 		for (int i = 0; i < count; i++) {
 			int segmentIndex = getSegmentIndex(message, afterSegmentName, i);
-			segmentNames.add(insertNonStandardSegment(message, ++segmentIndex, newSegmentName));
+			segmentNames.add(insertNonStandardSegment(message, newSegmentName, ++segmentIndex));
 		}
 		
 		return segmentNames;
-	}
-	
-	
-	/**
-	 * Gets a segment index.
-	 * 
-	 * @param message
-	 * @param segmentName
-	 * @param occurence
-	 * @return
-	 * @throws Exception
-	 */
-	public static Integer getSegmentIndex(Message message, String segmentName, int occurence) throws Exception {
-		List<Integer>indexes = getSegmentIndexes(message, segmentName);
-		
-		return indexes.get(occurence);
 	}
 
 	
