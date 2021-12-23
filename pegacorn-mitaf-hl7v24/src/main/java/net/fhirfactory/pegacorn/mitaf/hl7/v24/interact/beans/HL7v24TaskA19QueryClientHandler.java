@@ -25,13 +25,14 @@ import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.segment.QRD;
+//import ca.uhn.hl7v2.model.v24.segment.QRD;
 import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.parser.PipeParser;
+import ca.uhn.hl7v2.util.Terser;
 import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
 import net.fhirfactory.pegacorn.components.capabilities.CapabilityUtilisationBrokerInterface;
 import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
 import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
-import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTask;
-import net.fhirfactory.pegacorn.components.capabilities.hl7v2tasks.A19QueryTaskOutcome;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ import java.util.UUID;
 
 @ApplicationScoped
 public class HL7v24TaskA19QueryClientHandler {
+
     private static final Logger LOG = LoggerFactory.getLogger(HL7v24TaskA19QueryClientHandler.class);
 
     private HapiContext hapiContext;
@@ -60,7 +62,7 @@ public class HL7v24TaskA19QueryClientHandler {
     private CapabilityUtilisationBrokerInterface capabilityUtilisationBroker;
 
     @PostConstruct
-    public void initialise(){
+    public void initialise() {
         this.hapiContext = new DefaultHapiContext();
     }
 
@@ -70,11 +72,25 @@ public class HL7v24TaskA19QueryClientHandler {
         String urn = "";
         try {
             String stringToPrint = incomingRequest.printStructure();
-			//
-			// Because auditing is not running yet
-			// Remove once Auditing is in place
-			//
+            //
+            // Because auditing is not running yet
+            // Remove once Auditing is in place
+            //
             LOG.warn(".processA19Request(): IncomingMessage->{}", stringToPrint); // Log at WARN level so always seen in TEST
+
+            // This is temporary.  Change a versio which is 2.3x to 2.4.
+            PipeParser parser = hapiContext.getPipeParser();
+            parser.getParserConfiguration().setValidating(false);
+            Terser terser = new Terser(incomingRequest);
+
+            String messageVersion = terser.get("/MSH-12");
+            if (messageVersion.startsWith("2.3")) {
+                terser.set("/MSH-12", "2.4");
+                incomingRequest = parser.parse(incomingRequest.toString());
+
+                incomingRequest.parse(incomingRequest.toString());
+            }
+
             QRD query = (QRD) incomingRequest.get("QRD");
             queryString = incomingRequest.encode();
             urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
@@ -102,10 +118,10 @@ public class HL7v24TaskA19QueryClientHandler {
         } catch (Exception ex) {
             LOG.info(".processA19Request(): Something went wrong with parsing --> {}", ex);
         }
-        return(null);
+        return (null);
     }
 
-    private String utiliseA19QueryCapability( String queryString){
+    private String utiliseA19QueryCapability(String queryString) {
         LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}", queryString);
         //
         // Build Query
@@ -123,15 +139,12 @@ public class HL7v24TaskA19QueryClientHandler {
         // Extract the response
         //
         String resultString = a19QueryTaskOutcome.getResponseContent();
-        return(resultString);
+        return (resultString);
     }
-
 
     //
     // Getters (and Setters)
     //
-
-
     public HapiContext getHAPIContext() {
         return hapiContext;
     }
