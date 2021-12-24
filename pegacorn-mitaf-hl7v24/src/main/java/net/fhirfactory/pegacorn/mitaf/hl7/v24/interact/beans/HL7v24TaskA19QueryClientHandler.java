@@ -86,6 +86,8 @@ public class HL7v24TaskA19QueryClientHandler {
             String messageVersion = terser.get("/MSH-12");
             if (messageVersion.startsWith("2.3")) {
                 terser.set("/MSH-12", "2.4");
+                // TODO Temp modifications to test connectivity.
+                terser.set("/MSH-11", "T");
                 incomingRequest = parser.parse(incomingRequest.toString());
 
                 incomingRequest.parse(incomingRequest.toString());
