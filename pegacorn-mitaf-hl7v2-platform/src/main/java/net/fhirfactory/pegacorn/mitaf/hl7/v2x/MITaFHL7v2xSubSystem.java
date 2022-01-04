@@ -22,87 +22,76 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
 import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.interfaces.pathway.TaskPathwayManagementServiceInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.pubsub.InterSubsystemPubSubPublisherSubscriptionRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantHolder;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
-import net.fhirfactory.pegacorn.platform.edge.services.PetasosSubscriptionService;
+import net.fhirfactory.pegacorn.petasos.core.participants.manager.LocalPetasosParticipantCacheIM;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 import org.hl7.fhir.r4.model.ResourceType;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
     private boolean mitafHL7v2SubsystemInitialised;
 
-    @Inject
-    private PetasosSubscriptionService pubSubBroker;
-
-    @Inject
-    private FHIRElementTopicFactory fhirElementTopicFactory;
-
-    @Inject
-    private PegacornReferenceProperties pegacornReferenceProperties;
 
     public MITaFHL7v2xSubSystem(){
         super();
         mitafHL7v2SubsystemInitialised = false;
     }
 
-    protected InterSubsystemPubSubPublisherSubscriptionRegistration subscribeToRemoteDataParcels(List<DataParcelTypeDescriptor> triggerEventList, String sourceSystem){
-        getLogger().debug(".subscribeToRemoteDataParcels(): Entry, sourceSystem->{}", sourceSystem);
-        if(triggerEventList.isEmpty()){
-            return(null);
-        }
-        getLogger().trace(".subscribeToRemoteDataParcels(): We have entries in the subscription list, processing");
-        List<DataParcelManifest> manifestList = new ArrayList<>();
-        for(DataParcelTypeDescriptor currentTriggerEvent: triggerEventList){
-            getLogger().trace(".subscribeToRemoteDataParcels(): currentTriggerEvent->{}", currentTriggerEvent);
-            DataParcelTypeDescriptor container = fhirElementTopicFactory.newTopicToken(ResourceType.Communication.name(), pegacornReferenceProperties.getPegacornDefaultFHIRVersion());
-            getLogger().trace(".subscribeToRemoteDataParcels(): container->{}", container);
-            DataParcelManifest manifest = new DataParcelManifest();
-            manifest.setContentDescriptor(currentTriggerEvent);
-            manifest.setContainerDescriptor(container);
-            manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-            manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-            manifest.setInterSubsystemDistributable(true);
-            manifest.setSourceSystem(sourceSystem);
-            manifestList.add(manifest);
-        }
-        getLogger().trace(".subscribeToRemoteDataParcels(): Invoking pubsubBroker.subscriber() ... :)");
-        if(pubSubBroker == null){
-            getLogger().warn(".subscribeToRemoteDataParcels(): Warning, pubSubBroker is null");
-        }
-        InterSubsystemPubSubPublisherSubscriptionRegistration subscriptionRegistration = pubSubBroker.subscribe(manifestList, sourceSystem);
-        getLogger().debug(".subscribeToRemoteDataParcels(): Exit, subscriptionRegistration->{}", subscriptionRegistration);
-        return(subscriptionRegistration);
-    }
-
     @Override
     protected void executePostConstructActivities() {
+        getLogger().debug(".executePostConstructActivities(): Entry");
         if(this.mitafHL7v2SubsystemInitialised){
+            getLogger().debug(".executePostConstructActivities(): Exit, already initialised");
             return;
         }
         getLogger().info(".executePostConstructActivities(): Entry");
         List<SimpleSubscriptionItem> subscriptionList = registerSubscriptionList();
         getLogger().info(".executePostConstructActivities(): subscriberList (size)->{}", subscriptionList.size());
-        for(SimpleSubscriptionItem currentSimpleSubscription: subscriptionList){
+        Set<TaskWorkItemManifestType> manifestList = new HashSet<>();
+        for(SimpleSubscriptionItem currentSimpleSubscription: subscriptionList) {
             getLogger().info(".executePostConstructActivities(): currentSimpleSubscription->{}", currentSimpleSubscription);
             List<DataParcelTypeDescriptor> descriptorList = currentSimpleSubscription.getDescriptorList();
             String currentSource = currentSimpleSubscription.getSourceSystem();
-            for(DataParcelTypeDescriptor currentDescriptor: descriptorList) {
-                getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}",currentSource, currentDescriptor);
+            for (DataParcelTypeDescriptor currentDescriptor : descriptorList) {
+                getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}", currentSource, currentDescriptor);
                 getLogger().info(".executePostConstructActivities(): Invoking subscribeToRemoteDataParcels()!");
-                InterSubsystemPubSubPublisherSubscriptionRegistration subscriptionRegistration = subscribeToRemoteDataParcels(descriptorList, currentSource);
-                getLogger().info(".executePostConstructActivities(): Subscription Registered, outcome->{}!", subscriptionRegistration);
+
+                getLogger().info(".executePostConstructActivities(): currentDescriptor->{}", currentDescriptor);
+                DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getPegacornReferenceProperties().getPegacornDefaultFHIRVersion());
+                getLogger().info(".executePostConstructActivities(): container->{}", container);
+                TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
+                manifest.setContentDescriptor(currentDescriptor);
+                manifest.setContainerDescriptor(container);
+                manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+                manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+                manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+                manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+                manifest.setInterSubsystemDistributable(true);
+                manifest.setSourceSystem(currentSource);
+                manifest.setTaskProducerProcessingPlantParticipantName(currentSource);
+                manifestList.add(manifest);
             }
         }
+        getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
+        PetasosParticipantRegistration participantRegistration = getLocalPetasosParticipantCacheIM().registerPetasosParticipant(getMeAsASoftwareComponent(), new HashSet<>(), manifestList);
+        getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant, registration->{}!", participantRegistration);
         getLogger().info(".executePostConstructActivities(): Exit");
         this.mitafHL7v2SubsystemInitialised = true;
     }

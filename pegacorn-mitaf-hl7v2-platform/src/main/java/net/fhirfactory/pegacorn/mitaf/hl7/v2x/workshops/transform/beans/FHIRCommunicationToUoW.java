@@ -27,7 +27,10 @@ import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferencePrope
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
@@ -35,6 +38,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.camel.Exchange;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
@@ -50,11 +54,6 @@ public class FHIRCommunicationToUoW {
 
     private IParser fhirParser;
 
-    @PostConstruct
-    public void initialise(){
-        fhirParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
-    }
-
     @Inject
     private FHIRContextUtility fhirContextUtility;
 
@@ -67,8 +66,31 @@ public class FHIRCommunicationToUoW {
     @Inject
     private CommunicationPayloadTypeExtensionEnricher payloadTypeExtensionEnricher;
 
+    //
+    // Constructor(s)
+    //
+
+    public FHIRCommunicationToUoW(){
+
+    }
+
+    //
+    // Post Construct
+    //
+
+    @PostConstruct
+    public void initialise(){
+        fhirParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
+    }
+
+    //
+    // Business Methods
+    //
+
     public UoW packageCommunicationResource(Communication communication, Exchange camelExchange){
-        UoW uowFromExchange = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
+        getLogger().debug(".packageCommunicationResource(): Entry, communication->{}", communication);
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        UoW uowFromExchange = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
         LOG.trace(".packageCommunicationResource(): Converting communication (FHIR::Communication) to a JSON String");
         String communicationAsString = fhirParser.encodeResourceToString(communication);
         LOG.trace(".packageCommunicationResource(): Generating a new DataParcelManifest from the communication (FHIR::Communication) object");
@@ -81,9 +103,15 @@ public class FHIRCommunicationToUoW {
         manifest.setContentDescriptor(parcelContentDescriptor);
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
         manifest.setInterSubsystemDistributable(true);
-        manifest.setIntendedTargetSystem(uowFromExchange.getPayloadTopicID().getIntendedTargetSystem());
-        manifest.setSourceSystem(uowFromExchange.getPayloadTopicID().getSourceSystem());
+        if(uowFromExchange.getPayloadTopicID().hasIntendedTargetSystem()) {
+            manifest.setIntendedTargetSystem(uowFromExchange.getPayloadTopicID().getIntendedTargetSystem());
+        }
+        if(uowFromExchange.getPayloadTopicID().hasSourceSystem()) {
+            manifest.setSourceSystem(uowFromExchange.getPayloadTopicID().getSourceSystem());
+        }
         LOG.trace(".packageCommunicationResource(): Inserting details into the UoW");
         UoWPayload egressPayload = new UoWPayload();
         egressPayload.setPayload(communicationAsString);
@@ -93,5 +121,13 @@ public class FHIRCommunicationToUoW {
         uowFromExchange.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         LOG.debug(".packageCommunicationResource(): Exit, uow->{}", uowFromExchange);
         return(uowFromExchange);
+    }
+
+    //
+    // Getters (and Setters)
+    //
+
+    protected Logger getLogger(){
+        return(LOG);
     }
 }

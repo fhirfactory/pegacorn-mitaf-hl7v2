@@ -107,7 +107,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue));
 		endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
 		endpoint.setFrameworkEnabled(false);
-		getAssociatedTopologyNode().setEgressEndpoint(clientTopologyEndpoint);
+		getMeAsATopologyComponent().setEgressEndpoint(clientTopologyEndpoint);
 		return endpoint;
 	}
 
