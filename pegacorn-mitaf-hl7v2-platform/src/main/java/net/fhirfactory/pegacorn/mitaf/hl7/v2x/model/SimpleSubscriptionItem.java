@@ -27,11 +27,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleSubscriptionItem {
+    private String sourceSubsystemParticipantName;
     private String sourceSystem;
     private List<DataParcelTypeDescriptor> descriptorList;
 
+    //
+    // Constructor(s)
+    //
     public SimpleSubscriptionItem(){
         descriptorList = new ArrayList<>();
+        sourceSubsystemParticipantName = null;
+        sourceSystem = null;
+    }
+
+    //
+    // Getters and Setters
+    //
+
+
+    public String getSourceSubsystemParticipantName() {
+        return sourceSubsystemParticipantName;
+    }
+
+    public void setSourceSubsystemParticipantName(String sourceSubsystemParticipantName) {
+        this.sourceSubsystemParticipantName = sourceSubsystemParticipantName;
     }
 
     public String getSourceSystem() {
@@ -50,11 +69,16 @@ public class SimpleSubscriptionItem {
         this.descriptorList = descriptorList;
     }
 
+    //
+    // To String
+    //
+
     @Override
     public String toString() {
         return "SimpleSubscriptionItem{" +
                 "sourceSystem=" + sourceSystem +
                 ", descriptorList=" + descriptorList +
+                ", sourceSubsystemParticipantName=" + sourceSubsystemParticipantName +
                 '}';
     }
 }

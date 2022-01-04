@@ -31,6 +31,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -51,6 +52,9 @@ public abstract class HL7v2MessageEncapsulator {
 
     @Inject
     private ProcessingPlantInterface processingPlant;
+
+    @Inject
+    private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
 
     //
     // Constructor(s)
@@ -156,6 +160,7 @@ public abstract class HL7v2MessageEncapsulator {
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+            messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
             getLogger().trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
             getLogger().trace(".encapsulateMessage(): Creating Egress Payload (newPayload)");
             UoWPayload newPayload = new UoWPayload();

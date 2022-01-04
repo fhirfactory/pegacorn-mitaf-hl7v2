@@ -32,6 +32,7 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -157,8 +158,14 @@ public class HL7v2xTransformMessage {
      * @param exchange
      * @param message
      */
-    public UoW postTransformProcessing(Message message, Exchange exchange) {   	
-    	UoW uow = (UoW) exchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME);
+    public UoW postTransformProcessing(Message message, Exchange exchange) {
+        getLogger().debug(".postTransformProcessing(): Entry, message->{}", message);
+        //
+        // We embed the fulfillmentTask within the exchange as part of Petasos framework
+        PetasosFulfillmentTask fulfillemtTask = (PetasosFulfillmentTask) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+        //
+        // The UoW is extracted from the fulfillmentTask.
+        UoW uow = fulfillemtTask.getTaskWorkItem();
     	uow.getEgressContent().getPayloadElements().clear();
 	    
         UoWPayload newPayload = new UoWPayload();
@@ -190,7 +197,7 @@ public class HL7v2xTransformMessage {
         if (!sendMessage) {
         	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
         }
-        
+        getLogger().debug(".postTransformProcessing(): Exit, uow->{}", uow);
         return uow;
     }
 }
