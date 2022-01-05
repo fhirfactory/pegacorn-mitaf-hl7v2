@@ -215,7 +215,7 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Returns the message row indexes of the supplied segment.  This does not use the terser.
+	 * Returns the message row indexes of the supplied segment.
 	 * 
 	 * @param message
 	 * @param segmentName
@@ -442,7 +442,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Removes all segments matching the segment name no matter where they appear in the message.  Please note the segment name is not a path spec.
+	 * Removes all segments matching the segment name no matter where they appear in the message.
 	 * 
 	 * @param message
 	 * @param segmentName
@@ -476,7 +476,7 @@ public class HL7MessageUtils {
 	}
 
 	/**
-	 * Returns a list of all matching segments.  Please note the segment name is not a path spec.
+	 * Returns a list of all matching segments.
 	 * 
 	 * @param message
 	 * @param segmentName
@@ -555,7 +555,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Inserts a non standard segment before the the supplied afterSegmentName (1st occurence)
+	 * Inserts a non standard segment before the the supplied beforeSegmentName (1st occurence)
 	 * 
 	 * @param segmentName
 	 * @param afterSegmentName
@@ -577,7 +577,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Gets a segment a the specified index.
+	 * Gets a segment at the specified index.
 	 * 
 	 * @param message
 	 * @param segmentIndex
@@ -632,5 +632,19 @@ public class HL7MessageUtils {
 		}
 		
 		return getSegment(segmentName, index);
+	}
+	
+	
+	/**
+	 * Copies a value from one field to another and replace the params.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param text
+	 * @param sourcePathSpecs
+	 * @throws Exception
+	 */
+	public static void copyReplaceParam(Message message, String targetPathSpec, String sourcePathSpec, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.copyReplaceParam(message, targetPathSpec, sourcePathSpec, sourcePathSpecs);
 	}
 }

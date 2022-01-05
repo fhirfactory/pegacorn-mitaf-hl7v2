@@ -290,6 +290,9 @@ class HL7TerserBasedUtils {
 	 */
 	public static void clear(Message message, String targetPathSpec) throws Exception {
 		Terser terser = new Terser(message);	
+		
+		String val = terser.get(targetPathSpec);
+		System.out.println(val);
 			
 		terser.set(targetPathSpec, "");
 	}
@@ -558,5 +561,29 @@ class HL7TerserBasedUtils {
 		}
 		
 		terser.set(targetPathSpec, sb.toString());
+	}
+
+	
+	/**
+	 * Copies a value from one field to another and replace the params.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param text
+	 * @param sourcePathSpecs
+	 * @throws Exception
+	 */
+	public static void copyReplaceParam(Message message, String targetPathSpec, String sourcePathSpec, String ... sourcePathSpecs) throws Exception {
+		Terser terser = new Terser(message);
+		
+		String sourceText = terser.get(sourcePathSpec);
+		
+		for (int i = 0; i < sourcePathSpecs.length; i++) {
+			String sourceValue = terser.get(sourcePathSpecs[i]);
+			
+			StringUtils.replace(sourceText, "[" + sourcePathSpecs[i] + "]", sourceValue);
+		}
+		
+		terser.set(targetPathSpec, sourceText);
 	}
 }
