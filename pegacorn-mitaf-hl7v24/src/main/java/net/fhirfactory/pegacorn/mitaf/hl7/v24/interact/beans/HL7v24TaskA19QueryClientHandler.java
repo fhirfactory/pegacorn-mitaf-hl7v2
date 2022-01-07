@@ -114,8 +114,6 @@ public class HL7v24TaskA19QueryClientHandler {
         LOG.warn(".processA19Request(): ResponseMessage->{}", queryResponse); // Log at WARN level so always seen in TEST
         try {
             Message resultMessage = parser.parse(queryResponse);
-            String responseAsString = resultMessage.encode();
-            exchange.setProperty("CamelMllpAcknowledgementString", responseAsString);
             return (resultMessage.getMessage());
         } catch (Exception ex) {
             LOG.info(".processA19Request(): Something went wrong with parsing --> {}", ex);
@@ -123,6 +121,27 @@ public class HL7v24TaskA19QueryClientHandler {
         return (null);
     }
 
+    
+    /**
+     * @param incomingRequest
+     * @param exchange
+     * @return
+     */
+    public Message setResponse(Message incomingRequest, Exchange exchange) {
+        LOG.info(".processA19Request(): Entry Received Message");
+
+        LOG.warn(".processA19Request(): ResponseMessage->{}", incomingRequest.toString()); // Log at WARN level so always seen in TEST
+        try {
+            String responseAsString = incomingRequest.encode();
+            exchange.setProperty("CamelMllpAcknowledgementString", responseAsString);
+            return (incomingRequest.getMessage());
+        } catch (Exception ex) {
+            LOG.info(".processA19Request(): Something went wrong with parsing --> {}", ex);
+        }
+        return (null);
+    }
+
+    
     private String utiliseA19QueryCapability(String queryString) {
         LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}", queryString);
         //

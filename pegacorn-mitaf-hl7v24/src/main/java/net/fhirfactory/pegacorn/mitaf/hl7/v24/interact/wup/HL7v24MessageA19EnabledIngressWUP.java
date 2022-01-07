@@ -61,12 +61,26 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2Message
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
         // This will make sure the file exists during app startup
-        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl";
-        File file = new File(fileName);
+        String ingresfileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl";
+        File ingresfile = new File(ingresfileName);
         
-        if (!file.exists()) {
-        	throw new RuntimeException("Transformation file not found: " + fileName);
+        if (!ingresfile.exists()) {
+        	throw new RuntimeException("Transformation file not found: " + ingresfileName);
         }
+        
+        
+        // This will make sure the file exists during app startup
+        String egressfileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-egress-transformation-config.ftl";
+        File egressfile = new File(egressfileName);
+        
+        if (!ingresfile.exists()) {
+        	throw new RuntimeException("Transformation file not found: " + ingresfileName);
+        }
+        
+        if (!egressfile.exists()) {
+        	throw new RuntimeException("Transformation file not found: " + egressfile);
+        }
+        
         
         DataFormat hl7 = new HL7DataFormat();
 
@@ -76,8 +90,11 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2Message
                 .choice()
                     .when(header("CamelHL7TriggerEvent").contains("A19"))
 	    				.bean(freemarkerConfig,"configure(*, Exchange)")
-	    				.to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
+	    				.to("freemarker:file:" + ingresfileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
+	    				.bean(freemarkerConfig,"configure(*, Exchange)")
+	    				.to("freemarker:file:" + egressfile + "?allowTemplateFromHeader=true&allowContextMapAll=true")
+	    				.bean(HL7v24TaskA19QueryClientHandler.class, "setResponse")
                     .otherwise()
                         .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                         .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
