@@ -307,6 +307,18 @@ public class HL7MessageUtils {
 	public static void deleteAllSegments(Message message, String segmentName) throws Exception {
 		HL7StringBasedUtils.deleteAllSegments(message, segmentName);
 	}
+	
+	
+	/**
+	 * Deletes an occurence of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 */
+	public static void deleteSegment(Message message, String segmentName, int occurence) throws Exception {
+		HL7StringBasedUtils.deleteSegment(message, segmentName, occurence);
+	}
 
 	
 	/**
@@ -646,5 +658,31 @@ public class HL7MessageUtils {
 	 */
 	public static void copyReplaceParam(Message message, String targetPathSpec, String sourcePathSpec, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.copyReplaceParam(message, targetPathSpec, sourcePathSpec, sourcePathSpecs);
+	}
+	
+	
+	
+	/**
+	 * Splits a message into multiple messages based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
+	 * returned with a single OBX segment.
+	 * 
+	 * @param message
+	 * @param segmentType
+	 * @return
+	 */
+	public static List<Message>splitMessage(Message message, String segmentType) throws Exception {
+		return HL7StringBasedUtils.splitMessage(message, segmentType);
+	}
+	
+	
+	/**
+	 * Copies the content of one segment to another.
+	 * 
+	 * @param message
+	 * @param sourceIndex
+	 * @param targetIndex
+	 */
+	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
+		HL7StringBasedUtils.copySegment(message, sourceIndex, targetIndex);
 	}
 }
