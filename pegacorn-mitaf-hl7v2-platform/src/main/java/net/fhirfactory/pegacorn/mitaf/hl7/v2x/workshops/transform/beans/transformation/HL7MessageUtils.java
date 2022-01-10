@@ -663,15 +663,15 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Splits a message into multiple messages based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
+	 * Duplicates a message based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
 	 * returned with a single OBX segment.
 	 * 
 	 * @param message
 	 * @param segmentType
 	 * @return
 	 */
-	public static List<Message>splitMessage(Message message, String segmentType) throws Exception {
-		return HL7StringBasedUtils.splitMessage(message, segmentType);
+	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
+		return HL7StringBasedUtils.duplicateMessage(message, segmentType);
 	}
 	
 	

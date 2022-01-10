@@ -449,14 +449,14 @@ class HL7StringBasedUtils {
 
 	
 	/**
-	 * Splits a message into multiple messages based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
+	 * Duplicates a message based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
 	 * returned with a single OBX segment.
 	 * 
 	 * @param message
 	 * @param segmentType
 	 * @return
 	 */
-	public static List<Message>splitMessage(Message message, String segmentType) throws Exception {
+	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
 		List<Message>newMessages = new ArrayList<>();
         
 		// Create an array of messages.  1 message for each matching segment type. eg. if the segment type exists 5 times then create 5 messages.
@@ -471,7 +471,7 @@ class HL7StringBasedUtils {
 	    	int numberOfMatchingSegments = HL7MessageUtils.getSegmentCount(message, segmentType);
 	    	
 	    	if (numberOfMatchingSegments == 0) {
-	    		throw new HL7Exception("Unable to split the message as the supplied segment does not exist in the message.  Segment: " + segmentType);
+	    		throw new HL7Exception("Unable to duplicate the message as the supplied segment does not exist in the message.  Segment: " + segmentType);
 	    	}
 	    	
 	    	for (int i = 0; i < numberOfMatchingSegments; i++) {
