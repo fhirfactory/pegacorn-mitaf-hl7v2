@@ -63,9 +63,6 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 		fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
 	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
-	        .bean(HL7v2xTransformMessage.class, "setHL7MessageAsExchangeBody(*, Exchange)")
-			.setHeader("systemName", constant(System.getenv("KUBERNETES_SERVICE_NAME")))
-			.to("direct-vm:" + "transform-filter-egress-start")
 			.to(egressFeed());
 	}
 }

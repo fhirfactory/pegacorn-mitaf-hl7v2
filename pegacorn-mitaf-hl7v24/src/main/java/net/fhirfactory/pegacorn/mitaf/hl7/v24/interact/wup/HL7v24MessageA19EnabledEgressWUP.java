@@ -30,7 +30,7 @@ import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExte
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19ResponseACKExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 
@@ -77,8 +77,8 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     }
 
     @Override
-    protected MessageBasedWUPEndpoint specifyEgressEndpoint() {
-        MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
+    protected MessageBasedWUPEndpointContainer specifyEgressEndpoint() {
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
         ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
         MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter)targetSystem.getTargetPorts().get(0);

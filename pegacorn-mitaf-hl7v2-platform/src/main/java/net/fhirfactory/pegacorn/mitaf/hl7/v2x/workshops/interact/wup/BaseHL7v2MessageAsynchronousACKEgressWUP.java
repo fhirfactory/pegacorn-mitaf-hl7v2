@@ -34,7 +34,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2Mess
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPAsynchronousMessageFinaliser;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
 import org.apache.camel.ExchangePattern;
@@ -97,8 +97,8 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
 	}
 
 	@Override
-	protected MessageBasedWUPEndpoint specifyEgressEndpoint() {
-		MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
+	protected MessageBasedWUPEndpointContainer specifyEgressEndpoint() {
+		MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
 		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
 		ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
 		MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter) targetSystem.getTargetPorts().get(0);

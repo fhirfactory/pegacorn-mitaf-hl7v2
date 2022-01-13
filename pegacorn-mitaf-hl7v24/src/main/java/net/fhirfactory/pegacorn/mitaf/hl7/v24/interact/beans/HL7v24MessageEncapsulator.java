@@ -37,6 +37,7 @@ public class HL7v24MessageEncapsulator extends HL7v2MessageEncapsulator {
         super();
     }
 
+
     @Override
     public boolean triggerIsSupported(String trigger) {
         return true;

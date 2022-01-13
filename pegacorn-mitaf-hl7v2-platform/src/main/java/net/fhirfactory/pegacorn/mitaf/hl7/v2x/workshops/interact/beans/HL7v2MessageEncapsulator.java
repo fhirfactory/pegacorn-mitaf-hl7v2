@@ -24,7 +24,9 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.Segment;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.interfaces.oam.notifications.PetasosITOpsNotificationBrokerInterface;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
@@ -37,15 +39,24 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public abstract class HL7v2MessageEncapsulator {
 
     private HapiContext context;
+    private DateTimeFormatter timeFormatter;
 
     @Inject
     private HL7V2XTopicFactory topicFactory;
@@ -56,12 +67,16 @@ public abstract class HL7v2MessageEncapsulator {
     @Inject
     private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
 
+    @Inject
+    private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
+
     //
     // Constructor(s)
     //
 
     public HL7v2MessageEncapsulator() {
         context = new DefaultHapiContext();
+        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
     }
 
     //
@@ -85,11 +100,17 @@ public abstract class HL7v2MessageEncapsulator {
         return(topicFactory);
     }
 
+    protected DateTimeFormatter getTimeFormatter(){
+        return(timeFormatter);
+    }
+
     //
     // Business Functions
     //
 
     public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue){
+        getLogger().debug(".encapsulateMessage(): Entry, message --> {}", message.toString());
+
         //
         // Because auditing is not running yet
         // Remove once Auditing is in place
@@ -101,7 +122,18 @@ public abstract class HL7v2MessageEncapsulator {
         //
         //
 
-        getLogger().debug(".encapsulateMessage(): Entry, message --> {}", message.toString());
+        //
+        // add to Processing Plant metrics
+        getMetricsAgent().incrementIngresMessageCount();
+
+        //
+        // add to WUP Metrics
+        WorkUnitProcessorMetricsAgent metricsAgent = exchange.getProperty(PetasosPropertyConstants.WUP_METRICS_AGENT_EXCHANGE_PROPERTY, WorkUnitProcessorMetricsAgent.class);
+        metricsAgent.incrementIngresMessageCount();
+        metricsAgent.touchLastActivityInstant();
+
+
+
         try {
             getLogger().trace(".encapsulateMessage(): Extracting header details" );
             String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
@@ -113,6 +145,30 @@ public abstract class HL7v2MessageEncapsulator {
             String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
             String portValue = exchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
 
+            //
+            // Add some notifications
+            String notificationContent;
+            try{
+                List<Segment> messageHeaders = HL7MessageUtils.getAllSegments(message, "MSH");
+                List<Segment> pidSegments = HL7MessageUtils.getAllSegments(message, "PID");
+                String messageHeaderSegment = messageHeaders.get(0).encode();
+                String pidSegment = "No PID Segment";
+                if(!pidSegments.isEmpty()) {
+                    pidSegment = pidSegments.get(0).encode();
+                }
+                notificationContent = "---" + "\n" +
+                        "*MLLP Receiver*" + "\n" +
+                        "Message Received (" + getTimeFormatter().format(Instant.now()) + ")" + "\n" +
+                        messageHeaderSegment + "\n" +
+                        pidSegment + "\n" +
+                        "---";
+            } catch (Exception encodingException) {
+                notificationContent = "Received MLLP Message --> " + messageEventType + "^" + messageTriggerEvent + "(" + messageVersion + "): Timestamp->" + messageTimeStamp;
+            }
+            metricsAgent.sendITOpsNotification(notificationContent);
+
+            //
+            // Now actually process the UoW/Message
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
             if(messageVersion.equalsIgnoreCase(getSupportedVersion().getVersionText())){
@@ -193,5 +249,13 @@ public abstract class HL7v2MessageEncapsulator {
             getLogger().debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         }
+    }
+
+    //
+    // Getters (and Setters)
+    //
+
+    protected ProcessingPlantMetricsAgent getMetricsAgent(){
+        return(processingPlantMetricsAgentAccessor.getMetricsAgent());
     }
 }

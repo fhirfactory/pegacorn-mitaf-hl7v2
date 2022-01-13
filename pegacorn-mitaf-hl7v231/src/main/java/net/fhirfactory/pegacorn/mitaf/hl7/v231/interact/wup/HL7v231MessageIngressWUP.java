@@ -21,11 +21,10 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.wup;
 
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCServerTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.mllp.InteractMLLPServerEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.beans.HL7v231MessageEncapsulator;
 import org.apache.camel.ExchangePattern;
@@ -64,9 +63,9 @@ public abstract class HL7v231MessageIngressWUP extends BaseHL7v2MessageIngresWUP
     }
 
     @Override
-    protected MessageBasedWUPEndpoint specifyIngresEndpoint() {
+    protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
-        MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         InteractMLLPServerEndpoint serverTopologyEndpoint = (InteractMLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
         getLogger().info(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getPortNumber();
