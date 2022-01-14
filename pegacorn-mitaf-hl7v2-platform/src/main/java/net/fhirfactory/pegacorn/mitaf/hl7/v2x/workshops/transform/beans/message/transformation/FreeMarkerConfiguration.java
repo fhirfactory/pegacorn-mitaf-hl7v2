@@ -9,6 +9,8 @@ import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -29,6 +31,7 @@ import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
  */
 @ApplicationScoped
 public class FreeMarkerConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(FreeMarkerConfiguration.class);
 	
 	@Inject
 	private BaseMessageTransform messageTransformation;
@@ -84,9 +87,16 @@ public class FreeMarkerConfiguration {
 		// get the first and only payload element.
 		for (UoWPayload payload : uow.getEgressContent().getPayloadElements()) {
 			hl7Message = payload.getPayload();
+					
 			break;
 		}
-
+		
+		
+		// Maybe the message is on the ingres feed.
+		if (hl7Message == null) {
+			hl7Message = uow.getIngresContent().getPayload();
+		}
+		
 		try (HapiContext hapiContext = new DefaultHapiContext();) {
 			PipeParser parser = hapiContext.getPipeParser();
 			parser.getParserConfiguration().setValidating(false);

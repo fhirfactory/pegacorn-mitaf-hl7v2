@@ -4,9 +4,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Segment;
+import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
@@ -16,6 +21,33 @@ import ca.uhn.hl7v2.util.Terser;
  *
  */
 public class HL7MessageUtils {
+	
+	
+	/**
+	 * Returns a {@link Message} from a String
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static Message getMessage(String message) throws Exception {
+		try (HapiContext context = new DefaultHapiContext();) {    
+            PipeParser parser = context.getPipeParser();
+            parser.getParserConfiguration().setValidating(false);
+    
+            ModelClassFactory cmf = new DefaultModelClassFactory();
+            context.setModelClassFactory(cmf);
+            
+            Message inputMessage = parser.parse(message);
+            
+            return inputMessage;
+		}
+	}
+	
+	
+	public static String getMessageCode(Message message) throws Exception {
+		return get(message, "MSH-9-1");
+	}
+
 	
 	/**
 	 * Gets the message type.

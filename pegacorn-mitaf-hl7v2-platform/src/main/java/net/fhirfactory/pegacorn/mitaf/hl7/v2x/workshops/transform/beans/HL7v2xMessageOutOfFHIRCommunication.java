@@ -61,9 +61,9 @@ public class HL7v2xMessageOutOfFHIRCommunication {
         fhirResourceParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);
     }
 
-    public UoW extractMessage(UoW uow) throws IOException, HL7Exception {
+    public UoW extractMessage(UoW uow) throws IOException, HL7Exception, Exception {
         getLogger().debug(".extractMessage(): Entry, uow->{}", uow);
-
+        
         getLogger().trace(".extractMessage(): Extracting payload from uow (UoW)");
         String communicationAsString = uow.getIngresContent().getPayload();
 

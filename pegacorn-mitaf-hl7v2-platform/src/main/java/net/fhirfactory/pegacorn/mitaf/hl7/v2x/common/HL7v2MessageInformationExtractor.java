@@ -21,17 +21,23 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.common;
 
+import java.util.Date;
+
+import org.slf4j.Logger;
+
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.datatype.*;
+import ca.uhn.hl7v2.model.v24.datatype.HD;
+import ca.uhn.hl7v2.model.v24.datatype.ST;
+import ca.uhn.hl7v2.model.v24.datatype.TS;
+import ca.uhn.hl7v2.model.v24.datatype.TSComponentOne;
+import ca.uhn.hl7v2.model.v24.datatype.VID;
 import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
-import org.slf4j.Logger;
-
-import java.util.Date;
 
 
 public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
@@ -54,11 +60,12 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageID(Message messageAsText) {
+    	Terser terser = new Terser(messageAsText);
+    	
         getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
         if(messageAsText != null) {
             try {
-                MSH messageHeader = (MSH) messageAsText.get("MSH");
-                String messageID = messageHeader.getMessageControlID().getValue();
+            	String messageID = terser.get("MSH-10");
                 return (messageID);
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
