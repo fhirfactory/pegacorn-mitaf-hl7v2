@@ -21,17 +21,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.common;
 
+import java.util.Date;
+
+import org.slf4j.Logger;
+
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.datatype.*;
-import ca.uhn.hl7v2.model.v24.segment.MSH;
+import ca.uhn.hl7v2.model.primitive.CommonTS;
 import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
-import org.slf4j.Logger;
-
-import java.util.Date;
 
 
 public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
@@ -53,13 +54,13 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     }
 
     @Override
-    public String extractMessageID(Message messageAsText) {
-        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
-        if(messageAsText != null) {
+    public String extractMessageID(Message message) {
+    	Terser terser = new Terser(message);
+    	
+        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", message);
+        if(message != null) {
             try {
-                MSH messageHeader = (MSH) messageAsText.get("MSH");
-                String messageID = messageHeader.getMessageControlID().getValue();
-                return (messageID);
+            	return terser.get("MSH-10");
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
                 return (null);
@@ -78,15 +79,16 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     }
 
     @Override
-    public Date extractMessageDate(Message messageAsText) {
-        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
-        if(messageAsText != null) {
+    public Date extractMessageDate(Message message) {
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
             try {
-                MSH messageHeader = (MSH) messageAsText.get("MSH");
-                TS messageID = messageHeader.getDateTimeOfMessage();
-                TSComponentOne timeOfAnEvent = messageID.getTs1_TimeOfAnEvent();
-                Date date = timeOfAnEvent.getValueAsDate();
-                return (date);
+            	String messageDate = terser.get("MSH-7-1");
+            	CommonTS commonTs = new CommonTS(messageDate);
+            	return commonTs.getValueAsDate();
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
                 return (null);
@@ -105,14 +107,14 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     }
 
     @Override
-    public String extractMessageVersion(Message messageAsText) {
-        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
-        if(messageAsText != null) {
+    public String extractMessageVersion(Message message) {
+        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
             try {
-                MSH messageHeader = (MSH) messageAsText.get("MSH");
-                VID versionID = messageHeader.getVersionID();
-                String versionIDString = versionID.getVersionID().getValue();
-                return (versionIDString);
+                return terser.get("MSH-12-1");
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
                 return (null);
@@ -133,11 +135,12 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     @Override
     public String extractMessageTrigger(Message message) {
         getLogger().debug(".extractMessageTrigger(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
         if(message != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
-                String triggerEvent = messageHeader.getMessageType().getTriggerEvent().getValue();
-                return (triggerEvent);
+                return terser.get("MSH-9-2");
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
@@ -158,11 +161,12 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     @Override
     public String extractMessageType(Message message) {
         getLogger().debug(".extractMessageType(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
         if(message != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
-                String messageType = messageHeader.getMessageType().getMessageType().getValue();
-                return (messageType);
+                return terser.get("MSH-9-1");
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
@@ -183,12 +187,12 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     @Override
     public String extractMessageSource(Message message) {
         getLogger().debug(".extractMessageDate(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
         if(message != null) {
             try {
-                MSH messageHeader = (MSH) message.get("MSH");
-                HD sendingApplication = messageHeader.getSendingApplication();
-                ST universalID = sendingApplication.getUniversalID();
-                return (universalID.getValue());
+                return terser.get("MSH-3-2");
             } catch (HL7Exception e) {
                 getLogger().warn(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
                 return (null);
