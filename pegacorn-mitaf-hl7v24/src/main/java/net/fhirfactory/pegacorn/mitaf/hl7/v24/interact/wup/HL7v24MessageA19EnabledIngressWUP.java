@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.mllp.InteractMLLPServerEndpoint;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24MessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
@@ -73,7 +73,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2Message
     protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
         MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
-        InteractMLLPServerEndpoint serverTopologyEndpoint = (InteractMLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
+        MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
         getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getPortNumber();
         String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();

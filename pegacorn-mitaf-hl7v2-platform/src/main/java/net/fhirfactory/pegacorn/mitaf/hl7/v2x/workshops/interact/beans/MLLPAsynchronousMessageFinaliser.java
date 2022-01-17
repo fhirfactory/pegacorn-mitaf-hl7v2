@@ -78,7 +78,7 @@ public class MLLPAsynchronousMessageFinaliser {
                 uow = extractUoWAndAnswer(acknowledgementMessage, camelExchange, UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
             }
 
-            uow = mllpAuditTrail.logMLLPActivity(uow, camelExchange, "MLLPEgress", null);
+            uow = mllpAuditTrail.logMLLPActivity(uow, camelExchange, null);
             egressActivityFinalisationRegistration.registerActivityFinishAndFinalisation(uow, camelExchange, messageControlId);
 
             // Remove ACK entry from cache, finished processing.

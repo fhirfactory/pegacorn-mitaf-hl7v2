@@ -25,8 +25,10 @@ import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 
@@ -65,6 +67,22 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 	public static String getMllpConfigurationString() {
 		return MLLP_CONFIGURATION_STRING;
 	}
+
+	//
+	// Superclass Method Overrides
+	//
+
+	@Override
+	protected String specifyEndpointParticipantName() {
+		MessageBasedWUPEndpointContainer ingresEndpoint = getIngresEndpoint();
+		MLLPServerEndpoint mllpServerEndpoint = (MLLPServerEndpoint)ingresEndpoint.getEndpointTopologyNode();
+		String participantName = mllpServerEndpoint.getParticipantName();
+		return (participantName);
+	}
+
+	//
+	// Useful Methods for Subclasses
+	//
 
 	protected DataParcelManifest createPublishedManifestForInteractIngresHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
 		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());

@@ -61,8 +61,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class HL7v2xMessageEgressCheckPointWUP extends MOAStandardWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageEgressCheckPointWUP.class);
+public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageOutboundCheckPointWUP.class);
 
     private static String WUP_VERSION = "1.0.0";
 
@@ -121,7 +121,7 @@ public class HL7v2xMessageEgressCheckPointWUP extends MOAStandardWUP {
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceEgressPolicy")
+                .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceOutboundPolicy")
                 .to(egressFeed());
     }
 

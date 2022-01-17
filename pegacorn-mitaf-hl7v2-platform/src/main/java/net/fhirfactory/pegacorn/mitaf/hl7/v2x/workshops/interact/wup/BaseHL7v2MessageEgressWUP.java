@@ -26,13 +26,11 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.mllp.adapters.MLLPClientAdapter;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.*;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
@@ -71,29 +69,32 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 	@Inject
 	private MLLPActivityAuditTrail mllpAuditTrail;
+
+	@Inject
+	private MLLPEgressMessageMetricsCapture metricsCapture;
+
+	@Inject
+	private MLLPExceptionToUoW exceptionToUoW;
+
+	//
+	// Superclass Method Overrides
+	//
+
+	//
+	// Superclase Method Overrides
+	//
+
+	@Override
+	protected String specifyEndpointParticipantName() {
+		MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
+		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+		String participantName = clientTopologyEndpoint.getParticipantName();
+		return (participantName);
+	}
 	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (interactWorkshop);
-	}
-
-	@Override
-	public void configure() throws Exception {
-		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
-		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
-
-		getMLLPAckException();
-		getMLLPConnectionException();
-		getConnectionTimeoutException();
-
-		fromIncludingEgressEndpointDetails(ingresFeed())
-			.routeId(getNameSet().getRouteCoreWUP())
-			.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-			.bean(messageExtractor, "convertToMessage(*, Exchange)")
-			.to(egressFeed())
-			.bean(answerCollector, "extractUoWAndAnswer")
-			.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPEgress)")
-			.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
 	@Override
@@ -110,6 +111,30 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getMeAsATopologyComponent().setEgressEndpoint(clientTopologyEndpoint);
 		return endpoint;
 	}
+
+	@Override
+	public void configure() throws Exception {
+		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
+		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
+
+		getConnectionTimeoutException();
+		getMLLPConnectionException();
+		getMLLPAckException();
+
+		fromIncludingEgressEndpointDetails(ingresFeed())
+				.routeId(getNameSet().getRouteCoreWUP())
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
+				.bean(messageExtractor, "convertToMessage(*, Exchange)")
+				.to(egressFeed())
+				.bean(answerCollector, "extractUoWAndAnswer")
+				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+	}
+
+	//
+	// Subclass Helper Methods
+	//
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
 		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
@@ -139,11 +164,18 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		return route;
 	}
 
-	protected OnExceptionDefinition getMLLPAckException() {
-		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
+	//
+	// Exception Handling
+	//
+
+	protected OnExceptionDefinition getConnectionTimeoutException(){
+		OnExceptionDefinition exceptionDef = onException(SocketTimeoutException.class)
 				.handled(true)
-				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
-				.bean(mllpAuditTrail, "logExceptionMLLPActivity(*, Exchange)");
+				.log(LoggingLevel.INFO, "MLLP Connection Exception (Socket Timeout)...")
+				.bean(metricsCapture, "captureTimeoutException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 		return(exceptionDef);
 	}
 
@@ -151,15 +183,21 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		OnExceptionDefinition exceptionDef = onException(ConnectException.class)
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Connection Exception...")
-				.bean(mllpAuditTrail, "logConnectionException(*, Exchange)");
+				.bean(metricsCapture, "captureConnectionException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 		return(exceptionDef);
 	}
 
-	protected OnExceptionDefinition getConnectionTimeoutException(){
-		OnExceptionDefinition exceptionDef = onException(SocketTimeoutException.class)
+	protected OnExceptionDefinition getMLLPAckException() {
+		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
 				.handled(true)
-				.log(LoggingLevel.INFO, "MLLP Connection Exception (Socket Timeout)...")
-				.bean(mllpAuditTrail, "logConnectionException(*, Exchange)");
+				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
+				.bean(metricsCapture, "captureMLLPAckException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 		return(exceptionDef);
 	}
 }

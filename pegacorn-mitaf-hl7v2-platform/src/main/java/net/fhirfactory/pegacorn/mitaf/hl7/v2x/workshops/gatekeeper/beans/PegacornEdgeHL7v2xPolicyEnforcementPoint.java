@@ -44,8 +44,8 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         jsonMapper = new ObjectMapper();
     }
 
-    public UoW enforceIngresPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceIngresPolicy(): Entry, uow->{}", uow);
+    public UoW enforceInboundPolicy(UoW uow, Exchange camelExchange){
+        getLogger().debug(".enforceInboundPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }
@@ -59,8 +59,8 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         return(uow);
     }
 
-    public UoW enforceEgressPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceEgressPolicy(): Entry, uow->{}", uow);
+    public UoW enforceOutboundPolicy(UoW uow, Exchange camelExchange){
+        getLogger().debug(".enforceOutboundPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }

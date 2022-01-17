@@ -49,86 +49,18 @@ public class MLLPActivityAuditTrail {
     @Inject
     private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
 
-    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String activity, String filtered) {
+    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String filtered) {
         PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
-        String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
-        String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
-        if (portType != null && portValue != null) {
-//            parcelInstance.setAssociatedPortValue(portValue);
-//            parcelInstance.setAssociatedPortType(portType);
-            UoW cloneUoW = SerializationUtils.clone(incomingUoW);
-            servicesBroker.logMLLPTransactions(fulfillmentTask, activity, filtered, true);
-        }
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
+        servicesBroker.logMLLPTransactions(clonedFulfillmentTask, filtered, true);
         return (incomingUoW);
     }
 
-    public UoW logExceptionMLLPActivity(Object incoming, Exchange camelExchange){
-        String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
-        String errorString = "MLLP ACK Exception: unknown";
-        UoW uow = logExceptionError(incoming, camelExchange, "MLLP-ACK-Exception", errorString );
-        return (uow);
-    }
-
-    public UoW logConnectionException(Object incoming, Exchange camelExchange){
-        String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
-        String errorString = null;
-        if(StringUtils.isEmpty(portValue)){
-            errorString = "Could Not Connect to: unknown";
-        } else {
-            errorString = "Could Not Connect to:" + portValue;
-        }
-        UoW uow = logExceptionError(incoming, camelExchange, "ConnectionError", errorString );
-        return (uow);
-    }
-
-    public UoW logExceptionError(Object incoming, Exchange camelExchange, String errorType, String errorText){
+    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange) {
         PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
-        UoW uow = fulfillmentTask.getTaskWorkItem();
-        String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
-        String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
-        UoW updatedUoW = updateUoWWithExceptionDetails(uow, camelExchange);
-        if (portType != null && portValue != null) {
-//            parcelInstance.setAssociatedPortValue(portValue);
-//            parcelInstance.setAssociatedPortType(portType);
-            updatedUoW = updateUoWWithErrorDetails(uow, "ConnectionError", "Could Not Connect to:"+portValue);
-            UoW cloneUoW = SerializationUtils.clone(updatedUoW);
-            servicesBroker.logMLLPTransactions(fulfillmentTask, "Exception","false", true);
-        }
-        return (updatedUoW);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
+        servicesBroker.logMLLPTransactions(clonedFulfillmentTask, "false", true);
+        return (incomingUoW);
     }
 
-    public UoW updateUoWWithErrorDetails(UoW incomingUoW, String errorType, String errorText){
-        UoWPayload payload = new UoWPayload();
-        DataParcelManifest egressManifest = SerializationUtils.clone(incomingUoW.getIngresContent().getPayloadManifest());
-        DataParcelTypeDescriptor contentDescriptor = egressManifest.getContentDescriptor();
-        contentDescriptor.setDataParcelDiscriminatorType("Error");
-        contentDescriptor.setDataParcelDiscriminatorValue(errorType);
-        payload.setPayloadManifest(egressManifest);
-        payload.setPayload(errorText);
-        incomingUoW.getEgressContent().addPayloadElement(payload);
-        incomingUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
-        incomingUoW.setFailureDescription(errorText);
-        return(incomingUoW);
-    }
-
-    public UoW updateUoWWithExceptionDetails(UoW incomingUoW, Exchange camelExchange){
-        Exception caughtException = camelExchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-        if(caughtException == null){
-            return(incomingUoW);
-        }
-        DataParcelManifest exceptionManifest = new DataParcelManifest();
-        DataParcelTypeDescriptor exceptionDescriptor = new DataParcelTypeDescriptor();
-        exceptionDescriptor.setDataParcelDefiner("System");
-        exceptionDescriptor.setDataParcelCategory("Exception");
-        exceptionManifest.setContentDescriptor(exceptionDescriptor);
-        exceptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-        exceptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-        exceptionManifest.setInterSubsystemDistributable(false);
-        UoWPayload payload = new UoWPayload();
-        payload.setPayloadManifest(exceptionManifest);
-        String exceptionStackTrace = ExceptionUtils.getStackTrace(caughtException);
-        payload.setPayload(exceptionStackTrace);
-        incomingUoW.getEgressContent().addPayloadElement(payload);
-        return(incomingUoW);
-    }
 }

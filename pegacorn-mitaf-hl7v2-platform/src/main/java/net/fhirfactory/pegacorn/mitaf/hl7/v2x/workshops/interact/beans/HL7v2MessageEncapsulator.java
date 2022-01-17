@@ -26,7 +26,6 @@ import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Segment;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.interfaces.oam.notifications.PetasosITOpsNotificationBrokerInterface;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
@@ -124,7 +123,7 @@ public abstract class HL7v2MessageEncapsulator {
 
         //
         // add to Processing Plant metrics
-        getMetricsAgent().incrementIngresMessageCount();
+        getProcessingPlantMetricsAgent().incrementIngresMessageCount();
 
         //
         // add to WUP Metrics
@@ -143,10 +142,11 @@ public abstract class HL7v2MessageEncapsulator {
             String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
             getLogger().trace(".encapsulateMessage(): message::MessageVersion --> {}", messageVersion);
             String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
-            String portValue = exchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
+            String portValue = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
 
             //
             // Add some notifications
+            String targetPort = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
             String notificationContent;
             try{
                 List<Segment> messageHeaders = HL7MessageUtils.getAllSegments(message, "MSH");
@@ -165,7 +165,14 @@ public abstract class HL7v2MessageEncapsulator {
             } catch (Exception encodingException) {
                 notificationContent = "Received MLLP Message --> " + messageEventType + "^" + messageTriggerEvent + "(" + messageVersion + "): Timestamp->" + messageTimeStamp;
             }
-            metricsAgent.sendITOpsNotification(notificationContent);
+            String wupNotificationContent = null;
+            if(StringUtils.isNotEmpty(targetPort)){
+                wupNotificationContent = "Message Received (From-->" + targetPort + ") \n" + notificationContent;
+            } else{
+                wupNotificationContent = notificationContent;
+            }
+            metricsAgent.sendITOpsNotification(wupNotificationContent);
+            getProcessingPlantMetricsAgent().sendITOpsNotification(wupNotificationContent);
 
             //
             // Now actually process the UoW/Message
@@ -255,7 +262,7 @@ public abstract class HL7v2MessageEncapsulator {
     // Getters (and Setters)
     //
 
-    protected ProcessingPlantMetricsAgent getMetricsAgent(){
+    protected ProcessingPlantMetricsAgent getProcessingPlantMetricsAgent(){
         return(processingPlantMetricsAgentAccessor.getMetricsAgent());
     }
 }
