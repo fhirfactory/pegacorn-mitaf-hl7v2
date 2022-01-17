@@ -68,6 +68,30 @@ class HL7TerserBasedUtils {
 	
 	
 	/**
+	 * Returns all 
+	 * 
+	 * @param message
+	 * @param identifierTypes
+	 */
+	public static String getIdentifierValue(Message message, String identifier) throws Exception  {
+		Terser terser = new Terser(message);
+		
+		Segment segment = terser.getSegment("PID");
+		int numberOfRepeitions = segment.getField(3).length;
+		
+		for (int i = 0; i < numberOfRepeitions; i++) {
+			String identifierType = terser.get("/PID-3(" + i + ")-4-1");
+			
+			if (identifierType != null && identifierType.equals(identifier)) {
+				return terser.get("/PID-3(" + i + ")-1-1");
+			}
+		}
+		
+		return "";
+	}
+	
+	
+	/**
 	 * Returns a list of identifiers in the PID segment.
 	 * 
 	 * @param message

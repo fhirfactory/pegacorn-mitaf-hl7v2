@@ -85,6 +85,16 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static String getIdentifierValue(Message message, String identifier) throws Exception  {
+		return HL7TerserBasedUtils.getIdentifierValue(message, identifier);
+	}
+	
+	
+	/**
 	 * Returns a list of patient identifiers in the PID segment.
 	 * 
 	 * @param message
@@ -428,7 +438,45 @@ public class HL7MessageUtils {
 	public static String getField(String segment, int fieldIndex) {
 		return HL7StringBasedUtils.getField(segment, fieldIndex);
 	}
+	
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subfield
+	 */
+	public static String getSubfield(String field, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(field, subFieldIndex);
+	}
 
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subfield
+	 */
+	public static String getSubfield(String segment, int fieldIndex, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(segment, fieldIndex, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public static String getSubfield(String message, int segmentIndex, int fieldIndex, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(message, segmentIndex, fieldIndex, subFieldIndex);
+	}	
+	
 	
 	/**
 	 * Set a field value from a string with variables.
@@ -628,7 +676,7 @@ public class HL7MessageUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String getSegment(String message, int segmentIndex) throws Exception {
+	public static String getSegment(Message message, int segmentIndex) throws Exception {
 		return HL7StringBasedUtils.getSegment(message, segmentIndex);
 	}
 
@@ -675,7 +723,7 @@ public class HL7MessageUtils {
 			return null;
 		}
 		
-		return getSegment(segmentName, index);
+		return getSegment(message, index);
 	}
 	
 	
