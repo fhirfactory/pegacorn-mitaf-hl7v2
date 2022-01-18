@@ -89,8 +89,8 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
-	public static String getIdentifierValue(Message message, String identifier) throws Exception  {
-		return HL7TerserBasedUtils.getIdentifierValue(message, identifier);
+	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier);
 	}
 	
 	

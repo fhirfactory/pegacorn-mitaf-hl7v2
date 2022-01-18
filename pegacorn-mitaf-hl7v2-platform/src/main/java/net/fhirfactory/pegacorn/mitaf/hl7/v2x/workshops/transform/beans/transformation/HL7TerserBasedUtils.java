@@ -73,7 +73,7 @@ class HL7TerserBasedUtils {
 	 * @param message
 	 * @param identifierTypes
 	 */
-	public static String getIdentifierValue(Message message, String identifier) throws Exception  {
+	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
 		Terser terser = new Terser(message);
 		
 		Segment segment = terser.getSegment("PID");
