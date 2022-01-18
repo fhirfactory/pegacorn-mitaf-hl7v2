@@ -77,9 +77,9 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
         
         fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
-	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+                        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
 			.bean(freemarkerConfig,"configure(*, Exchange)")
-			.to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
+			.to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
 			.bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
 			.to(egressFeed());
 	}

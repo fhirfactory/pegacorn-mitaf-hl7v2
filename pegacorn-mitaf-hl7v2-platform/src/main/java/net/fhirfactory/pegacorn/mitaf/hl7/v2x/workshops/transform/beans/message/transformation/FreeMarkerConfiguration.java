@@ -47,7 +47,7 @@ public class FreeMarkerConfiguration {
 	 */
 	public void configure(UoW uow, Exchange exchange) throws HL7Exception, IOException {	
 		Message message = extractHL7Message(uow, exchange);
-		configure(message, exchange);		
+		configure(uow, message, exchange);
 	}
 	
 	
@@ -59,17 +59,31 @@ public class FreeMarkerConfiguration {
 	 * @throws HL7Exception
 	 * @throws IOException
 	 */
-	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException {		
-		Map<String, Object> variableMap = new HashMap<>();
-		variableMap.put("message", message);
-		variableMap.put("exchange", exchange);
-		variableMap.put("javaBasedTransformations", messageTransformation);
-		exchange.getIn().setHeader(FreemarkerConstants.FREEMARKER_DATA_MODEL, variableMap);
-		BeansWrapper wrapper = new BeansWrapper(new Version(2, 3, 27));
-		TemplateModel statics = wrapper.getStaticModels();
-
-		variableMap.put("statics", statics);		
+	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException {
+            configure(null, message, exchange);
 	}
+
+        /**
+         * Configure Freemarker; add required data, methods which will be used inside freemarker transformation files (*.ftl).
+         *
+         * @param uoW the unit of work being transformed.
+         * @param message extracted message from the current unit of work.
+         * @param exchange the camel exchange.
+         */
+        private void configure(UoW uoW, Message message, Exchange exchange) {
+            Map<String, Object> variableMap = new HashMap<>();
+            variableMap.put("uoW", uoW);
+            variableMap.put("message", message);
+            variableMap.put("exchange", exchange);
+            variableMap.put("javaBasedTransformations", messageTransformation);
+            // Set sendMessage property in the exchange to default of true, as is the case with most transformations, which require to be sent.
+            exchange.setProperty("sendMessage", true);
+            exchange.getIn().setHeader(FreemarkerConstants.FREEMARKER_DATA_MODEL, variableMap);
+            BeansWrapper wrapper = new BeansWrapper(new Version(2, 3, 27));
+            TemplateModel statics = wrapper.getStaticModels();
+
+            variableMap.put("statics", statics);
+        }
 	
 	
 	/**
