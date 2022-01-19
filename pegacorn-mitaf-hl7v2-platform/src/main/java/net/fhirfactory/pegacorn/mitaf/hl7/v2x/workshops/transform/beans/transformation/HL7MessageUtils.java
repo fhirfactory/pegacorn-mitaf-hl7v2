@@ -58,19 +58,7 @@ public class HL7MessageUtils {
 	public static String getType(Message message) {
 		return message.getName();
 	}
-
 	
-	/**
-	 * Converts a HL7 date field to a {@link LocalDate}.
-	 * 
-	 * @param message
-	 * @param sourcePathSpec
-	 * @return
-	 */
-	public static LocalDate getDate(Message message, String sourcePathSpec) throws Exception {
-		return null;
-	}
-
 	
 	/**
 	 * Removes a patient identifier.
@@ -253,6 +241,21 @@ public class HL7MessageUtils {
 	 */
 	public static void clear(Message message, String targetPathSpec) throws Exception {
 		HL7TerserBasedUtils.clear(message, targetPathSpec);
+	}
+	
+	
+	/**
+	 * Clears multiple fields in a single command.
+	 * 
+	 * @param message
+	 * @param targetPathSpecs
+	 * @throws Exception
+	 */
+	public static void clear(Message message, String ... targetPathSpecs) throws Exception {
+		
+		for (String targetPathSpec : targetPathSpecs) {
+			HL7TerserBasedUtils.clear(message, targetPathSpec);
+		}
 	}
 	
 	
