@@ -21,48 +21,60 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
+import java.io.File;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
 import javax.inject.Inject;
-
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 
 /**
- * Base class for all Mitaf WUPs to transform FHIR Communication resource to a
- * HL7 v2 message.
- * 
+ * Base class for all Mitaf WUPs to transform FHIR Communication resource to a HL7 v2 message.
+ *
  * @author Brendan Douglas
  *
  */
 public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardWUP {
 
-	public BaseFHIRCommunication2HL7V2MessageWUP(){
-		super();
-	}
+    public BaseFHIRCommunication2HL7V2MessageWUP() {
+        super();
+    }
+    
+    @Inject
+    protected HL7V2XTopicFactory hl7v2xTopicIDBuilder;
 
-	@Inject
-	protected HL7V2XTopicFactory hl7v2xTopicIDBuilder;
+    @Inject
+    private TransformWorkshop workshop;
 
-	@Inject
-	private TransformWorkshop workshop;
-	
-	@Override
-	protected WorkshopInterface specifyWorkshop() {
-		return (workshop);
-	}
+    @Inject
+    private FreeMarkerConfiguration freemarkerConfig;
 
-	@Override
-	public void configure() throws Exception {
+    @Override
+    protected WorkshopInterface specifyWorkshop() {
+        return (workshop);
+    }
+
+    @Override
+    public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
-		fromIncludingPetasosServices(ingresFeed())
-			.routeId(getNameSet().getRouteCoreWUP())
-	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
-			.to(egressFeed());
-	}
+        // This will make sure the file exists during app startup
+        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-egress-transformation-config.ftl";
+        File file = new File(fileName);
+
+        if (!file.exists()) {
+            throw new RuntimeException("Transformation file not found: " + fileName);
+        }
+        
+        fromIncludingPetasosServices(ingresFeed())
+                .routeId(getNameSet().getRouteCoreWUP())
+                .bean(freemarkerConfig, "configure(*, Exchange)")
+                .to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
+                .bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
+                .to(egressFeed());
+    }
 }
