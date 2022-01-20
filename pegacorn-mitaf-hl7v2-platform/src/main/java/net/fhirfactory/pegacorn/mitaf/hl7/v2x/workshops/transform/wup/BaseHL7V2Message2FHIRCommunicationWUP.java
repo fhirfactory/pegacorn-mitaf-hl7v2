@@ -87,13 +87,7 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
             throw new RuntimeException("Transformation file not found: " + fileName);
         }
 
-	}
-		return("InboundHL7MessageTransformationEngine");
-	protected String specifyParticipantDisplayName(){
-	@Override
-	public HL7V2XTopicFactory getTopicFactory() {
-		return topicFactory;
-	}
+
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
@@ -128,4 +122,9 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
         getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
         return (manifest);
     }
+    
+    protected String specifyParticipantDisplayName() {
+        return ("InboundHL7MessageTransformationEngine");
+    }
+
 }
