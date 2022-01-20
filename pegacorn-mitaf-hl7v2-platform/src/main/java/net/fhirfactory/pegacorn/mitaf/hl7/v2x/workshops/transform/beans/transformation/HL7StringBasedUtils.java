@@ -3,14 +3,12 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.camel.component.hl7.HL7;
 import org.apache.commons.lang3.SerializationUtils;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.Segment;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
@@ -127,7 +125,7 @@ class HL7StringBasedUtils {
 			return null;
 		}
 		
-		return getSegment(segmentName, index);
+		return getSegment(message, index);
 	}
 
 	
@@ -346,7 +344,7 @@ class HL7StringBasedUtils {
 	 * Returns a field from a segment. This does not use the HL7 terser.
 	 * 
 	 * @param segment
-	 * @param fieldIndex
+	 * @param fieldIndex.
 	 * @return
 	 */
 	public static String getField(String segment, int fieldIndex) {
@@ -364,7 +362,7 @@ class HL7StringBasedUtils {
 	 * @param segmentIndex
 	 * @return
 	 */
-	public static String getSegment(String message, int segmentIndex) {
+	public static String getSegment(Message message, int segmentIndex) {
 		String[] messageRows = message.toString().split("\r");
 
 		return messageRows[segmentIndex];
@@ -525,7 +523,50 @@ class HL7StringBasedUtils {
 		}
 		
 		message.parse(sb.toString());
+	}
+
+	
+	/**
+	 * @param field
+	 * @param subFieldIndex.
+	 * @return
+	 */
+	public static String getSubfield(String field, int subFieldIndex) {
+		String[] fields = field.split("\\^");
 		
+		return fields[--subFieldIndex];
+	}
+	
+	
+	/**
+	 * Gets a sub field.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public static String getSubfield(String segment, int fieldIndex, int subFieldIndex) {
+		String field = getField(segment, fieldIndex);
+		
+		return getSubfield(field, --subFieldIndex);
+	}
+	
+	
+	/**
+	 * Gets a sub field.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public static String getSubfield(String message, int segmentIndex, int fieldIndex, int subFieldIndex) {
+		String segment = getSegment(null, segmentIndex);
+		String field = getField(segment, fieldIndex);
+		
+		return getSubfield(field, --subFieldIndex);
 	}
 
 	
