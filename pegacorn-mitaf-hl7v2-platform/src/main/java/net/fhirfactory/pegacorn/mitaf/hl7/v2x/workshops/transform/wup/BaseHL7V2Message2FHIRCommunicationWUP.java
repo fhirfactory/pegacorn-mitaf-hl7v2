@@ -89,6 +89,11 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 				.to(egressFeed());
 	}
 
+	@Override
+	protected String specifyParticipantDisplayName(){
+		return("InboundHL7MessageTransformationEngine");
+	}
+
 	public HL7V2XTopicFactory getTopicFactory() {
 		return topicFactory;
 	}

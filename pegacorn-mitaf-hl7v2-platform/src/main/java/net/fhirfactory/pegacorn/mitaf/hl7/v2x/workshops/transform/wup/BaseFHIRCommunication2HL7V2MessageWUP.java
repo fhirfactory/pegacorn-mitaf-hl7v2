@@ -56,6 +56,12 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 	}
 
 	@Override
+	protected String specifyParticipantDisplayName(){
+		return("OutboundHL7MessageTransformationEngine");
+	}
+
+
+	@Override
 	public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());

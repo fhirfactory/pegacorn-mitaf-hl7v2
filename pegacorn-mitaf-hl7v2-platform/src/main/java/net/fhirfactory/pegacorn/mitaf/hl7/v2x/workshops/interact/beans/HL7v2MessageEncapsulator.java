@@ -39,6 +39,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
@@ -130,7 +131,11 @@ public abstract class HL7v2MessageEncapsulator {
         WorkUnitProcessorMetricsAgent metricsAgent = exchange.getProperty(PetasosPropertyConstants.WUP_METRICS_AGENT_EXCHANGE_PROPERTY, WorkUnitProcessorMetricsAgent.class);
         metricsAgent.incrementIngresMessageCount();
         metricsAgent.touchLastActivityInstant();
-
+        //
+        // Add to Endpoint Metrics
+        EndpointMetricsAgent endpointMetricsAgent = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_METRICS_AGENT_EXCHANGE_PROPERTY, EndpointMetricsAgent.class);
+        endpointMetricsAgent.incrementIngresMessageCount();
+        endpointMetricsAgent.touchLastActivityInstant();
 
 
         try {
@@ -171,7 +176,7 @@ public abstract class HL7v2MessageEncapsulator {
             } else{
                 wupNotificationContent = notificationContent;
             }
-            metricsAgent.sendITOpsNotification(wupNotificationContent);
+            endpointMetricsAgent.sendITOpsNotification(wupNotificationContent);
             getProcessingPlantMetricsAgent().sendITOpsNotification(wupNotificationContent);
 
             //

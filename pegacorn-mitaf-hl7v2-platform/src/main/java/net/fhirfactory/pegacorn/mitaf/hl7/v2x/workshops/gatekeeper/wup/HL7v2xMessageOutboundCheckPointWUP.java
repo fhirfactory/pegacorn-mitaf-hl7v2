@@ -115,6 +115,11 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
     }
 
     @Override
+    protected String specifyParticipantDisplayName(){
+        return("OutboundMessageCheckpoint");
+    }
+
+    @Override
     public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
