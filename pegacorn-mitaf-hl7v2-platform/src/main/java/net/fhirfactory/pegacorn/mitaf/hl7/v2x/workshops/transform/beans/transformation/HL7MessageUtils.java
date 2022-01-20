@@ -1,6 +1,5 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,6 +198,30 @@ public class HL7MessageUtils {
 
 	
 	/**
+	 * Appends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToAppend
+	 */
+	public static void append(Message message, String targetPathSpec, String textToAppend) throws Exception {
+		HL7TerserBasedUtils.append(message, targetPathSpec, textToAppend);
+	}
+
+	
+	/**
+	 * Prepends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToPrepend
+	 */
+	public static void prepend(Message message, String targetPathSpec, String textToPrepend) throws Exception {
+		HL7TerserBasedUtils.prepend(message, targetPathSpec, textToPrepend);		
+	}
+
+	
+	/**
 	 * Uses a lookup table to change a fields value.
 	 * 
 	 * @param targetPathSpec
@@ -233,7 +256,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Clear a field value.
+	 * Clear a single field value.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
@@ -257,7 +280,7 @@ public class HL7MessageUtils {
 			HL7TerserBasedUtils.clear(message, targetPathSpec);
 		}
 	}
-	
+
 	
 	/**
 	 * Returns the message row indexes of the supplied segment.

@@ -231,7 +231,32 @@ class HL7TerserBasedUtils {
 			terser.set(targetPathSpec, StringUtils.substring(sourceValue, indexOfSeperator + 1, sourceValue.length()));
 		}
 	}
+
 	
+	/**
+	 * Appends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToAppend
+	 */
+	public static void append(Message message, String targetPathSpec, String textToAppend) throws Exception {
+		String targetValue = get(message, targetPathSpec);	
+		set(message, targetPathSpec, targetValue + textToAppend);		
+	}
+
+	
+	/**
+	 * Prepends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToPrepend
+	 */
+	public static void prepend(Message message, String targetPathSpec, String textToPrepend) throws Exception {
+		String targetValue = get(message, targetPathSpec);	
+		set(message, targetPathSpec, textToPrepend + targetValue);
+	}
 	
 	
 	/**
@@ -314,11 +339,13 @@ class HL7TerserBasedUtils {
 	 */
 	public static void clear(Message message, String targetPathSpec) throws Exception {
 		Terser terser = new Terser(message);	
-		
-		String val = terser.get(targetPathSpec);
-		System.out.println(val);
 			
 		terser.set(targetPathSpec, "");
+		
+		// Clear any subfields. //TODO get the number of sub fields if possible.  30 should be OK for now.
+		for (int i = 2; i <= 30; i++) {
+			terser.set(targetPathSpec + "-" + i, "");
+		}
 	}
 
 	
