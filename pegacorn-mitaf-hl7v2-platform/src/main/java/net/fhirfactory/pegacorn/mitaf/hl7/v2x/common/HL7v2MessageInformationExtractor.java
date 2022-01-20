@@ -21,10 +21,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.common;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HapiContext;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
+import java.util.Date;
+
 import org.slf4j.Logger;
+
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.primitive.CommonTS;
+import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.util.Terser;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 
 
 public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
@@ -45,5 +53,186 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
         return hapiContext;
     }
 
+    @Override
+    public String extractMessageID(Message message) {
+    	Terser terser = new Terser(message);
+    	
+        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", message);
+        if(message != null) {
+            try {
+            	return terser.get("MSH-10");
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
 
+    @Override
+    public String extractMessageID(String messageAsText) {
+        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        String messageID = extractMessageID(message);
+        return(messageID);
+    }
+
+    @Override
+    public Date extractMessageDate(Message message) {
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
+            try {
+            	String messageDate = terser.get("MSH-7-1");
+            	CommonTS commonTs = new CommonTS(messageDate);
+            	return commonTs.getValueAsDate();
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
+
+    @Override
+    public Date extractMessageDate(String messageAsText) {
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        Date messageDate = extractMessageDate(message);
+        return (messageDate);
+    }
+
+    @Override
+    public String extractMessageVersion(Message message) {
+        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
+            try {
+                return terser.get("MSH-12-1");
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
+
+    @Override
+    public String extractMessageVersion(String messageAsText) {
+        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        String messageVersion = extractMessageVersion(message);
+        return (messageVersion);
+    }
+
+    @Override
+    public String extractMessageTrigger(Message message) {
+        getLogger().debug(".extractMessageTrigger(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
+            try {
+                return terser.get("MSH-9-2");
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
+
+    @Override
+    public String extractMessageTrigger(String messageAsText) {
+        getLogger().debug(".extractMessageTrigger(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        String messageTrigger = extractMessageTrigger(message);
+        return (messageTrigger);
+    }
+
+    @Override
+    public String extractMessageType(Message message) {
+        getLogger().debug(".extractMessageType(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
+            try {
+                return terser.get("MSH-9-1");
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
+
+    @Override
+    public String extractMessageType(String messageAsText) {
+        getLogger().debug(".extractMessageType(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        String messageType = extractMessageType(message);
+        return (messageType);
+    }
+
+    @Override
+    public String extractMessageSource(Message message) {
+        getLogger().debug(".extractMessageDate(): Entry, message->{}", message);
+        
+    	Terser terser = new Terser(message);
+        
+        if(message != null) {
+            try {
+                return terser.get("MSH-3-2");
+            } catch (HL7Exception e) {
+                getLogger().warn(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
+                return (null);
+            }
+        } else {
+            return(null);
+        }
+    }
+
+    @Override
+    public String extractMessageSource(String messageAsText) {
+        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        Message message = convertToHL7v2Message(messageAsText);
+        String messageSource = extractMessageSource(message);
+        return (messageSource);
+    }
+
+    @Override
+    public String convertMessageToString(Message message) {
+        String messageAsText = null;
+        try {
+            messageAsText = message.encode();
+        } catch (HL7Exception e) {
+            getLogger().warn(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
+        }
+        return(messageAsText);
+    }
+
+    @Override
+    public Message convertToHL7v2Message(String messageText){
+        getLogger().debug(".convertToHL7v2Message(): Entry, messageText->{}", messageText);
+        Parser parser = hapiContext.getPipeParser();
+        parser.getParserConfiguration().setValidating(false);
+        parser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
+        try {
+            Message hl7Msg = parser.parse(messageText);
+            return(hl7Msg);
+        } catch (HL7Exception e) {
+            getLogger().warn(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
+            return(null);
+        }
+    }
 }

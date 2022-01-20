@@ -1,114 +1,114 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.AbstractSegment;
+import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Segment;
-import ca.uhn.hl7v2.model.Structure;
-import ca.uhn.hl7v2.util.SegmentFinder;
+import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
+import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
- * Utilitie methods to transform a messages and to get date from a message.
+ * Utility methods to transform a messages and to get date from a message.
  * 
  * @author Brendan Douglas
  *
  */
 public class HL7MessageUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7MessageUtils.class);
 	
+	
+	/**
+	 * Returns a {@link Message} from a String
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static Message getMessage(String message) throws Exception {
+		try (HapiContext context = new DefaultHapiContext();) {    
+            PipeParser parser = context.getPipeParser();
+            parser.getParserConfiguration().setValidating(false);
+    
+            ModelClassFactory cmf = new DefaultModelClassFactory();
+            context.setModelClassFactory(cmf);
+            
+            Message inputMessage = parser.parse(message);
+            
+            return inputMessage;
+		}
+	}
+	
+	
+	public static String getMessageCode(Message message) throws Exception {
+		return get(message, "MSH-9-1");
+	}
+
+	
+	/**
+	 * Gets the message type.
+	 * 
+	 * @param message
+	 * @return
+	 */
 	public static String getType(Message message) {
 		return message.getName();
 	}
 	
 	
 	/**
-	 * Converts a HL7 date field to a {@link LocalDate}.
+	 * Removes a patient identifier.
 	 * 
 	 * @param message
-	 * @param sourcePathSpec
-	 * @return
-	 */
-	public static LocalDate getDate(Message message, String sourcePathSpec) throws Exception {
-		return null;
-	}
-	
-	
-	
-	/**
-	 * Returns all 
-	 * 
-	 * @param message
-	 * @param identifierTypes
+	 * @param identifier
+	 * @throws Exception
 	 */
 	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
-		Terser terser = new Terser(message);
-		
-		Segment segment = terser.getSegment("PID");
-		int numberOfRepeitions = segment.getField(3).length;
-		
-		for (int i = 0; i < numberOfRepeitions; i++) {
-			String identifierType = terser.get("/PID-3(" + i + ")-4-1");
-			
-			if (identifierType != null && identifierType.equals(identifier)) {
-				((AbstractSegment)segment).removeRepetition(3, i);
-			}
-		}
-		
-		message.parse(message.toString());
+		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier);
 	}
 	
 	
 	/**
-	 * Returns a list of identifiers in the PID segment.
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier);
+	}
+	
+	
+	/**
+	 * Returns a list of patient identifiers in the PID segment.
 	 * 
 	 * @param message
 	 * @return
 	 * @throws Exception
 	 */
 	public static List<String> getPatientIdentifierCodes(Message message) throws Exception {
-		List<String>identifiers = new ArrayList<>();
-		
-		Terser terser = new Terser(message);
-		
-		Segment segment = terser.getSegment("PID");
-		int numberOfRepeitions = segment.getField(3).length;
-		
-		for (int i = 0; i < numberOfRepeitions; i++) {
-			String identifier = terser.get("/PID-3(" + i + ")-4-1");
-			
-			if (identifier != null) {
-				identifiers.add(identifier);
-			}
-		}	
-		
-		return identifiers;
+		return HL7TerserBasedUtils.getPatientIdentifierCodes(message);
 	}
 	
 	
+	/**
+	 * Is the message of the supplied type?
+	 * 
+	 * @param message
+	 * @param messageType
+	 * @return
+	 * @throws Exception
+	 */
 	public static boolean isType(Message message, String messageType) throws Exception {
-		if (messageType.endsWith("_*")) {
-			return message.getName().substring(0, 3).equals(messageType.substring(0, 3));
-		}
-		
-		return message.getName().equals(messageType);
+		return HL7TerserBasedUtils.isType(message, messageType);
 	}
 
 	
 	/**
-	 * Set a field value.
+	 * Set the target field to the supplied value.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
@@ -116,36 +116,87 @@ public class HL7MessageUtils {
 	 * @throws HL7Exception
 	 */
 	public static void set(Message message, String targetPathSpec, String value) throws Exception {	
-		Terser terser = new Terser(message);
-		terser.set(targetPathSpec, value);
+		HL7TerserBasedUtils.set(message, targetPathSpec, value);
 	}
 	
 	
 	/**
-	 * Set a field value from another field.
+	 * Copies the content of one field to another.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
 	 * @param sourcePathSpec
 	 * @throws HL7Exception
 	 */
-	public static void copy(Message message, String sourcePathSpec, String targetPathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
-		Terser terser = new Terser(message);
-		
-		String sourceValue = terser.get(sourcePathSpec);
-		String targetValue = terser.get(targetPathSpec);
-		
-		if (!copyIfSourceIsBlank && StringUtils.isBlank(sourceValue)) {
-			return;
-		}
-		
-		if (!copyIfTargetIsBlank && StringUtils.isBlank(targetValue)) {
-			return;
-		}
-		
-		terser.set(targetPathSpec, sourceValue);	
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, copyIfSourceIsBlank, copyIfTargetIsBlank);
+	}
+
+	
+	/**
+	 * Copies the content of one field to another.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @throws Exception
+	 */
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec) throws Exception {	
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, true, true);
+	}
+
+	
+	/**
+	 * Copies the content from one field to another.  If the source field is null then the default source path is used.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param defaultIfSourceIsNull
+	 */
+	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, String defaultSourcepathSpec) throws Exception {
+		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, defaultSourcepathSpec);
 	}
 	
+	
+	/**
+	 * Copies the content of the source path before the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringBefore(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		HL7TerserBasedUtils.copySubstringBefore(message, targetPathSpec, sourcePathSpec, seperator);			
+	}
+	
+	
+	/**
+	 * Copies the content of the source path after the seperator character to the target.  If the seperator does not exists the entire field is copied.
+	 * 
+	 * @param message
+	 * @param sourcePathSpec
+	 * @param targetPathSpec
+	 * @param seperator
+	 */
+	public static void copySubstringAfter(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
+		HL7TerserBasedUtils.copySubstringAfter(message, targetPathSpec, sourcePathSpec, seperator);
+	}
+
+	
+	/**
+	 * Concatenates the content of the source fields.
+	 * 
+	 * @param message
+	 * @param targetpathSpec
+	 * @param seperator
+	 * @param sourcePathSpecs
+	 */
+	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.concatenate(message, targetPathSpec, seperator, sourcePathSpecs);
+	}
+
 	
 	/**
 	 * Uses a lookup table to change a fields value.
@@ -155,22 +206,7 @@ public class HL7MessageUtils {
 	 * @throws HL7Exception
 	 */
 	public static void lookup(Message message, String targetPathSpec, String lookupTableClassName) throws Exception {	
-		
-		try {
-			Terser terser = new Terser(message);
-			
-			String existingValue = terser.get(targetPathSpec);
-		
-			// Use reflection to instantiate the appropriate lookup table class
-			Class<?> lookupTableClass = Class.forName(lookupTableClassName);
-			Constructor<?> lookupTableConstructor = lookupTableClass.getConstructor();
-			LookupTable lookupTable = (LookupTable) lookupTableConstructor.newInstance();
-			
-			String transformedValue = lookupTable.lookup(existingValue);
-			terser.set(targetPathSpec, transformedValue);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", lookupTableClassName);
-		} 
+		HL7TerserBasedUtils.lookup(message, targetPathSpec, lookupTableClassName);
 	}
 
 	
@@ -181,19 +217,7 @@ public class HL7MessageUtils {
 	 * @param transformationClass
 	 */
 	public static void updateFieldFromCode(Message message, String targetPathSpec, String fieldTransformationClassName) throws Exception {
-		Terser terser = new Terser(message);
-		
-		try {
-			// Use reflection to instantiate the appropriate code transformation class
-			Class<?> fieldTransformationClass = Class.forName(fieldTransformationClassName);
-			Constructor<?> fieldTransformationClassConstructor = fieldTransformationClass.getConstructor();
-			FieldCodeTransformation transformation = (FieldCodeTransformation) fieldTransformationClassConstructor.newInstance();
-			
-			String transformedValue = transformation.execute(message);
-			terser.set(targetPathSpec, transformedValue);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", fieldTransformationClassName);
-		}
+		HL7TerserBasedUtils.updateFieldFromCode(message, targetPathSpec, fieldTransformationClassName);
 	}
 
 	
@@ -204,17 +228,7 @@ public class HL7MessageUtils {
 	 * @param transformationClass
 	 */
 	public static void updateMessageFromCode(Message message, String transformationClassName) throws Exception {
-		
-		try {
-			// Use reflection to instantiate the appropriate code transformation class
-			Class<?> transformationClass = Class.forName(transformationClassName);
-			Constructor<?> transformationClassConstructor = transformationClass.getConstructor();
-			MessageCodeTransformation transformation = (MessageCodeTransformation) transformationClassConstructor.newInstance();
-			
-			transformation.execute(message);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", transformationClassName);
-		}
+		HL7TerserBasedUtils.updateMessageFromCode(message, transformationClassName);
 	}
 
 	
@@ -226,32 +240,82 @@ public class HL7MessageUtils {
 	 * @throws HL7Exception
 	 */
 	public static void clear(Message message, String targetPathSpec) throws Exception {
-		Terser terser = new Terser(message);	
-			
-		terser.set(targetPathSpec, "");
+		HL7TerserBasedUtils.clear(message, targetPathSpec);
 	}
 	
 	
 	/**
-	 * Returns the message row indexes of the supplied segment.  This does not use the terser.
+	 * Clears multiple fields in a single command.
+	 * 
+	 * @param message
+	 * @param targetPathSpecs
+	 * @throws Exception
+	 */
+	public static void clear(Message message, String ... targetPathSpecs) throws Exception {
+		
+		for (String targetPathSpec : targetPathSpecs) {
+			HL7TerserBasedUtils.clear(message, targetPathSpec);
+		}
+	}
+	
+	
+	/**
+	 * Returns the message row indexes of the supplied segment.
 	 * 
 	 * @param message
 	 * @param segmentName
 	 * @return
+	 * @throws Exception
 	 */
 	public static List<Integer> getSegmentIndexes(Message message, String segmentName) throws Exception {
-		List<Integer>segmentIndexes = new ArrayList<>();
+		return HL7StringBasedUtils.getSegmentIndexes(message, segmentName);
+	}
+	
+	
+	/**
+	 * Returns the index of a matching segment starting from the supplied starting from index.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param startingFrom
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getNextIndex(Message message, String segmentName, int startFromIndex) throws Exception {
+		String[] messageRows = message.toString().split("\r");
+
+		for (int i = startFromIndex; i < messageRows.length; i++) {
+			if (messageRows[i].startsWith(segmentName + "|")) {
+				return i;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Returns all the indexes of a matching segment startinf from the supplied start from index,
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param startFromIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static  List<Integer> getSegmentIndexes(Message message, String segmentName, int startFromIndex) throws Exception {
+		List<Integer> segmentIndexes = new ArrayList<>();
 		
 		String[] messageRows = message.toString().split("\r");
-		
-		for (int i = 0; i < messageRows.length; i++) {
+
+		for (int i = startFromIndex; i < messageRows.length; i++) {
 			if (messageRows[i].startsWith(segmentName + "|")) {
 				segmentIndexes.add(i);
 			}
 		}
 		
 		return segmentIndexes;
-	}
+	}	
 
 	
 	/**
@@ -262,118 +326,69 @@ public class HL7MessageUtils {
 	 * @return
 	 */
 	public static int getSegmentCount(Message message, String segmentName) throws Exception {
-		int segmentCount = 0;
-		
-		
-		String[] messageRows = message.toString().split("\r");
-		
-		for (int i = 0; i < messageRows.length; i++) {
-			if (messageRows[i].startsWith(segmentName + "|")) {
-				segmentCount++;
-			}
-		}
-		
-		return segmentCount;
+		return HL7StringBasedUtils.getSegmentCount(message, segmentName);
 	}
 
 	
 	/**
-	 * Deletes a segment from a HL7 messages at the supplied row index.  This deletes based on the row index in the raw HL7 messages and does not use the HL7 terser.
+	 * Deletes a segment from a HL7 messages at the supplied row index.
 	 * 
 	 * @param message
 	 * @param rowIndex
 	 * @throws Exception
 	 */
 	public static void deleteSegment(Message message, int rowIndex) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < messageRows.length; i++) {
-			if (i != rowIndex) {
-				sb.append(messageRows[i]).append("\r");
-			}
-		}
-		
-		 message.parse(sb.toString());
+		HL7StringBasedUtils.deleteSegment(message, rowIndex);
 	}
 
 	
 	/**
-	 * Deletes all segments from a HL7 messages which match the segment name.  This deletes based on the row index in the raw HL7 messages and does not use the HL7 terser.
+	 * Deletes all segments from a HL7 messages which match the segment name.
 	 * 
 	 * @param message
 	 * @param rowIndex
 	 * @throws Exception
 	 */
 	public static void deleteAllSegments(Message message, String segmentName) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		StringBuilder sb = new StringBuilder();
-
-		for (String row : messageRows) {
-			if (!row.startsWith(segmentName + "|")) {
-				sb.append(row).append("\r");
-			}
-		}
-		
-		 message.parse(sb.toString());
+		HL7StringBasedUtils.deleteAllSegments(message, segmentName);
+	}
+	
+	
+	/**
+	 * Deletes an occurence of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 */
+	public static void deleteSegment(Message message, String segmentName, int occurence) throws Exception {
+		HL7StringBasedUtils.deleteSegment(message, segmentName, occurence);
 	}
 
 	
 	/**
-	 * Deletes all segments which contains the supplied field value.  This does not use the HL7 terser..
+	 * Deletes all segments which contains the supplied field value.
 	 * 
 	 * @param message
 	 * @param segmentName
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < messageRows.length; i++) {
-			if (messageRows[i].startsWith(segmentName + "|")) {
-				String field = getField(messageRows[i], fieldIndex);
-				if (!field.equals(value)) {
-					sb.append(messageRows[i]).append("\r");
-				}
-			} else {
-				sb.append(messageRows[i]).append("\r");
-			}
-		}
-		
-		message.parse(sb.toString());
+	public static void deleteAllSegmentsMatchingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		HL7StringBasedUtils.deleteAllSegmentsMatchingFieldValue(message, segmentName, fieldIndex, value);
 	}
 
 	
 	/**
-	 * Deletes a single segment where the supplied value is part of (contains) the field value.  This does not use the HL7 terser.
+	 * Deletes a single segment where the supplied value is part of (contains) the field value.
 	 * 
 	 * @param message
 	 * @param segmentName
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public static void deleteAllSegmentContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < messageRows.length; i++) {
-			if (messageRows[i].startsWith(segmentName + "|")) {
-				String field = getField(messageRows[i], fieldIndex);
-				if (!field.contains(value)) {
-					sb.append(messageRows[i]).append("\r");
-				}
-			} else {
-				sb.append(messageRows[i]).append("\r");
-			}
-		}
-		
-		message.parse(sb.toString());
+	public static void deleteAllSegmentsContainingFieldValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
+		HL7StringBasedUtils.deleteAllSegmentsContainingFieldValue(message, segmentName, fieldIndex, value);
 	}
 
 	
@@ -386,18 +401,7 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static boolean doesFieldMatchValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		for (int i = 0; i < messageRows.length; i++) {
-			if (messageRows[i].startsWith(segmentName + "|")) {
-				String field = getField(messageRows[i], fieldIndex);
-				if (field.equals(value)) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
+		return HL7StringBasedUtils.doesFieldMatchValue(message, segmentName, fieldIndex, value);
 	}
 
 	
@@ -410,18 +414,7 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static boolean doesFieldContainValue(Message message, String segmentName, int fieldIndex, String value) throws Exception {
-		String[] messageRows =  message.toString().split("\r");
-		
-		for (int i = 0; i < messageRows.length; i++) {
-			if (messageRows[i].startsWith(segmentName + "|")) {
-				String field = getField(messageRows[i], fieldIndex);
-				if (field.contains(value)) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
+		return HL7StringBasedUtils.doesFieldContainValue(message, segmentName, fieldIndex, value);
 	}
 
 	
@@ -434,17 +427,7 @@ public class HL7MessageUtils {
 	 * @return
 	 */
 	public static String getField(Message message, int rowIndex, int fieldIndex) {
-		String[] messageRows =  message.toString().split("\r");
-		
-		String requiredSegment = messageRows[rowIndex];
-		
-		// Now break up into fields
-		
-		String[] segmentFields = requiredSegment.split("\\|");
-		
-		String fieldValue = segmentFields[fieldIndex];
-		
-		return fieldValue;
+		return HL7StringBasedUtils.getField(message, rowIndex, fieldIndex);
 	}
 
 	
@@ -456,12 +439,47 @@ public class HL7MessageUtils {
 	 * @return
 	 */
 	public static String getField(String segment, int fieldIndex) {
-		String[] segmentFields = segment.split("\\|");
-		
-		String fieldValue = segmentFields[fieldIndex];
-		return fieldValue;		
+		return HL7StringBasedUtils.getField(segment, fieldIndex);
+	}
+	
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subfield
+	 */
+	public static String getSubfield(String field, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(field, subFieldIndex);
 	}
 
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subfield
+	 */
+	public static String getSubfield(String segment, int fieldIndex, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(segment, fieldIndex, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Returns a subfield.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public static String getSubfield(String message, int segmentIndex, int fieldIndex, int subFieldIndex) {
+		return HL7StringBasedUtils.getSubfield(message, segmentIndex, fieldIndex, subFieldIndex);
+	}	
+	
 	
 	/**
 	 * Set a field value from a string with variables.
@@ -504,7 +522,6 @@ public class HL7MessageUtils {
 		Terser terser = new Terser(message);
 		return terser.get(sourcePathSpec);
 	}
-	
 
 	
 	/**
@@ -515,128 +532,54 @@ public class HL7MessageUtils {
 	 * @throws HL7Exception
 	 */
 	public static void removeSegment(Message message, String sourcePathSpec) throws Exception {
-		Terser terser = new Terser(message);
-		
-		AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
-		
-		segment.clear();
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
+		HL7TerserBasedUtils.removeSegment(message, sourcePathSpec);
 	}
-	
+
 	
 	/**
-	 * Removes all segments matching the segment name no matter where they appear in the message.  Please note the segment name is not a path spec.
+	 * Removes all segments matching the segment name no matter where they appear in the message.
 	 * 
 	 * @param message
 	 * @param segmentName
 	 * @throws HL7Exception
 	 */
 	public static void removeAllSegments(Message message, String segmentName) throws Exception {	
-		Terser terser = new Terser(message);
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (name.startsWith(segmentName)) {
-
-					for (Structure structure : finder.getCurrentChildReps()) {
-						AbstractSegment segment = (AbstractSegment)structure;
-						segment.clear();
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
+		HL7TerserBasedUtils.removeAllSegments(message, segmentName);
 	}
 	
 	
 	/**
-	 * Sets the segments to send.  All other segments are removed.  
+	 * Sets the segments to keep. 
 	 * 
 	 * @param message
 	 * @param requiredSegments
 	 */
 	public static void setSegmentsToKeep(Message message, String ... setSegmentsToKeep) throws Exception {	
-		Terser terser = new Terser(message);
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (!doesContainSegment(message, name, setSegmentsToKeep)) {
-					
-					for (Structure structure : finder.getCurrentChildReps()) {
-						AbstractSegment segment = (AbstractSegment)structure;
-						segment.clear();
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
+		HL7TerserBasedUtils.setSegmentsToKeep(message, setSegmentsToKeep);
 	}
 
 	
+	/**
+	 * Sets the segments to keep.  The segments to keep are a comma delimited list.
+	 * 
+	 * @param message
+	 * @param setSegmentsToKeep
+	 * @throws Exception
+	 */
 	public static void setSegmentsToKeep(Message message, String setSegmentsToKeep) throws Exception {		
 		setSegmentsToKeep(message, setSegmentsToKeep.split(","));
 	}
-	
 
 	/**
-	 * Returns a list of all matching segments.  Please note the segment name is not a path spec.
+	 * Returns a list of all matching segments.
 	 * 
 	 * @param message
 	 * @param segmentName
 	 * @return
+	 * @throws Exception
 	 */
 	public static List<Segment>getAllSegments(Message message, String segmentName) throws Exception {
-		Terser terser = new Terser(message);
-		
-		List<Segment>segments = new ArrayList<>();
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (name.startsWith(segmentName)) {
-					
-					for (Structure structure : finder.getCurrentChildReps()) {
-						segments.add((Segment)structure);
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}	
-		
-		return segments;
-	}
-
-	
-	private static boolean doesContainSegment(Message message, String segment, String[] requiredSegments) {
-		for (String requiredSegment : requiredSegments) {
-			if (segment.startsWith(requiredSegment)) {
-				return true;
-			}
-		}
-		
-		return false;
+		return HL7TerserBasedUtils.getAllSegments(message, segmentName);
 	}
 
 	
@@ -648,11 +591,7 @@ public class HL7MessageUtils {
 	 * @return
 	 */
 	public static boolean doesSegmentExist(Message message, String segment) throws Exception {
-		 String regex = segment + "\\|";
-		 Pattern pattern = Pattern.compile(regex);
-		 Matcher matcher = pattern.matcher(message.toString());
-		 
-		 return matcher.find();
+		return HL7TerserBasedUtils.doesSegmentExist(message, segment);
 	}
 
 	
@@ -663,19 +602,7 @@ public class HL7MessageUtils {
 	 * @param action
 	 */
 	public static void forEachSegment(Message message, String segmentName, String actionClassName) throws Exception {
-		try {
-			
-			// Use reflection to instantiate the appropriate segment action class.
-			Class<?> actionClass = Class.forName(actionClassName);
-			Constructor<?> actionClassConstructor = actionClass.getConstructor();
-			SegmentAction segmentAction = (SegmentAction) actionClassConstructor.newInstance();
-			
-			for (Segment segment : getAllSegments(message, segmentName)) {
-				segmentAction.execute(segment);
-			}
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", actionClassName);
-		}	
+		HL7TerserBasedUtils.forEachSegment(message, segmentName, actionClassName);
 	}
 
 	
@@ -686,19 +613,159 @@ public class HL7MessageUtils {
 	 * @param action
 	 */
 	public static void segmentAction(Message message, String sourcePathSpec, String actionClassName) throws Exception {
-		try {
-			
-			Terser terser = new Terser(message);
-			AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
-			
-			// Use reflection to instantiate the appropriate segment action class.
-			Class<?> actionClass = Class.forName(actionClassName);
-			Constructor<?> actionClassConstructor = actionClass.getConstructor();
-			SegmentAction segmentAction = (SegmentAction) actionClassConstructor.newInstance();
-			
-			segmentAction.equals(segment);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			throw new HL7Exception("Unable to construct segment action class", e);
-		}		
+		HL7TerserBasedUtils.segmentAction(message, sourcePathSpec, actionClassName);
+	}
+
+	
+	/**
+	 * Appends a non standard segment at the end of the message.
+	 * 
+	 * @param semgmentName
+	 */
+	public static String appendNonStandardSegment(Message message, String newSegmentName) throws Exception {	
+		return HL7StringBasedUtils.appendNonStandardSegment(message, newSegmentName);
+	}
+	
+	
+	/**
+	 * Inserts a non standard segment at the specified index.
+	 * 
+	 * @param segmentName
+	 * @param index
+	 */
+	public static String insertNonStandardSegment(Message message, String newSegmentName, int index) throws Exception {	
+		return HL7StringBasedUtils.insertNonStandardSegment(message, newSegmentName, index);
+	}
+
+	
+	/**
+	 * Inserts a non standard segment after the the supplied afterSegmentName (1st occurence).
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentAfter(Message message, String newSegmentName, String afterSegmentName) throws Exception {
+		return HL7StringBasedUtils.insertNonStandardSegmentAfter(message, newSegmentName, afterSegmentName);
+	}
+
+	
+	/**
+	 * Inserts a non standard segment before the the supplied beforeSegmentName (1st occurence)
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static String insertNonStandardSegmentBefore(Message message, String newSegmentName, String beforeSegmentName) throws Exception {
+		return HL7StringBasedUtils.insertNonStandardSegmentBefore(message, newSegmentName, beforeSegmentName);
+	}	
+
+	
+	/**
+	 * Insert a non standard segment after every afterSegmentName.
+	 * 
+	 * @param segmentName
+	 * @param afterSegmentName
+	 */
+	public static List<String> insertNonStandardSegmentAfterEvery(Message message, String newSegmentName, String afterSegmentName) throws Exception{	
+		return HL7StringBasedUtils.insertNonStandardSegmentAfterEvery(message, newSegmentName, afterSegmentName);
+	}
+
+	
+	/**
+	 * Gets a segment at the specified index.
+	 * 
+	 * @param message
+	 * @param segmentIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getSegment(Message message, int segmentIndex) throws Exception {
+		return HL7StringBasedUtils.getSegment(message, segmentIndex);
+	}
+
+	
+	/**
+	 * Returns the index of a matching segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getSegmentIndex(Message message, String segmentName, int occurence) throws Exception {
+		return HL7StringBasedUtils.getSegmentIndex(message, segmentName, occurence);
+	}
+	
+	
+	/**
+	 * Returns the message row index of the first occurence of the supplied segment name.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getFirstSegmentIndex(Message message, String segmentName) throws Exception {
+		return getSegmentIndex(message, segmentName, 0);
+	}
+
+	/**
+	 * Returns a segment content as a string.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param occurence
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getSegment(Message message, String segmentName, int occurence) throws Exception {
+		Integer index = getSegmentIndex(message, segmentName, occurence);
+		
+		if (index == null) {
+			return null;
+		}
+		
+		return getSegment(message, index);
+	}
+	
+	
+	/**
+	 * Copies a value from one field to another and replace the params.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param text
+	 * @param sourcePathSpecs
+	 * @throws Exception
+	 */
+	public static void copyReplaceParam(Message message, String targetPathSpec, String sourcePathSpec, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.copyReplaceParam(message, targetPathSpec, sourcePathSpec, sourcePathSpecs);
+	}
+	
+	
+	
+	/**
+	 * Duplicates a message based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
+	 * returned with a single OBX segment.
+	 * 
+	 * @param message
+	 * @param segmentType
+	 * @return
+	 */
+	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
+		return HL7StringBasedUtils.duplicateMessage(message, segmentType);
+	}
+	
+	
+	/**
+	 * Copies the content of one segment to another.
+	 * 
+	 * @param message
+	 * @param sourceIndex
+	 * @param targetIndex
+	 */
+	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
+		HL7StringBasedUtils.copySegment(message, sourceIndex, targetIndex);
 	}
 }

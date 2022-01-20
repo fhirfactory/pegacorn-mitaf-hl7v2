@@ -21,14 +21,17 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
+import java.io.File;
+
+import javax.inject.Inject;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
+
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-
-import javax.inject.Inject;
 
 
 /**
@@ -50,6 +53,9 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 	@Inject
 	private TransformWorkshop workshop;
 	
+	@Inject
+	private FreeMarkerConfiguration freemarkerConfig;
+	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (workshop);
@@ -65,10 +71,22 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 	public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
+        
+        // This will make sure the file exists during app startup
+        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-egress-transformation-config.ftl";
+        File file = new File(fileName);
+        
+        if (!file.exists()) {
+        	throw new RuntimeException("Transformation file not found: " + fileName);
+        }
 
-		fromIncludingPetasosServices(ingresFeed())
+        
+        fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
-	        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractAndTransformMessage")
+                        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
+			.bean(freemarkerConfig,"configure(*, Exchange)")
+			.to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+			.bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
 			.to(egressFeed());
 	}
 }

@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-
+import java.io.File;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
@@ -32,88 +32,100 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRComm
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
 import javax.inject.Inject;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 
 /**
- * Base class for all Mitaf WUPs to transform HL7 v2 messages to a FHIR
- * Communication resource.
- * 
+ * Base class for all Mitaf WUPs to transform HL7 v2 messages to a FHIR Communication resource.
+ *
  * @author Brendan Douglas
  *
  */
 public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardWUP {
-	private String WUP_VERSION = "1.0.0";
 
-	@Inject
-	private TransformWorkshop workshop;
+    private String WUP_VERSION = "1.0.0";
 
-	@Override
-	protected WorkshopInterface specifyWorkshop(){
-		return(workshop);
-	}
-
-	@Inject
-	private HL7v2MessageAsTextToHL7V2xMessage hl7v2TextToMessage;
-
-	@Inject
-	private HL7v2xMessageIntoFHIRCommunication hl7v2xMessageIntoFHIRCommunication;
-
-	@Inject
-	private FHIRResourceSecurityMarkerInjection securityMarkerInjection;
-
-	@Inject
-	private FHIRCommunicationToUoW communicationIntoUoW;
-
-	@Inject
-	private HL7V2XTopicFactory topicFactory;
-	
     @Inject
-    protected BaseMessageTransform messageTransform;
+    private TransformWorkshop workshop;
 
-	@Override
-	public void configure() throws Exception {
+    @Override
+    protected WorkshopInterface specifyWorkshop() {
+        return (workshop);
+    }
+
+    @Inject
+    private HL7v2MessageAsTextToHL7V2xMessage hl7v2TextToMessage;
+
+    @Inject
+    private HL7v2xMessageIntoFHIRCommunication hl7v2xMessageIntoFHIRCommunication;
+
+    @Inject
+    private FHIRResourceSecurityMarkerInjection securityMarkerInjection;
+
+    @Inject
+    private FHIRCommunicationToUoW communicationIntoUoW;
+
+    @Inject
+    private HL7V2XTopicFactory topicFactory;
+
+    @Inject
+    private FreeMarkerConfiguration freemarkerConfig;
+
+    @Override
+    public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getName(), egressFeed());
 
-		fromIncludingPetasosServices(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
-				.bean(hl7v2TextToMessage, "convertToMessage")
-				.bean(messageTransform, "doIngresTransform")
-				.bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
-				.bean(securityMarkerInjection, "injectSecurityMarkers")
-				.bean(communicationIntoUoW, "packageCommunicationResource")
-				.to(egressFeed());
-	}
+        // This will make sure the file exists during app startup
+        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl";
+        File file = new File(fileName);
 
-	@Override
-	protected String specifyParticipantDisplayName(){
+        if (!file.exists()) {
+            throw new RuntimeException("Transformation file not found: " + fileName);
+        }
+
+	}
 		return("InboundHL7MessageTransformationEngine");
-	}
-
+	protected String specifyParticipantDisplayName(){
+	@Override
 	public HL7V2XTopicFactory getTopicFactory() {
 		return topicFactory;
 	}
 
-	protected DataParcelManifest createSubscriptionManifestForInteractIngressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
-		getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Entry, eventType->{}, eventTrigger->{}, version->{}", eventType, eventTrigger, version);
-		DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
-		descriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-		descriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
-		DataParcelManifest manifest = new DataParcelManifest();
-		manifest.setContentDescriptor(descriptor);
-		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_ANY);
-		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
-		manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setInterSubsystemDistributable(false);
-		getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
-		return (manifest);
-	}
+        fromIncludingPetasosServices(ingresFeed())
+                .routeId(getNameSet().getRouteCoreWUP())
+                .bean(hl7v2TextToMessage, "convertToMessage")
+                .bean(freemarkerConfig, "configure(*, Exchange)")
+                .to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
+                .bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
+                .bean(securityMarkerInjection, "injectSecurityMarkers")
+                .bean(communicationIntoUoW, "packageCommunicationResource")
+                .to(egressFeed());
+    }
+
+    public HL7V2XTopicFactory getTopicFactory() {
+        return topicFactory;
+    }
+
+    protected DataParcelManifest createSubscriptionManifestForInteractIngressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
+        getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Entry, eventType->{}, eventTrigger->{}, version->{}", eventType, eventTrigger, version);
+        DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+        descriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        descriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        DataParcelManifest manifest = new DataParcelManifest();
+        manifest.setContentDescriptor(descriptor);
+        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_ANY);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setInterSubsystemDistributable(false);
+        getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
+        return (manifest);
+    }
 }
