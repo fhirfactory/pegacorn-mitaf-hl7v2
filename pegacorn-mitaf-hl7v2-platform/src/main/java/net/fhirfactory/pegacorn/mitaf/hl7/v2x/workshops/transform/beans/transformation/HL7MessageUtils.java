@@ -185,7 +185,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Concatenates the content of the source fields.
+	 * Concatenates the content of the source fields with the specified seperator.
 	 * 
 	 * @param message
 	 * @param targetpathSpec
@@ -194,6 +194,20 @@ public class HL7MessageUtils {
 	 */
 	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.concatenate(message, targetPathSpec, seperator, sourcePathSpecs);
+	}
+	
+	
+	/**
+	 * 
+	 * Concatenates the content of the source fields without a seperator.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param sourcePathSpecs
+	 * @throws Exception
+	 */
+	public static void concatenate(Message message, String targetPathSpec, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.concatenate(message, targetPathSpec, "", sourcePathSpecs);
 	}
 
 	
