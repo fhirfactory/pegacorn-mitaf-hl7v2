@@ -21,6 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
+import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
@@ -88,4 +89,8 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
     abstract protected List<SimpleSubscriptionItem> registerSubscriptionList();
 
+    @Override
+    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
+        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_MITAF_GENERAL);
+    }
 }

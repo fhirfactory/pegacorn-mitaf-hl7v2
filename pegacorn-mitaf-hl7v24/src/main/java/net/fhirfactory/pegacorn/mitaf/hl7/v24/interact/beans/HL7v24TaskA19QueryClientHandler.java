@@ -27,7 +27,7 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.segment.QRD;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
-import net.fhirfactory.pegacorn.core.model.capabilities.CapabilityUtilisationBrokerInterface;
+import net.fhirfactory.pegacorn.core.interfaces.capabilities.CapabilityUtilisationBrokerInterface;
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
 import org.apache.camel.Exchange;

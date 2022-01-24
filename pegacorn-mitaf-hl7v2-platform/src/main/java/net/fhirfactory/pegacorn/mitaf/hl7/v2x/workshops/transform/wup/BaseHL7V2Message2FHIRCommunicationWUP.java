@@ -122,7 +122,7 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
         getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
         return (manifest);
     }
-    
+
     protected String specifyParticipantDisplayName() {
         return ("InboundHL7MessageTransformationEngine");
     }
