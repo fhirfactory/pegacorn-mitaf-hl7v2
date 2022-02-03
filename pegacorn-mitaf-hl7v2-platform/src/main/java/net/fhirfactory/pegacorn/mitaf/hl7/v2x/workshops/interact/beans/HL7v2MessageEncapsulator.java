@@ -102,15 +102,24 @@ public abstract class HL7v2MessageEncapsulator {
             String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
-            if(messageVersion.equalsIgnoreCase(getSupportedVersion().getVersionText())){
+            
+            
+            String messageVersionFirstField = messageVersion;
+            int indexOfFieldSeperator = messageVersion.indexOf("^");
+            
+            if (indexOfFieldSeperator != -1) {
+            	messageVersionFirstField = messageVersion.substring(0, indexOfFieldSeperator);
+            }
+            
+            if(messageVersionFirstField.equalsIgnoreCase(getSupportedVersion().getVersionText())){
                 outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
                 outcomeDescription = "All Good!";
             } else {
                 outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
-                outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersion+")!";
+                outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersionFirstField+")!";
                 getLogger().info(".encapsulateMessage(): " + outcomeDescription);
             }
-            getLogger().trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersion );
+            getLogger().trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersionFirstField );
 //            String stringMessage = message.encode();
             message.getParser().getParserConfiguration().setValidating(false);
 //            message.getParser().getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
