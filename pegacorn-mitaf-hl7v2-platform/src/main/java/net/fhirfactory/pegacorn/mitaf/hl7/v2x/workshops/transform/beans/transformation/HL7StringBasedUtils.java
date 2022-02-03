@@ -332,7 +332,7 @@ class HL7StringBasedUtils {
 
 		// Now break up into fields
 
-		String[] segmentFields = requiredSegment.split("\\|");
+		String[] segmentFields = splitSegmentIntoFields(requiredSegment);
 
 		String fieldValue = segmentFields[fieldIndex];
 
@@ -348,10 +348,30 @@ class HL7StringBasedUtils {
 	 * @return
 	 */
 	public static String getField(String segment, int fieldIndex) {
-		String[] segmentFields = segment.split("\\|");
+		String[] segmentFields = splitSegmentIntoFields(segment);
 
 		String fieldValue = segmentFields[fieldIndex];
 		return fieldValue;
+	}
+	
+	
+	/**
+	 * Splits a segment into an array of fields.
+	 * 
+	 * @param segment
+	 * @return
+	 */
+	private static String[] splitSegmentIntoFields(String segment) {
+		
+		// For the MSH segment the MSH-1 field value is the separator character (|) and we split based on this so create an empty field then add the seperator character to the field.
+		if (segment.startsWith("MSH")) {
+			String[] fields = segment.replace("MSH|", "MSH||").split("\\|");
+			fields[1] = "|";
+			
+			return fields;
+		}
+		
+		return segment.split("\\|");
 	}
 	
 	
