@@ -1,6 +1,5 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -186,7 +185,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Concatenates the content of the source fields.
+	 * Concatenates the content of the source fields with the specified seperator.
 	 * 
 	 * @param message
 	 * @param targetpathSpec
@@ -195,6 +194,44 @@ public class HL7MessageUtils {
 	 */
 	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.concatenate(message, targetPathSpec, seperator, sourcePathSpecs);
+	}
+	
+	
+	/**
+	 * 
+	 * Concatenates the content of the source fields without a seperator.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param sourcePathSpecs
+	 * @throws Exception
+	 */
+	public static void concatenate(Message message, String targetPathSpec, String ... sourcePathSpecs) throws Exception {
+		HL7TerserBasedUtils.concatenate(message, targetPathSpec, "", sourcePathSpecs);
+	}
+
+	
+	/**
+	 * Appends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToAppend
+	 */
+	public static void append(Message message, String targetPathSpec, String textToAppend) throws Exception {
+		HL7TerserBasedUtils.append(message, targetPathSpec, textToAppend);
+	}
+
+	
+	/**
+	 * Prepends the supplied text to the value at the targetPathSpec.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param textToPrepend
+	 */
+	public static void prepend(Message message, String targetPathSpec, String textToPrepend) throws Exception {
+		HL7TerserBasedUtils.prepend(message, targetPathSpec, textToPrepend);		
 	}
 
 	
@@ -233,7 +270,7 @@ public class HL7MessageUtils {
 
 	
 	/**
-	 * Clear a field value.
+	 * Clear a single field value.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
@@ -257,7 +294,7 @@ public class HL7MessageUtils {
 			HL7TerserBasedUtils.clear(message, targetPathSpec);
 		}
 	}
-	
+
 	
 	/**
 	 * Returns the message row indexes of the supplied segment.
@@ -756,7 +793,7 @@ public class HL7MessageUtils {
 	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
 		return HL7StringBasedUtils.duplicateMessage(message, segmentType);
 	}
-	
+
 	
 	/**
 	 * Copies the content of one segment to another.
@@ -767,5 +804,17 @@ public class HL7MessageUtils {
 	 */
 	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
 		HL7StringBasedUtils.copySegment(message, sourceIndex, targetIndex);
+	}
+
+	
+	/**
+	 * Changes the message version number.
+	 * 
+	 * @param message
+	 * @param newVersion
+	 * @throws Exception
+	 */
+	public static void changeMessageVersion(Message message, String newVersion) throws Exception {
+		HL7TerserBasedUtils.set(message, "MSH-12", newVersion);
 	}
 }
