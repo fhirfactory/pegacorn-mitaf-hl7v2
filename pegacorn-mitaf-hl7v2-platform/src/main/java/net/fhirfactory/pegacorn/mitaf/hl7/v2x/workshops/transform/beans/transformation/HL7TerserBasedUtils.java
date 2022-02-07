@@ -2,7 +2,6 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,23 +27,10 @@ import ca.uhn.hl7v2.util.Terser;
  */
 class HL7TerserBasedUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HL7MessageUtils.class);
+
     
-    
-	/**
-	 * Converts a HL7 date field to a {@link LocalDate}.
-	 * 
-	 * @param message
-	 * @param sourcePathSpec
-	 * @return
-	 */
-	public static LocalDate getDate(Message message, String sourcePathSpec) throws Exception {
-		return null;
-	}
-	
-	
-	
-	/**
-	 * Returns all 
+    /**
+	 * Removes a patient identifier. 
 	 * 
 	 * @param message
 	 * @param identifierTypes
@@ -68,7 +54,7 @@ class HL7TerserBasedUtils {
 	
 	
 	/**
-	 * Returns all 
+	 * Returns a patient identifier. 
 	 * 
 	 * @param message
 	 * @param identifierTypes
@@ -118,12 +104,29 @@ class HL7TerserBasedUtils {
 	}
 	
 	
+	/**
+	 * is the message of the supplied type.  The messageType can contain a wildcard eg. ADT_* for all ADT messages or no wildcard eg. ADT_A60.
+	 * 
+	 * @param message
+	 * @param messageType
+	 * @return
+	 * @throws Exception
+	 */
 	public static boolean isType(Message message, String messageType) throws Exception {
-		if (messageType.endsWith("_*")) {
-			return message.getName().substring(0, 3).equals(messageType.substring(0, 3));
+		Terser terser = new Terser(message);
+		
+		String type = terser.get("/MSH-9-3");
+
+		if (StringUtils.isBlank(type)) {
+			type = terser.get("/MSH-9-1") + "_" + terser.get("/MSH-9-2");
 		}
 		
-		return message.getName().equals(messageType);
+		
+		if (messageType.endsWith("_*")) {	
+			return type.substring(0, 3).equals(messageType.substring(0, 3));
+		}
+		
+		return type.equals(messageType);
 	}
 
 	
@@ -139,7 +142,7 @@ class HL7TerserBasedUtils {
 		Terser terser = new Terser(message);
 		terser.set(targetPathSpec, value);
 	}
-	
+
 	
 	/**
 	 * Set a field value from another field.
@@ -165,7 +168,23 @@ class HL7TerserBasedUtils {
 		
 		terser.set(targetPathSpec, sourceValue);	
 	}
+
 	
+	/**
+	 * Copies from the source field to the target, only if the source field contains a value.
+	 * 
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param sourcePathSpec
+	 * @param copyIfSourceIsBlank
+	 * @param copyIfTargetIsBlank
+	 * @throws Exception
+	 */
+	public static void copyIfSourceExists(Message message, String targetPathSpec, String sourcePathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
+		copy(message, targetPathSpec, sourcePathSpec, false, true);
+	}
+
 	
 	/**
 	 * Copies from one field to another.  If the source value is null a default value is used.
@@ -331,7 +350,7 @@ class HL7TerserBasedUtils {
 
 	
 	/**
-	 * Clear a field value.
+	 * Clear a field value.  This clears ALL subfields.
 	 * 
 	 * @param message
 	 * @param targetPathSpec
@@ -343,11 +362,11 @@ class HL7TerserBasedUtils {
 		terser.set(targetPathSpec, "");
 		
 		// Clear any subfields. //TODO get the number of sub fields if possible.  30 should be OK for now.
-		for (int i = 2; i <= 30; i++) {
+		for (int i = 1; i <= 30; i++) {
 			terser.set(targetPathSpec + "-" + i, "");
 		}
 	}
-
+	
 	
 	/**
 	 * Set a field value from a string with variables.
@@ -403,12 +422,16 @@ class HL7TerserBasedUtils {
 	public static void removeSegment(Message message, String sourcePathSpec) throws Exception {
 		Terser terser = new Terser(message);
 		
-		AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
-		
-		segment.clear();
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
+		try {
+			AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
+
+			segment.clear();
+			
+			// Update the message object with the changes.
+			message.parse(message.toString());
+		} catch(HL7Exception e ) {
+			LOG.warn("Segment to delete does not exist: {}", sourcePathSpec);
+		}
 	}
 	
 	

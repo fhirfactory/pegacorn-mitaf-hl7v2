@@ -793,7 +793,7 @@ public class HL7MessageUtils {
 	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
 		return HL7StringBasedUtils.duplicateMessage(message, segmentType);
 	}
-	
+
 	
 	/**
 	 * Copies the content of one segment to another.
@@ -804,5 +804,17 @@ public class HL7MessageUtils {
 	 */
 	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
 		HL7StringBasedUtils.copySegment(message, sourceIndex, targetIndex);
+	}
+
+	
+	/**
+	 * Changes the message version number.
+	 * 
+	 * @param message
+	 * @param newVersion
+	 * @throws Exception
+	 */
+	public static void changeMessageVersion(Message message, String newVersion) throws Exception {
+		HL7TerserBasedUtils.set(message, "MSH-12", newVersion);
 	}
 }
