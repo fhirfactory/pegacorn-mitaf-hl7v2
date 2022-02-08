@@ -93,7 +93,7 @@ class HL7StringBasedUtils {
 	 * 
 	 * @param message
 	 * @param segmentName
-	 * @param occurence
+	 * @param occurence - starts at 1
 	 * @return
 	 * @throws Exception
 	 */
@@ -101,6 +101,10 @@ class HL7StringBasedUtils {
 		List<Integer>segmentIndexes = getSegmentIndexes(message, segmentName);
 		
 		if (segmentIndexes.isEmpty()) {
+			return null;
+		}
+		
+		if (occurence > segmentIndexes.size()) {
 			return null;
 		}
 		
@@ -113,7 +117,7 @@ class HL7StringBasedUtils {
 	 * 
 	 * @param message
 	 * @param segmentName
-	 * @param occurence
+	 * @param occurence - starts at 1
 	 * @return
 	 * @throws Exception
 	 */
@@ -158,7 +162,7 @@ class HL7StringBasedUtils {
 	 * 
 	 * @param message
 	 * @param segmentName
-	 * @param occurence
+	 * @param occurence - starts at 1
 	 * @throws HL7Exception
 	 */
 	public static void deleteSegment(Message message, String segmentName, int occurence) throws Exception {
@@ -190,7 +194,6 @@ class HL7StringBasedUtils {
 	 * HL7 terser.
 	 * 
 	 * @param message
-	 * @param rowIndex
 	 * @throws Exception
 	 */
 	public static void deleteAllSegments(Message message, String segmentName) throws Exception {
@@ -252,6 +255,11 @@ class HL7StringBasedUtils {
 		for (int i = 0; i < messageRows.length; i++) {
 			if (messageRows[i].startsWith(segmentName + "|")) {
 				String field = getField(messageRows[i], fieldIndex);
+				
+				if (field == null) {
+					continue;
+				}
+								
 				if (!compare(field, value, compareType)) {
 					sb.append(messageRows[i]).append("\r");
 				}
@@ -307,7 +315,7 @@ class HL7StringBasedUtils {
 		for (int i = 0; i < messageRows.length; i++) {
 			if (messageRows[i].startsWith(segmentName + "|")) {
 				String field = getField(messageRows[i], fieldIndex);
-				if (compare(field, value, comparisonType)) {
+				if (field != null && compare(field, value, comparisonType)) {
 					return true;
 				}
 			}
@@ -327,16 +335,22 @@ class HL7StringBasedUtils {
 	 */
 	public static String getField(Message message, int rowIndex, int fieldIndex) {
 		String[] messageRows = message.toString().split("\r");
+		
+		if (rowIndex >= messageRows.length) {
+			return null;
+		}
 
 		String requiredSegment = messageRows[rowIndex];
 
 		// Now break up into fields
 
-		String[] segmentFields = requiredSegment.split("\\|");
+		String[] segmentFields = splitSegmentIntoFields(requiredSegment);
+		
+		if (fieldIndex >= segmentFields.length) {
+			return null;
+		}
 
-		String fieldValue = segmentFields[fieldIndex];
-
-		return fieldValue;
+		return segmentFields[fieldIndex];
 	}
 
 	
@@ -348,10 +362,34 @@ class HL7StringBasedUtils {
 	 * @return
 	 */
 	public static String getField(String segment, int fieldIndex) {
-		String[] segmentFields = segment.split("\\|");
+		String[] segmentFields = splitSegmentIntoFields(segment);
 
-		String fieldValue = segmentFields[fieldIndex];
-		return fieldValue;
+		if (fieldIndex >= segmentFields.length) {
+			return null;
+		}
+		
+		return segmentFields[fieldIndex];
+
+	}
+	
+	
+	/**
+	 * Splits a segment into an array of fields.
+	 * 
+	 * @param segment
+	 * @return
+	 */
+	private static String[] splitSegmentIntoFields(String segment) {
+		
+		// For the MSH segment the MSH-1 field value is the separator character (|) and we split based on this so create an empty field then add the seperator character to the field.
+		if (segment.startsWith("MSH")) {
+			String[] fields = segment.replace("MSH|", "MSH||").split("\\|");
+			fields[1] = "|";
+			
+			return fields;
+		}
+		
+		return segment.split("\\|");
 	}
 	
 	
@@ -364,6 +402,10 @@ class HL7StringBasedUtils {
 	 */
 	public static String getSegment(Message message, int segmentIndex) {
 		String[] messageRows = message.toString().split("\r");
+		
+		if (segmentIndex >= messageRows.length) {
+			return null;
+		}
 
 		return messageRows[segmentIndex];
 	}
@@ -511,6 +553,10 @@ class HL7StringBasedUtils {
 	 */
 	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
 		String[] messageRows = message.toString().split("\r");
+		
+		if (sourceIndex >= messageRows.length) {
+			return;
+		}
 
 		String sourceSegment = messageRows[sourceIndex];
 	
@@ -532,7 +578,15 @@ class HL7StringBasedUtils {
 	 * @return
 	 */
 	public static String getSubfield(String field, int subFieldIndex) {
+		if (field == null) {
+			return null;
+		}
+		
 		String[] fields = field.split("\\^");
+		
+		if (subFieldIndex > fields.length) {
+			return null;
+		}
 		
 		return fields[--subFieldIndex];
 	}
@@ -549,6 +603,10 @@ class HL7StringBasedUtils {
 	public static String getSubfield(String segment, int fieldIndex, int subFieldIndex) {
 		String field = getField(segment, fieldIndex);
 		
+		if (field == null) {
+			return null;
+		}
+	
 		return getSubfield(field, --subFieldIndex);
 	}
 	
@@ -564,13 +622,30 @@ class HL7StringBasedUtils {
 	 */
 	public static String getSubfield(String message, int segmentIndex, int fieldIndex, int subFieldIndex) {
 		String segment = getSegment(null, segmentIndex);
+		
+		if (segment == null) {
+			return null;
+		}
+		
 		String field = getField(segment, fieldIndex);
+		
+		if (field == null) {
+			return null;
+		}
 		
 		return getSubfield(field, --subFieldIndex);
 	}
 
 	
 	private static boolean compare(String messageField, String compareField, ComparisionType comparisionType) {
+		if (compareField == null) {
+			throw new IllegalArgumentException("The value to compare against the field cannot be null");
+		}
+		
+		if (messageField == null) {
+			return false;
+		}
+		
 	
 		switch(comparisionType) {
 			case MATCHES:
