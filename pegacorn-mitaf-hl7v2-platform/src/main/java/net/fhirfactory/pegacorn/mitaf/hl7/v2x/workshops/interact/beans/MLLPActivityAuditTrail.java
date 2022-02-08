@@ -22,20 +22,13 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
-import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalPetasosFulfillmentTaskDM;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalFulfillmentTaskCache;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -44,21 +37,21 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private LocalPetasosFulfillmentTaskDM parcelCacheDM;
+    private LocalFulfillmentTaskCache parcelCacheDM;
 
     @Inject
     private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String filtered) {
-        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
-        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
         servicesBroker.logMLLPTransactions(clonedFulfillmentTask, filtered, true);
         return (incomingUoW);
     }
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange) {
-        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
-        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
         servicesBroker.logMLLPTransactions(clonedFulfillmentTask, "false", true);
         return (incomingUoW);
     }
