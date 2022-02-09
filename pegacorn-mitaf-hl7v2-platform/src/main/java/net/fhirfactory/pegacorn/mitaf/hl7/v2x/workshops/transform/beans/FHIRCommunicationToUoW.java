@@ -36,6 +36,7 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extens
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -89,7 +90,7 @@ public class FHIRCommunicationToUoW {
 
     public UoW packageCommunicationResource(Communication communication, Exchange camelExchange){
         getLogger().debug(".packageCommunicationResource(): Entry, communication->{}", communication);
-        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
         UoW uowFromExchange = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
         LOG.trace(".packageCommunicationResource(): Converting communication (FHIR::Communication) to a JSON String");
         String communicationAsString = fhirParser.encodeResourceToString(communication);

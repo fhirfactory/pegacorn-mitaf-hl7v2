@@ -29,6 +29,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import org.apache.camel.Exchange;
@@ -57,13 +58,13 @@ public class MLLPActivityAnswerCollector {
 
     public UoW extractUoWAndAnswer(Message answer, Exchange camelExchange){
         LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
-        
+
         // We embed the fulfillmentTask within the exchange as part of Petasos framework
-        PetasosFulfillmentTask fulfillmentTask = (PetasosFulfillmentTask) camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
         //
         // The UoW is extracted from the fulfillmentTask.
         UoW uow = fulfillmentTask.getTaskWorkItem();
-        
+
         UoWPayload payload = new UoWPayload();
         DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());
         DataParcelTypeDescriptor descriptor = payloadTopicID.getContentDescriptor();

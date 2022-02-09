@@ -27,6 +27,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
@@ -95,10 +96,10 @@ public class HL7v2xMessageIntoFHIRCommunication {
         String messageVersion = messageInformationExtractionInterface.extractMessageVersion(message);
         DataParcelTypeDescriptor parcelTypeDescriptor = hl7v2TopicFactory.newDataParcelDescriptor(messageType, messageTrigger, messageVersion);
 
-        PetasosFulfillmentTask fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
         UoW uowFromExchange = fulfillmentTask.getTaskWorkItem();
         DataParcelManifest manifestFromUoW = uowFromExchange.getPayloadTopicID();
-        DataParcelTypeDescriptor descriptorFromUoW = manifestFromUoW.getContentDescriptor();
+        DataParcelTypeDescriptor descriptorFromUoW = SerializationUtils.clone(manifestFromUoW.getContentDescriptor());
         if(descriptorFromUoW.hasDataParcelDiscriminatorType()){
             parcelTypeDescriptor.setDataParcelDiscriminatorType(SerializationUtils.clone(descriptorFromUoW.getDataParcelDiscriminatorType()));
         }

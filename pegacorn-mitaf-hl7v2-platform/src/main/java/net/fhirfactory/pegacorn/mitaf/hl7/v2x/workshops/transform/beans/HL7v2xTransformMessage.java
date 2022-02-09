@@ -29,6 +29,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 /**
  * Transforms a HL7 message
- * 
+ *
  * @author Brendan Douglas
  *
  */
@@ -47,10 +48,10 @@ public class HL7v2xTransformMessage {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTransformMessage.class);
 
     protected Logger getLogger(){return(LOG);}
-    
+
     /**
      * Adds the message to the original unit of work and sets the processing outcomes to no processing required if the message was filtered.
-     * 
+     *
      * @param exchange
      * @param message
      */
@@ -58,12 +59,12 @@ public class HL7v2xTransformMessage {
         getLogger().debug(".postTransformProcessing(): Entry, message->{}", message);
         //
         // We embed the fulfillmentTask within the exchange as part of Petasos framework
-        PetasosFulfillmentTask fulfillmentTask = (PetasosFulfillmentTask) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+        PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
         //
         // The UoW is extracted from the fulfillmentTask.
         UoW uow = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
     	uow.getEgressContent().getPayloadElements().clear();
-	    
+
         UoWPayload newPayload = new UoWPayload();
         DataParcelManifest newManifest = uow.getIngresContent().getPayloadManifest();
 
@@ -72,16 +73,16 @@ public class HL7v2xTransformMessage {
 
         newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);
-        
+
         uow.getEgressContent().addPayloadElement(newPayload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-        
+
         Boolean sendMessage = (Boolean) exchange.getProperty("sendMessage");
-        
+
         if (!sendMessage) {
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
         }
-        
+
         getLogger().debug(".postTransformProcessing(): Exit, uow->{}", uow);
         return uow;
     }
