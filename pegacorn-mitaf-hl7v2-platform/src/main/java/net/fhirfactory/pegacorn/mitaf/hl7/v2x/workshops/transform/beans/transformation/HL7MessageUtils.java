@@ -282,6 +282,32 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Clears a subfield from a field in every instance of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 */
+	public static void clear(Message message, String segmentName, int fieldIndex, int subFieldIndex) throws Exception {
+		HL7StringBasedUtils.clear(message, segmentName, fieldIndex, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Clears a field in every instance of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 */
+	public static void clear(Message message, String segmentName, int fieldIndex) throws Exception {
+		HL7StringBasedUtils.clear(message, segmentName, fieldIndex);
+	}
+	
+	
+	/**
 	 * Clears multiple fields in a single command.
 	 * 
 	 * @param message
