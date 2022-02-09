@@ -108,7 +108,7 @@ class HL7StringBasedUtils {
 			return null;
 		}
 		
-		return segmentIndexes.get(--occurence);
+		return segmentIndexes.get(--occurence);  // The supplied occurence starts at 1 Need to subtract 1 for the array index.
 	}
 
 	
@@ -355,7 +355,7 @@ class HL7StringBasedUtils {
 
 	
 	/**
-	 * Returns a field from a segment. This does not use the HL7 terser.
+	 * Returns a field (1st repetition) from a segment. This does not use the HL7 terser.
 	 * 
 	 * @param segment
 	 * @param fieldIndex.
@@ -369,9 +369,8 @@ class HL7StringBasedUtils {
 		}
 		
 		return segmentFields[fieldIndex];
-
 	}
-	
+
 	
 	/**
 	 * Splits a segment into an array of fields.
@@ -390,6 +389,17 @@ class HL7StringBasedUtils {
 		}
 		
 		return segment.split("\\|");
+	}
+	
+	
+	/**
+	 * Splits a fields into an array of subfields.
+	 * 
+	 * @param field
+	 * @return
+	 */
+	private static String[] splitFieldIntoSubFields(String field) {
+		return field.split("\\^");
 	}
 	
 	
@@ -588,7 +598,7 @@ class HL7StringBasedUtils {
 			return null;
 		}
 		
-		return fields[--subFieldIndex];
+		return fields[--subFieldIndex];  // The supplied subFieldIndex starts at 1 to be consistent with the HAP HL7 library.  need to subtract 1 for the array index.
 	}
 	
 	
@@ -607,9 +617,9 @@ class HL7StringBasedUtils {
 			return null;
 		}
 	
-		return getSubfield(field, --subFieldIndex);
+		return getSubfield(field, --subFieldIndex);  // The supplied subFieldIndex starts at 1 to be consistent with the HAP HL7 library.  need to subtract 1 for the array index.
 	}
-	
+
 	
 	/**
 	 * Gets a sub field.
@@ -633,7 +643,131 @@ class HL7StringBasedUtils {
 			return null;
 		}
 		
-		return getSubfield(field, --subFieldIndex);
+		return getSubfield(field, --subFieldIndex);  // The supplied subFieldIndex starts at 1 to be consistent with the HAP HL7 library.  need to subtract 1 for the array index.
+	}
+
+	
+	/**
+	 * Creates a field from an array of subField values.
+	 * 
+	 * @param subFields
+	 * @return
+	 */
+	private static String createFieldFromSubFields(String[] subFields) {
+		return String.join("^", subFields);
+	}
+
+	
+	/**
+	 * Creates a segment from an array of field valuies.
+	 * 
+	 * @param fields
+	 * @return
+	 */
+	private static String createSegmentFromFields(String[] fields) {
+		return String.join("|", fields);
+	}
+
+	
+	/**
+	 * Clears a field in every instance of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 */
+	public static void clear(Message message, String segmentName, int fieldIndex) throws Exception {
+		String[] messageRows = message.toString().split("\r");
+
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < messageRows.length; i++) {
+			if (messageRows[i].startsWith(segmentName + "|")) {
+				
+				String[] segmentFields = splitSegmentIntoFields(messageRows[i]);
+
+				if (fieldIndex >= segmentFields.length) {
+					return;
+				}
+				
+				// Just ignore if the field does not exist.
+				if (fieldIndex >= segmentFields.length) {
+					continue;
+				}
+				
+				segmentFields[fieldIndex] = "";
+				sb.append(createSegmentFromFields(segmentFields));
+			} else {
+				sb.append(messageRows[i]);
+			}
+			
+			if (sb.length() > 0) {
+				sb.append("\r");
+			}
+		}
+		
+		message.parse(sb.toString());
+	}
+
+	
+	/**
+	 * Clears a subfield from a field in every instance of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 */
+	public static void clear(Message message, String segmentName, int fieldIndex, int subFieldIndex) throws Exception {
+		int index = subFieldIndex - 1; // The supplied subFieldIndex starts at 1 to be consistent with the HAP HL7 library.  need to subtract 1 for the array index.
+		
+		String[] messageRows = message.toString().split("\r");
+
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < messageRows.length; i++) {
+			if (messageRows[i].startsWith(segmentName + "|")) {
+				
+				String[] segmentFields = splitSegmentIntoFields(messageRows[i]);
+
+				if (fieldIndex >= segmentFields.length) {
+					return;
+				}
+				
+				String field = segmentFields[fieldIndex];
+				
+				String[] subFields = splitFieldIntoSubFields(field);
+				
+				// Just ignore if the subfield not does not exist.
+				if (index > subFields.length) {
+					continue;
+				}
+				
+				subFields[index] = "";
+				
+				// Recreate the field from the subfield array
+				field = createFieldFromSubFields(subFields);
+				
+				// Just ignore if the field does not exist.
+				if (fieldIndex >= segmentFields.length) {
+					continue;
+				}
+				
+				segmentFields[fieldIndex] = field;
+
+				// Recreate the segment from the field array
+				sb.append(createSegmentFromFields(segmentFields));
+			} else {
+				sb.append(messageRows[i]);
+			}
+			
+			if (sb.length() > 0) {
+				sb.append("\r");
+			}
+		}
+		
+		message.parse(sb.toString());
 	}
 
 	
