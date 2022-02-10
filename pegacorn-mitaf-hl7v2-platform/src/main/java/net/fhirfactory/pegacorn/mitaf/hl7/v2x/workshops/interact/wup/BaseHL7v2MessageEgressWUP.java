@@ -46,7 +46,7 @@ import java.net.SocketTimeoutException;
 
 /**
  * Base class for all Mitaf Egress WUPs.
- * 
+ *
  * @author Brendan Douglas
  * @author Mark Hunter
  *
@@ -91,7 +91,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		String participantName = clientTopologyEndpoint.getParticipantName();
 		return (participantName);
 	}
-	
+
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (interactWorkshop);
@@ -137,7 +137,13 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	//
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
-		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version.getVersionText());
+		return manifest;
+	}
+
+	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, String version) {
+
+		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger,version);
 		DataParcelManifest manifest = new DataParcelManifest();
 		manifest.setContentDescriptor(descriptor);
 		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
