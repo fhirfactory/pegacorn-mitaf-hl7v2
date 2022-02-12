@@ -109,18 +109,7 @@ public abstract class HL7v2MessageEncapsulator {
     //
 
     public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue){
-        getLogger().debug(".encapsulateMessage(): Entry, message --> {}", message.toString());
-
-        //
-        // Because auditing is not running yet
-        // Remove once Auditing is in place
-        //
-        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
-        getLogger().warn("IncomingMessage->{}", message); // Log at WARN level so always seen in TEST
-        //getLogger().info("IncomingMessage-----------------------------------------------------------------");
-        //
-        //
-        //
+        getLogger().debug(".encapsulateMessage(): Entry, message->{}", message);
 
         //
         // add to Processing Plant metrics
@@ -183,15 +172,15 @@ public abstract class HL7v2MessageEncapsulator {
             // Now actually process the UoW/Message
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
-			
+
 			// Only use the first version subfield.
             String messageVersionFirstField = messageVersion;
             int indexOfFieldSeperator = messageVersion.indexOf("^");
-            
+
             if (indexOfFieldSeperator != -1) {
             	messageVersionFirstField = messageVersion.substring(0, indexOfFieldSeperator);
-            }			
-			
+            }
+
             if(messageVersionFirstField.equalsIgnoreCase(getSupportedVersion().getVersionText())){
                 outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
                 outcomeDescription = "All Good!";
