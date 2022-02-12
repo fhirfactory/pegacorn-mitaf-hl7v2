@@ -142,7 +142,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
 		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
-				.bean(mllpAuditTrail, "logExceptionMLLPActivity(*, Exchange)");
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)");
 		return(exceptionDef);
 	}
 
@@ -150,7 +150,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
 		OnExceptionDefinition exceptionDef = onException(ConnectException.class)
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Connection Exception...")
-				.bean(mllpAuditTrail, "logConnectionException(*, Exchange)");
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)");
 		return(exceptionDef);
 	}
 }
