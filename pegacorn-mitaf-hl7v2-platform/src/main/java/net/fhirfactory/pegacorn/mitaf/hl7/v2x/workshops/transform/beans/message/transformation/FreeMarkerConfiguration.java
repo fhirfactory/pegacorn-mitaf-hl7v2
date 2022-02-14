@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
@@ -33,9 +32,6 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 public class FreeMarkerConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(FreeMarkerConfiguration.class);
 	
-	@Inject
-	private BaseMessageTransform messageTransformation;
-
 	
 	/**
 	 * Configure Freemarker
@@ -75,7 +71,6 @@ public class FreeMarkerConfiguration {
             variableMap.put("uoW", uoW);
             variableMap.put("message", message);
             variableMap.put("exchange", exchange);
-            variableMap.put("javaBasedTransformations", messageTransformation);
             // Set sendMessage property in the exchange to default of true, as is the case with most transformations, which require to be sent.
             exchange.setProperty("sendMessage", true);
             exchange.getIn().setHeader(FreemarkerConstants.FREEMARKER_DATA_MODEL, variableMap);
