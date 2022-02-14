@@ -120,6 +120,17 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Removes the patient identifier type code but leave everything else in the identifier field. The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removePatientIdentifierTypeCode(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		HL7TerserBasedUtils.removePatientIdentifierTypeCode(message, identifier, pidSegmentPath);
+	}
+	
+	/**
 	 * Is the message of the supplied type?
 	 * 
 	 * @param message

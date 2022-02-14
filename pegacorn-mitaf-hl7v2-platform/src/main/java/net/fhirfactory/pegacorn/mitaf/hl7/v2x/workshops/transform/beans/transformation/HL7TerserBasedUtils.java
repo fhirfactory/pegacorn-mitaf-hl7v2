@@ -68,8 +68,24 @@ class HL7TerserBasedUtils {
 		}
 		
 		message.parse(message.toString());		
+	}
+	
+	
+	public static void removePatientIdentifierTypeCode(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		Terser terser = new Terser(message);
 		
+		Segment segment = terser.getSegment(pidSegmentPath);
+		int numberOfRepeitions = segment.getField(3).length;
 		
+		for (int i = 0; i < numberOfRepeitions; i++) {
+			String identifierType = terser.get(pidSegmentPath + "-3(" + i + ")-5-1");
+			
+			if (identifierType != null && identifierType.equals(identifier)) {
+				clear(message, pidSegmentPath + "-3(" + i + ")-5-1");
+			}
+		}
+		
+		message.parse(message.toString());		
 	}
 	
 	
