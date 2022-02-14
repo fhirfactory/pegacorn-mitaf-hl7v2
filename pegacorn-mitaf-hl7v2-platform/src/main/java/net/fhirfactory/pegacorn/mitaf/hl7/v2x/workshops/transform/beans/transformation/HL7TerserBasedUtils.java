@@ -29,51 +29,47 @@ class HL7TerserBasedUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HL7MessageUtils.class);
 
     
-    /**
-	 * Removes a patient identifier. 
-	 * 
-	 * @param message
-	 * @param identifierTypes
-	 */
-	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
-		Terser terser = new Terser(message);
-		
-		Segment segment = terser.getSegment("PID");
-		int numberOfRepeitions = segment.getField(3).length;
-		
-		for (int i = 0; i < numberOfRepeitions; i++) {
-			String identifierType = terser.get("/PID-3(" + i + ")-4-1");
-			
-			if (identifierType != null && identifierType.equals(identifier)) {
-				((AbstractSegment)segment).removeRepetition(3, i);
-			}
-		}
-		
-		message.parse(message.toString());
-	}
-	
-	
 	/**
 	 * Returns a patient identifier. 
 	 * 
 	 * @param message
 	 * @param identifierTypes
 	 */
-	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
+	public static String getPatientIdentifierValue(Message message, String identifier, String pidSegmentPath) throws Exception  {
 		Terser terser = new Terser(message);
 		
-		Segment segment = terser.getSegment("PID");
+		Segment segment = terser.getSegment(pidSegmentPath);
 		int numberOfRepeitions = segment.getField(3).length;
 		
 		for (int i = 0; i < numberOfRepeitions; i++) {
-			String identifierType = terser.get("/PID-3(" + i + ")-4-1");
+			String identifierType = terser.get(pidSegmentPath + "-3(" + i + ")-5-1");
 			
 			if (identifierType != null && identifierType.equals(identifier)) {
-				return terser.get("/PID-3(" + i + ")-1-1");
+				return terser.get(pidSegmentPath + "-3(" + i + ")-1-1");
 			}
 		}
 		
 		return "";
+	}
+	
+	
+	public static void removePatientIdentifierField(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		Terser terser = new Terser(message);
+		
+		Segment segment = terser.getSegment(pidSegmentPath);
+		int numberOfRepeitions = segment.getField(3).length;
+		
+		for (int i = 0; i < numberOfRepeitions; i++) {
+			String identifierType = terser.get(pidSegmentPath + "-3(" + i + ")-5-1");
+			
+			if (identifierType != null && identifierType.equals(identifier)) {
+				((AbstractSegment)segment).removeRepetition(3, i);
+			}
+		}
+		
+		message.parse(message.toString());		
+		
+		
 	}
 	
 	

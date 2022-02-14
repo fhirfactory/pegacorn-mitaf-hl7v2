@@ -60,24 +60,50 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Removes a patient identifier.
+	 * Removes a patient identifier from the PID segment.
 	 * 
 	 * @param message
 	 * @param identifier
 	 * @throws Exception
 	 */
 	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
-		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier);
+		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, "PID");
 	}
 	
 	
 	/**
+	 * Gets a patient identifier value from the PID segment
+	 * 
 	 * @param message
 	 * @param identifier
 	 * @throws Exception
 	 */
 	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
-		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier);
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, "PID");
+	}
+	
+	
+	/**
+	 * Removes a patient identifier from the PID segment.  The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removePatientIdentifierField(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, pidSegmentPath);
+	}
+	
+	
+	/**
+	 * Gets a patient identifier from the PID segment. The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static String getPatientIdentifierValue(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, pidSegmentPath);
 	}
 	
 	
