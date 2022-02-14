@@ -880,4 +880,18 @@ public class HL7MessageUtils {
 	public static void changeMessageVersion(Message message, String newVersion) throws Exception {
 		HL7TerserBasedUtils.set(message, "MSH-12", newVersion);
 	}
+
+	
+	/**
+	 * Returns the number of repetitions of a field within a segment.
+	 * 
+	 * @param message
+	 * @param segmentPathSpec
+	 * @param fieldIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static int getNumberOfRepetitions(Message message, String segmentPathSpec, int fieldIndex) throws Exception {
+		return HL7TerserBasedUtils.getNumberOfRepetitions(message, segmentPathSpec, fieldIndex);
+	}
 }

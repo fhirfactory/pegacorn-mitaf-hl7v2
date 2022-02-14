@@ -117,6 +117,21 @@ class HL7TerserBasedUtils {
 	
 	
 	/**
+	 * Returns the number of repetitions of a field.
+	 * 
+	 * @param message
+	 * @param pathSpec
+	 * @return
+	 */
+	public static int getNumberOfRepetitions(Message message, String segmentPathSpec, int fieldIndex) throws Exception {
+		Terser terser = new Terser(message);
+		
+		Segment segment = terser.getSegment(segmentPathSpec);
+		return segment.getField(fieldIndex).length;
+	}
+	
+	
+	/**
 	 * is the message of the supplied type.  The messageType can contain a wildcard eg. ADT_* for all ADT messages or no wildcard eg. ADT_A60.
 	 * 
 	 * @param message
