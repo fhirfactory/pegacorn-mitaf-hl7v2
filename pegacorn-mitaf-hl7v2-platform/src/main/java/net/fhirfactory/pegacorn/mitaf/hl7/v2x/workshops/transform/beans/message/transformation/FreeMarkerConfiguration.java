@@ -21,8 +21,10 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 
 /**
  * @author Brendan Douglas
@@ -56,7 +58,8 @@ public class FreeMarkerConfiguration {
 	 * @throws IOException
 	 */
 	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException {
-            configure(null, message, exchange);
+		PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+		configure(fulfillmentTask.getTaskWorkItem(), message, exchange);
 	}
 
         /**
