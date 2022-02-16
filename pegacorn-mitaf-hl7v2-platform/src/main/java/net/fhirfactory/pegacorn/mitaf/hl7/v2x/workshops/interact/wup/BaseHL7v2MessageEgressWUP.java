@@ -62,7 +62,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	private HL7V2XTopicFactory hl7v2xTopicIDBuilder;
 
 	@Inject
-	private HL7v2MessageExtractor messageExtractor;
+	private HL7v2xMessageExtractor messageExtractor;
 
 	@Inject
 	private MLLPActivityAnswerCollector answerCollector;

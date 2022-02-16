@@ -22,30 +22,34 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
 import java.io.File;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRCommunicationToUoW;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
-import javax.inject.Inject;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 
-/**
- * Base class for all Mitaf WUPs to transform HL7 v2 messages to a FHIR Communication resource.
- *
- * @author Brendan Douglas
- *
- */
-public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardWUP {
-
+public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends MOAStandardWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseHL7v2xMessageToFHIRCommunicationWUP.class);
+    
     private String WUP_VERSION = "1.0.0";
 
     @Inject
@@ -125,6 +129,22 @@ public abstract class BaseHL7V2Message2FHIRCommunicationWUP extends MOAStandardW
 
     protected String specifyParticipantDisplayName() {
         return ("InboundHL7MessageTransformationEngine");
+    }
+    
+    
+    @Override
+    protected Logger specifyLogger() {
+        return (LOG);
+    }
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (getClass().getSimpleName());
+    }
+
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
     }
 
 }

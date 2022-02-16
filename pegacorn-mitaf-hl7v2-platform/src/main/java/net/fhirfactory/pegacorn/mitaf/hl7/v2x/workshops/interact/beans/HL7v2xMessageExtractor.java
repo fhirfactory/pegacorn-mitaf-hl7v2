@@ -19,30 +19,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v24.transform.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup.BaseHL7V2Message2FHIRCommunicationWUP;
+import javax.enterprise.context.Dependent;
+
+import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class HL7v24MessageToFHIRCommunicationWUP extends BaseHL7V2Message2FHIRCommunicationWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(FHIRCommunicationToHL7v24MessageWUP.class);
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 
-    private static String WUP_VERSION="1.0.0";
+@Dependent
+public class HL7v2xMessageExtractor {
+	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
-    @Override
-    protected Logger specifyLogger() {
-        return (LOG);
+
+
+
+	//
+	// Constructor(s)
+	//
+
+	public HL7v2xMessageExtractor(){
+	}
+
+	//
+	// Getters (and Setters)
+	//
+
+    protected Logger getLogger(){
+        return(LOG);
     }
 
-    @Override
-    protected String specifyWUPInstanceName() {
-        return (getClass().getSimpleName());
-    }
 
-    @Override
-    protected String specifyWUPInstanceVersion() {
-        return (WUP_VERSION);
-    }
 
+    //
+	// Business Methods
+	//
+
+	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
+		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+
+		String messageAsString = incomingUoW.getIngresContent().getPayload();
+
+		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
+		getLogger().info("OutgoingMessage->{}", messageAsString);
+		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
+
+		getLogger().debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+		return (messageAsString);
+	}
 }

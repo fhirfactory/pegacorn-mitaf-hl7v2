@@ -19,11 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v231.interact.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
-
-public abstract class HL7v231MessageEgressWUP extends BaseHL7v2MessageEgressWUP {
+public abstract class BaseHL7v2xMessageEgressWUP extends BaseHL7v2MessageEgressWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
@@ -37,7 +35,4 @@ public abstract class HL7v231MessageEgressWUP extends BaseHL7v2MessageEgressWUP 
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
     }
-
-
-
 }

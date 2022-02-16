@@ -23,7 +23,10 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.common;
 
 import java.util.Date;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -34,18 +37,14 @@ import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 
+@ApplicationScoped
+public class HL7v2xMessageInformationExtractor implements HL7v2xInformationExtractionInterface {
 
-public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformationExtractionInterface {
-
-    protected Logger getLogger(){
-        return(specifyLogger());
-    }
-
-    abstract protected Logger specifyLogger();
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageInformationExtractor.class);
 
     private HapiContext hapiContext;
 
-    public HL7v2MessageInformationExtractor(){
+    public HL7v2xMessageInformationExtractor(){
         hapiContext = new DefaultHapiContext();
     }
 
@@ -57,12 +56,12 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
     public String extractMessageID(Message message) {
     	Terser terser = new Terser(message);
     	
-        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", message);
+        LOG.debug(".extractMessageID(): Entry, messageAsText->{}", message);
         if(message != null) {
             try {
             	return terser.get("MSH-10");
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageID(): Cannot extract MessageControlID, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -72,7 +71,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageID(String messageAsText) {
-        getLogger().debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageID(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageID = extractMessageID(message);
         return(messageID);
@@ -80,7 +79,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public Date extractMessageDate(Message message) {
-        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", message);
+        LOG.debug(".extractMessageDate(): Entry, messageAsText->{}", message);
         
     	Terser terser = new Terser(message);
         
@@ -90,7 +89,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             	CommonTS commonTs = new CommonTS(messageDate);
             	return commonTs.getValueAsDate();
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageID(): Cannot extract DateTimeOfMessage, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -100,7 +99,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public Date extractMessageDate(String messageAsText) {
-        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         Date messageDate = extractMessageDate(message);
         return (messageDate);
@@ -108,7 +107,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageVersion(Message message) {
-        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", message);
+        LOG.debug(".extractMessageVersion(): Entry, messageAsText->{}", message);
         
     	Terser terser = new Terser(message);
         
@@ -116,7 +115,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             try {
                 return terser.get("MSH-12-1");
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageVersion(): Cannot extract MessageVersion, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -126,7 +125,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageVersion(String messageAsText) {
-        getLogger().debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageVersion(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageVersion = extractMessageVersion(message);
         return (messageVersion);
@@ -134,7 +133,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageTrigger(Message message) {
-        getLogger().debug(".extractMessageTrigger(): Entry, message->{}", message);
+        LOG.debug(".extractMessageTrigger(): Entry, message->{}", message);
         
     	Terser terser = new Terser(message);
         
@@ -142,7 +141,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             try {
                 return terser.get("MSH-9-2");
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageTrigger(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -152,7 +151,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageTrigger(String messageAsText) {
-        getLogger().debug(".extractMessageTrigger(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageTrigger(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageTrigger = extractMessageTrigger(message);
         return (messageTrigger);
@@ -160,7 +159,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageType(Message message) {
-        getLogger().debug(".extractMessageType(): Entry, message->{}", message);
+        LOG.debug(".extractMessageType(): Entry, message->{}", message);
         
     	Terser terser = new Terser(message);
         
@@ -168,7 +167,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             try {
                 return terser.get("MSH-9-1");
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageType(): Cannot extract Message Trigger Event, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -178,7 +177,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageType(String messageAsText) {
-        getLogger().debug(".extractMessageType(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageType(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageType = extractMessageType(message);
         return (messageType);
@@ -186,7 +185,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageSource(Message message) {
-        getLogger().debug(".extractMessageDate(): Entry, message->{}", message);
+        LOG.debug(".extractMessageDate(): Entry, message->{}", message);
         
     	Terser terser = new Terser(message);
         
@@ -194,7 +193,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             try {
                 return terser.get("MSH-3-2");
             } catch (HL7Exception e) {
-                getLogger().warn(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
+                LOG.warn(".extractMessageID(): Cannot extract SendingApplication, error -> {}", e.getMessage());
                 return (null);
             }
         } else {
@@ -204,7 +203,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
 
     @Override
     public String extractMessageSource(String messageAsText) {
-        getLogger().debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
+        LOG.debug(".extractMessageDate(): Entry, messageAsText->{}", messageAsText);
         Message message = convertToHL7v2Message(messageAsText);
         String messageSource = extractMessageSource(message);
         return (messageSource);
@@ -216,14 +215,14 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
         try {
             messageAsText = message.encode();
         } catch (HL7Exception e) {
-            getLogger().warn(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
+            LOG.warn(".extractMessageID(): Cannot encode Message to String, error -> {}", e.getMessage());
         }
         return(messageAsText);
     }
 
     @Override
     public Message convertToHL7v2Message(String messageText){
-        getLogger().debug(".convertToHL7v2Message(): Entry, messageText->{}", messageText);
+        LOG.debug(".convertToHL7v2Message(): Entry, messageText->{}", messageText);
         Parser parser = hapiContext.getPipeParser();
         parser.getParserConfiguration().setValidating(false);
         parser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
@@ -231,7 +230,7 @@ public abstract class HL7v2MessageInformationExtractor implements HL7v2xInformat
             Message hl7Msg = parser.parse(messageText);
             return(hl7Msg);
         } catch (HL7Exception e) {
-            getLogger().warn(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
+            LOG.warn(".convertToHL7v2Message(): Cannot parse HL7 Message, error -> {}", e.getMessage());
             return(null);
         }
     }

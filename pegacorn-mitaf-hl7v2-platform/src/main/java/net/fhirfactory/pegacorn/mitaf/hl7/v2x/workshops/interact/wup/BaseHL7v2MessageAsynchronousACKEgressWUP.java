@@ -30,7 +30,7 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLP
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2MessageExtractor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAnswerCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPAsynchronousMessageFinaliser;
@@ -64,7 +64,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
 	private HL7V2XTopicFactory hl7v2xTopicIDBuilder;
 
 	@Inject
-	private HL7v2MessageExtractor messageExtractor;
+	private HL7v2xMessageExtractor messageExtractor;
 
 	@Inject
 	private MLLPActivityAnswerCollector answerCollector;

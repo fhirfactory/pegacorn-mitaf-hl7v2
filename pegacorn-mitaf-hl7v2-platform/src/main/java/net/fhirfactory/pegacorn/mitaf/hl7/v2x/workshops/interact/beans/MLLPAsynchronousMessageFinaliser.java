@@ -37,7 +37,7 @@ import org.apache.commons.lang3.SerializationUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2MessageInformationExtractor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,7 @@ public class MLLPAsynchronousMessageFinaliser {
     private ProcessingPlantAsynchronousCacheDM asynchronousACKCacheDM;
 
     @Inject
-    private HL7v2MessageInformationExtractor hL7v2MessageExtractor;
+    private HL7v2xMessageInformationExtractor hL7v2MessageExtractor;
 
     @Inject
     private EgressActivityFinalisationRegistration egressActivityFinalisationRegistration;
