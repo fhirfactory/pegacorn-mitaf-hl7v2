@@ -39,7 +39,6 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormal
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.BaseMessageTransform;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
 @ApplicationScoped
@@ -53,9 +52,6 @@ public class HL7v2xMessageOutOfFHIRCommunication {
     @Inject
     protected FHIRContextUtility fhirContextUtility;
     
-    @Inject
-    protected BaseMessageTransform messageTransform;
-
     @PostConstruct
     public void initialise(){
         fhirResourceParser = fhirContextUtility.getJsonParser().setPrettyPrint(true);

@@ -60,24 +60,50 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Removes a patient identifier.
+	 * Removes a patient identifier from the PID segment.
 	 * 
 	 * @param message
 	 * @param identifier
 	 * @throws Exception
 	 */
 	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
-		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier);
+		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, "PID");
 	}
 	
 	
 	/**
+	 * Gets a patient identifier value from the PID segment
+	 * 
 	 * @param message
 	 * @param identifier
 	 * @throws Exception
 	 */
 	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
-		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier);
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, "PID");
+	}
+	
+	
+	/**
+	 * Removes a patient identifier from the PID segment.  The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removePatientIdentifierField(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, pidSegmentPath);
+	}
+	
+	
+	/**
+	 * Gets a patient identifier from the PID segment. The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static String getPatientIdentifierValue(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, pidSegmentPath);
 	}
 	
 	
@@ -92,6 +118,17 @@ public class HL7MessageUtils {
 		return HL7TerserBasedUtils.getPatientIdentifierCodes(message);
 	}
 	
+	
+	/**
+	 * Removes the patient identifier type code but leave everything else in the identifier field. The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removePatientIdentifierTypeCode(Message message, String identifier, String pidSegmentPath) throws Exception  {
+		HL7TerserBasedUtils.removePatientIdentifierTypeCode(message, identifier, pidSegmentPath);
+	}
 	
 	/**
 	 * Is the message of the supplied type?
@@ -842,5 +879,19 @@ public class HL7MessageUtils {
 	 */
 	public static void changeMessageVersion(Message message, String newVersion) throws Exception {
 		HL7TerserBasedUtils.set(message, "MSH-12", newVersion);
+	}
+
+	
+	/**
+	 * Returns the number of repetitions of a field within a segment.
+	 * 
+	 * @param message
+	 * @param segmentPathSpec
+	 * @param fieldIndex
+	 * @return
+	 * @throws Exception
+	 */
+	public static int getNumberOfRepetitions(Message message, String segmentPathSpec, int fieldIndex) throws Exception {
+		return HL7TerserBasedUtils.getNumberOfRepetitions(message, segmentPathSpec, fieldIndex);
 	}
 }

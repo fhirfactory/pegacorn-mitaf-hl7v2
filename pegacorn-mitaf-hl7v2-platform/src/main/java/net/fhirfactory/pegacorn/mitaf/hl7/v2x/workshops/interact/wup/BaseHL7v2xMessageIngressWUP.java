@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +24,27 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 
+import org.apache.camel.ExchangePattern;
+
 import javax.inject.Inject;
 
-/**
- * Base class for all Mitaf Ingres WUPs.
- * 
- * @author Brendan Douglas
- *
- */
-public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingGatewayWUP {
-
+public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagingGatewayWUP {
+	
 	private static String MLLP_CONFIGURATION_STRING="?acceptTimeout=45000&bindTimeout=20000&maxConcurrentConsumers=30";
 
 	@Inject
@@ -98,4 +101,49 @@ public abstract class BaseHL7v2MessageIngresWUP extends InteractIngresMessagingG
 		manifest.setInterSubsystemDistributable(false);
 		return manifest;
 	}
+
+    private String WUP_VERSION="1.0.0";
+    private String CAMEL_COMPONENT_TYPE="mllp";
+
+    @Inject
+    private MLLPActivityAuditTrail mllpAuditTrail;
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (this.getClass().getSimpleName());
+    }
+
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
+
+    @Override
+    public void configure() throws Exception {
+        getLogger().warn("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
+        getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
+
+        fromInteractIngresService(ingresFeed())
+                .routeId(getNameSet().getRouteCoreWUP())
+                .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
+                .to(ExchangePattern.InOnly, egressFeed());
+    }
+
+    @Override
+    protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
+        getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
+        MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
+        getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
+        int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getServicePortValue();
+        String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+ getMllpConfigurationString());
+        endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
+        endpoint.setFrameworkEnabled(false);
+        getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);
+        return (endpoint);
+    }
+
 }

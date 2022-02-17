@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,22 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.configuration.rule;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import ca.uhn.hl7v2.model.Message;
+public abstract class BaseHL7v2xMessageEgressWUP extends BaseHL7v2MessageEgressWUP {
 
-/**
- * Interface for all rules.  A rule determines if a message updating should be executed.
- * 
- * @author Brendan Douglas
- *
- */
-public class Rule {
-	public boolean executeRule(Message message) {
-		return true;
-	}
-	
-	public boolean executeRule(Message message, int repetition) {
-		return true;
-	}
+    private String WUP_VERSION="1.0.0";
+    private String CAMEL_COMPONENT_TYPE="mllp";
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (this.getClass().getSimpleName());
+    }
+
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
 }

@@ -21,18 +21,19 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
-import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24MessageEncapsulator;
-import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageIngresWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import static org.apache.camel.component.hl7.HL7.ack;
+
 import org.apache.camel.component.hl7.HL7DataFormat;
 import org.apache.camel.spi.DataFormat;
 
-import static org.apache.camel.component.hl7.HL7.ack;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
+import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 
-public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2MessageIngresWUP {
+public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
@@ -61,7 +62,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2Message
                     .when(header("CamelHL7TriggerEvent").contains("A19"))
                         .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
                     .otherwise()
-                        .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                        .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                         .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
                         .to(egressFeed())
                 .end()

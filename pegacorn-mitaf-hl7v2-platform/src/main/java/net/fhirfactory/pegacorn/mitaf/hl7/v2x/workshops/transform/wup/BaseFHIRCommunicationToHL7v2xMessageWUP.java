@@ -21,11 +21,12 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import java.io.File;
-
-import javax.inject.Inject;
+import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
@@ -33,19 +34,29 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 
+import org.hl7.fhir.r4.model.ResourceType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Base class for all Mitaf WUPs to transform FHIR Communication resource to a
- * HL7 v2 message.
- * 
- * @author Brendan Douglas
- *
- */
-public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardWUP {
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-	public BaseFHIRCommunication2HL7V2MessageWUP(){
-		super();
-	}
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+@ApplicationScoped
+public class BaseFHIRCommunicationToHL7v2xMessageWUP extends MOAStandardWUP {
+	
+    private static final Logger LOG = LoggerFactory.getLogger(BaseFHIRCommunicationToHL7v2xMessageWUP.class);
+
+    private String WUP_VERSION="1.0.0";
+
+    @Inject
+    private FHIRElementTopicFactory fhirTopicFactory;
+
+    @Inject
+    private PegacornReferenceProperties referenceProperties;
 
 	@Inject
 	protected HL7V2XTopicFactory hl7v2xTopicIDBuilder;
@@ -66,6 +77,10 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 		return("OutboundHL7MessageTransformationEngine");
 	}
 
+    @Override
+    protected Logger specifyLogger() {
+        return (LOG);
+    }
 
 	@Override
 	public void configure() throws Exception {
@@ -89,4 +104,37 @@ public abstract class BaseFHIRCommunication2HL7V2MessageWUP extends MOAStandardW
 			.bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
 			.to(egressFeed());
 	}
+
+
+    @Override
+    protected List<DataParcelManifest> specifySubscriptionTopics() {
+        List<DataParcelManifest> subscriptionList = new ArrayList<>();
+        DataParcelTypeDescriptor parcelDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
+        DataParcelManifest manifest = new DataParcelManifest();
+        manifest.setContainerDescriptor(parcelDescriptor);
+        manifest.setSourceSystem("*");
+        manifest.setIntendedTargetSystem("*");
+        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
+        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        subscriptionList.add(manifest);
+        return (subscriptionList);
+    }
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (getClass().getSimpleName());
+    }
+
+    @Override
+    protected String specifyWUPInstanceVersion() {
+        return (WUP_VERSION);
+    }
+
+    @Override
+    protected List<DataParcelManifest> declarePublishedTopics() {
+        return (new ArrayList<>());
+    }
 }

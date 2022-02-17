@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
@@ -22,8 +21,10 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 
 /**
  * @author Brendan Douglas
@@ -33,9 +34,6 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 public class FreeMarkerConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(FreeMarkerConfiguration.class);
 	
-	@Inject
-	private BaseMessageTransform messageTransformation;
-
 	
 	/**
 	 * Configure Freemarker
@@ -60,7 +58,8 @@ public class FreeMarkerConfiguration {
 	 * @throws IOException
 	 */
 	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException {
-            configure(null, message, exchange);
+		PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+		configure(fulfillmentTask.getTaskWorkItem(), message, exchange);
 	}
 
         /**
@@ -75,7 +74,6 @@ public class FreeMarkerConfiguration {
             variableMap.put("uoW", uoW);
             variableMap.put("message", message);
             variableMap.put("exchange", exchange);
-            variableMap.put("javaBasedTransformations", messageTransformation);
             // Set sendMessage property in the exchange to default of true, as is the case with most transformations, which require to be sent.
             exchange.setProperty("sendMessage", true);
             exchange.getIn().setHeader(FreemarkerConstants.FREEMARKER_DATA_MODEL, variableMap);

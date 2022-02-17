@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
-import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24MessageEncapsulator;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPAsynchronousMessageACKCollector;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageAsynchronousACKIngresWUP;
@@ -60,7 +60,7 @@ public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2Me
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(HL7v24MessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .choice()
                     .when(header("CamelMllpEventType").isEqualTo("ACK"))
                         .bean(mllpAsynchronousMessageACKCollector, "extractAndSaveACKMessage(*, Exchange)")
