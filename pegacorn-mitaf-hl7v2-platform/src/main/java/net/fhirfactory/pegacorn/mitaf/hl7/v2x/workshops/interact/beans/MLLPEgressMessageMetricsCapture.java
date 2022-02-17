@@ -62,7 +62,7 @@ public class MLLPEgressMessageMetricsCapture {
     //
 
     public MLLPEgressMessageMetricsCapture(){
-        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
+        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
     }
 
     //
@@ -101,8 +101,6 @@ public class MLLPEgressMessageMetricsCapture {
         endpointMetricsAgent.touchLastActivityInstant();
         endpointMetricsAgent.incrementEgressSendAttemptCount();
 
-        //
-        // Notifications
         boolean isHL7v2Message = hl7v2xTaskMetadataExtractor.isHL7V2Payload(uow.getIngresContent());
         if(isHL7v2Message){
             String messageHeaderSegment = hl7v2xTaskMetadataExtractor.getMSH(uow.getIngresContent().getPayload());
@@ -118,26 +116,17 @@ public class MLLPEgressMessageMetricsCapture {
         getLogger().debug(".sendACKNotification(): Entry");
 
         String target = getConnectedSystemName(endpointMetricsAgent);
-        String endpointDescription = getEndpointDescription(endpointMetricsAgent);
+        String endpointDisplayName = getEndpointDisplayName(endpointMetricsAgent);
 
         StringBuilder formattedMessageBuilder = new StringBuilder();
 
-        formattedMessageBuilder.append("<table style='width:100%'>");
+        formattedMessageBuilder.append("<table>");
         formattedMessageBuilder.append("<tr>");
-        formattedMessageBuilder.append("<td> Sending Egress Message ");
-        formattedMessageBuilder.append("(" + getTimeFormatter().format(Instant.now()) + ")");
-        formattedMessageBuilder.append("</td>");
+        formattedMessageBuilder.append("<td> To </td>");
+        formattedMessageBuilder.append("<td>" + target + " via " + endpointDisplayName + " (" + getTimeFormatter().format(Instant.now()) + ") </td>");
         formattedMessageBuilder.append("</tr>");
         formattedMessageBuilder.append("<tr>");
-        formattedMessageBuilder.append("<td>");
-        formattedMessageBuilder.append("To: ");
-        formattedMessageBuilder.append(target);
-        formattedMessageBuilder.append(" via ");
-        formattedMessageBuilder.append(endpointDescription);
-        formattedMessageBuilder.append("</td>");
-        formattedMessageBuilder.append("</tr>");
-        formattedMessageBuilder.append("<tr>");
-        formattedMessageBuilder.append("<td>");
+        formattedMessageBuilder.append("<td>Metadata</td><td>");
         formattedMessageBuilder.append(msh + "\n" + pid);
         formattedMessageBuilder.append("</td>");
         formattedMessageBuilder.append("</tr>");
@@ -151,7 +140,7 @@ public class MLLPEgressMessageMetricsCapture {
         unformattedMessageBuilder.append("To: ");
         unformattedMessageBuilder.append(target);
         unformattedMessageBuilder.append(" via ");
-        unformattedMessageBuilder.append(endpointDescription + "\n");
+        unformattedMessageBuilder.append(endpointDisplayName + "\n");
         formattedMessageBuilder.append(msh + "\n" + pid + "\n");
         String unformattedMessage = unformattedMessageBuilder.toString();
 
@@ -171,18 +160,18 @@ public class MLLPEgressMessageMetricsCapture {
         if(uow.getProcessingOutcome().equals(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS)){
             //
             // Do some Procesing Plant Metrics
-            getProcessingPlantMetricsAgent().incrementEgressMessageCount();
+            getProcessingPlantMetricsAgent().incrementEgressMessageSuccessCount();
             getProcessingPlantMetricsAgent().touchLastActivityInstant();
 
             //
             // Do some WUP Metrics
             metricsAgent.touchLastActivityInstant();
-            metricsAgent.incrementEgressMessageCount();
+            metricsAgent.incrementEgressMessageAttemptCount();
 
             //
             // Do some Endpoint Metrics
             endpointMetricsAgent.touchLastActivityInstant();
-            endpointMetricsAgent.incrementEgressMessageCount();
+            endpointMetricsAgent.incrementEgressMessageSuccessCount();
         }
 
         //
@@ -199,6 +188,7 @@ public class MLLPEgressMessageMetricsCapture {
             }
             case UOW_OUTCOME_FAILED:
                 sendACKNotification(false, uow.getFailureDescription(), endpointMetricsAgent);
+                metricsAgent.incrementEgressMessageFailureCount();
                 break;
             case UOW_OUTCOME_INCOMPLETE:
                 break;
@@ -220,27 +210,19 @@ public class MLLPEgressMessageMetricsCapture {
         getLogger().debug(".sendACKNotification(): Entry, success->{}, acknowledgementPayload->{}", success, acknowledgementPayload);
 
         String target = getConnectedSystemName(endpointMetricsAgent);
-        String endpointDescription = getEndpointDescription(endpointMetricsAgent);
+        String endpointDescription = getEndpointDisplayName(endpointMetricsAgent);
 
         StringBuilder formattedMessageBuilder = new StringBuilder();
 
-        formattedMessageBuilder.append("<table style='width:100%'>");
+        formattedMessageBuilder.append("<table>");
         formattedMessageBuilder.append("<tr>");
-        formattedMessageBuilder.append("<td> Egress Message");
+        formattedMessageBuilder.append("<td> Outcome </td><td>");
         if(success) {
             formattedMessageBuilder.append(" Acknowledgement ");
         } else {
-            formattedMessageBuilder.append(" ERROR ");
+            formattedMessageBuilder.append("<font color=red> ERROR </font>");
         }
-        formattedMessageBuilder.append("(" + getTimeFormatter().format(Instant.now()) + ")");
-        formattedMessageBuilder.append("</td>");
-        formattedMessageBuilder.append("</tr>");
-        formattedMessageBuilder.append("<tr>");
-        formattedMessageBuilder.append("<td>");
-        formattedMessageBuilder.append("From: ");
-        formattedMessageBuilder.append(target);
-        formattedMessageBuilder.append(" via ");
-        formattedMessageBuilder.append(endpointDescription);
+        formattedMessageBuilder.append("  (" + getTimeFormatter().format(Instant.now()) + ")");
         formattedMessageBuilder.append("</td>");
         formattedMessageBuilder.append("</tr>");
         formattedMessageBuilder.append("</table>");
@@ -304,12 +286,14 @@ public class MLLPEgressMessageMetricsCapture {
         getLogger().debug(".captureConnectionException(): Entry, error->{}", error);
         EndpointMetricsAgent endpointMetricsAgent = camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_METRICS_AGENT_EXCHANGE_PROPERTY, EndpointMetricsAgent.class);
 
+        endpointMetricsAgent.incrementEgressMessageFailureCount();
+
         //
         // Notifications
         String target = getConnectedSystemName(endpointMetricsAgent);
-        String endpointDescription = getEndpointDescription(endpointMetricsAgent);
+        String endpointDescription = getEndpointDisplayName(endpointMetricsAgent);
         String unformattedMessage = createUnformattedMessage(target, endpointDescription, error);
-        String formattedMessage = createFormattedMessage(target,endpointDescription, error);
+        String formattedMessage = createFormattedMessage(target, endpointDescription, error);
 
         //
         // Endpoint Notification
@@ -325,14 +309,13 @@ public class MLLPEgressMessageMetricsCapture {
         getLogger().debug(".createFormattedMessage(): Entry, connectedSystemName->{}, endpointDescription->{}, error->{}", connectedSystemName,endpointDescription, error);
         StringBuilder messagageBuilder = new StringBuilder();
 
-        messagageBuilder.append("<b> Egress Message ERROR ("+getTimeFormatter().format(Instant.now())+") </b> \n" );
-        messagageBuilder.append("<table style='width:100%'>");
+        messagageBuilder.append("<table>");
         messagageBuilder.append("<tr>");
-        messagageBuilder.append("<td>"+error+"</td>");
-        messagageBuilder.append("<td>To</td>");
-        messagageBuilder.append("<td>"+connectedSystemName+"</td>");
-        messagageBuilder.append("<td>via</td>");
-        messagageBuilder.append("<td>"+endpointDescription+"</td>");
+        messagageBuilder.append("<td> To </td>");
+        messagageBuilder.append("<td>" + connectedSystemName + " via " + endpointDescription + "  (" + getTimeFormatter().format(Instant.now()) + ") </td>");
+        messagageBuilder.append("</tr>");
+        messagageBuilder.append("<tr>");
+        messagageBuilder.append("<td> Outcome </td><td><font color=red> "+error+"</font></td>");
         messagageBuilder.append("</tr>");
         messagageBuilder.append("</table>");
 
@@ -365,9 +348,9 @@ public class MLLPEgressMessageMetricsCapture {
         }
     }
 
-    protected String getEndpointDescription(EndpointMetricsAgent metricsAgent){
-        if(StringUtils.isNotEmpty(metricsAgent.getEndpointDescription())){
-            return(metricsAgent.getEndpointDescription());
+    protected String getEndpointDisplayName(EndpointMetricsAgent metricsAgent){
+        if(StringUtils.isNotEmpty(metricsAgent.getEndpointDisplayName())){
+            return(metricsAgent.getEndpointDisplayName());
         } else {
             return("Not Specified");
         }

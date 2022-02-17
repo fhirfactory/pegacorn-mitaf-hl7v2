@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 
+
 @ApplicationScoped
 public class HL7v231MessageEncapsulator extends HL7v2MessageEncapsulator {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v231MessageEncapsulator.class);

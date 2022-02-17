@@ -36,6 +36,8 @@ import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPe
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
+import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
@@ -142,31 +144,53 @@ public abstract class HL7v2MessageEncapsulator {
             // Add some notifications
             String targetPort = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
             String notificationContent;
+
+
+            String mshSegment = null;
+            String pidSegment = null;
             try{
                 List<Segment> messageHeaders = HL7MessageUtils.getAllSegments(message, "MSH");
                 List<Segment> pidSegments = HL7MessageUtils.getAllSegments(message, "PID");
-                String messageHeaderSegment = messageHeaders.get(0).encode();
-                String pidSegment = "No PID Segment";
+                mshSegment = messageHeaders.get(0).encode();
+                pidSegment = "No PID Segment";
                 if(!pidSegments.isEmpty()) {
                     pidSegment = pidSegments.get(0).encode();
                 }
-                notificationContent = "---" + "\n" +
-                        "*MLLP Receiver*" + "\n" +
-                        "Message Received (" + getTimeFormatter().format(Instant.now()) + ")" + "\n" +
-                        messageHeaderSegment + "\n" +
-                        pidSegment + "\n" +
-                        "---";
             } catch (Exception encodingException) {
-                notificationContent = "Received MLLP Message --> " + messageEventType + "^" + messageTriggerEvent + "(" + messageVersion + "): Timestamp->" + messageTimeStamp;
+                mshSegment = "MSH: unknown";
+                pidSegment = "PID: Unknown";
             }
-            String wupNotificationContent = null;
-            if(StringUtils.isNotEmpty(targetPort)){
-                wupNotificationContent = "Message Received (From-->" + targetPort + ") \n" + notificationContent;
-            } else{
-                wupNotificationContent = notificationContent;
+
+            String portDescription = null;
+            try{
+                WorkUnitProcessorSoftwareComponent workUnitProcessorSoftwareComponent = exchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorSoftwareComponent.class);
+                IPCTopologyEndpoint ingresEndpoint = workUnitProcessorSoftwareComponent.getIngresEndpoint();
+                portDescription = ingresEndpoint.getParticipantDisplayName();
+            } catch(Exception ex){
+                if(StringUtils.isNotEmpty(targetPort)){
+                    portDescription = "ServerPort:" + targetPort;
+                } else{
+                    portDescription = "ServerPort: Unknown";
+                }
             }
-            endpointMetricsAgent.sendITOpsNotification(wupNotificationContent);
-            getProcessingPlantMetricsAgent().sendITOpsNotification(wupNotificationContent);
+
+            notificationContent = "-----------------------------------------------------" + "\n" +
+                    "Ingres: " + portDescription + "(" + getTimeFormatter().format(Instant.now()) + ")" + "\n" +
+                    mshSegment + "\n" +
+                    pidSegment + "\n" +
+                    "---";
+
+            StringBuilder formattedNotificationContent = new StringBuilder();
+            formattedNotificationContent.append("<table>");
+            formattedNotificationContent.append("<tr>");
+            formattedNotificationContent.append("<th> From </th><th>" + portDescription + " ("+ getTimeFormatter().format(Instant.now()) + ") </th");
+            formattedNotificationContent.append("</tr>");
+            formattedNotificationContent.append("<tr>");
+            formattedNotificationContent.append("<td> Metadata </td><td>" + mshSegment + "\n" + pidSegment + "</td>");
+            formattedNotificationContent.append("</tr>");
+            formattedNotificationContent.append("</table>");
+            endpointMetricsAgent.sendITOpsNotification(notificationContent,formattedNotificationContent.toString());
+//            getProcessingPlantMetricsAgent().sendITOpsNotification(wupNotificationContent);
 
             //
             // Now actually process the UoW/Message
