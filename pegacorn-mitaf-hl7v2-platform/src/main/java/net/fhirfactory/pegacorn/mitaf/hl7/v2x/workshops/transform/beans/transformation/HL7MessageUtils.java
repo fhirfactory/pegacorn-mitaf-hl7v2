@@ -115,9 +115,46 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static List<String> getPatientIdentifierCodes(Message message) throws Exception {
-		return HL7TerserBasedUtils.getPatientIdentifierCodes(message);
+		return HL7TerserBasedUtils.getPatientIdentifierCodes(message, "PID");
 	}
+
 	
+	/**
+	 * Removes patient identifiers which do not match the identifier to keep.
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep) throws Exception  {
+		HL7TerserBasedUtils.removeOtherPatientIdentifierFields(message, identifierToKeep, "PID");
+	}
+
+	
+	/**
+	 * Removes patient identifiers which do not match the identifier to keep.  The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep, String pidSegmentPath) throws Exception  {
+		HL7TerserBasedUtils.removeOtherPatientIdentifierFields(message, identifierToKeep, pidSegmentPath);
+	}
+
+	
+	/**
+	 * Returns a list of patient identifiers in the PID segment.  The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
+	 * 
+	 * @param message
+	 * @param pidSegmentPath
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<String> getPatientIdentifierCodes(Message message, String pidSegmentPath) throws Exception {
+		return HL7TerserBasedUtils.getPatientIdentifierCodes(message, pidSegmentPath);
+	}
+
 	
 	/**
 	 * Removes the patient identifier type code but leave everything else in the identifier field. The path to the PID segment needs to be supplied eg. PATIENT_RESULT/PATIENT/PID
@@ -541,7 +578,35 @@ public class HL7MessageUtils {
 	public static String getField(String segment, int fieldIndex) {
 		return HL7StringBasedUtils.getField(segment, fieldIndex);
 	}
+
 	
+	/**
+	 * Gets a repetition of a field from a segment.
+	 * 
+	 * @param message
+	 * @param rowIndex
+	 * @param fieldIndex
+	 * @param repetition
+	 * @return
+	 */
+	public static String getFieldRepetition(String segment, int fieldIndex, int repetition) throws Exception {
+		return HL7StringBasedUtils.getFieldRepetition(segment, fieldIndex, repetition);
+	}
+
+	
+	/**
+	 * Gets a repetition of a field.
+	 * 
+	 * @param message
+	 * @param rowIndex
+	 * @param fieldIndex
+	 * @param repetition
+	 * @return
+	 */
+	public static String getFieldRepetition(Message message, int rowIndex, int fieldIndex, int repetition) throws Exception {
+		return HL7StringBasedUtils.getFieldRepetition(message, rowIndex, fieldIndex, repetition);
+	}
+
 	
 	/**
 	 * Returns a subfield.

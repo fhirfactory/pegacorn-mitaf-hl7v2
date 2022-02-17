@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -768,6 +769,47 @@ class HL7StringBasedUtils {
 		}
 		
 		message.parse(sb.toString());
+	}
+
+	
+	/**
+	 * Returns a repetition of a field from a message.
+	 * 
+	 * @param message
+	 * @param rowIndex
+	 * @param fieldIndex
+	 * @param repetition
+	 * @return
+	 */
+	public static String getFieldRepetition(Message message, int rowIndex, int fieldIndex, int repetition) {
+		String segment = getSegment(message, rowIndex);
+		
+		if (StringUtils.isBlank(segment)) {
+			return null;
+		}
+		
+		return getFieldRepetition(segment, fieldIndex, repetition);	
+	}
+
+	
+	/**
+	 * Returns a repetition of a field from a segment string.
+	 * 
+	 * @param message
+	 * @param fieldIndex
+	 * @param repetition - starts at 1
+	 * @return
+	 */
+	public static String getFieldRepetition(String segment, int fieldIndex, int repetition) {
+		String field = getField(segment, fieldIndex);
+		
+		String repetitions[] = field.split("\\~");
+		
+		if (repetition > repetitions.length) {
+			return null;
+		}
+		
+		return repetitions[--repetition];
 	}
 
 	

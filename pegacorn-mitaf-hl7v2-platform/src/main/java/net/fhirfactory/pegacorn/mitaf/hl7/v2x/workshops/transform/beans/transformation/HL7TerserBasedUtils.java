@@ -96,16 +96,16 @@ class HL7TerserBasedUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<String> getPatientIdentifierCodes(Message message) throws Exception {
+	public static List<String> getPatientIdentifierCodes(Message message, String pidSegmentPath) throws Exception {
 		List<String>identifiers = new ArrayList<>();
 		
 		Terser terser = new Terser(message);
 		
-		Segment segment = terser.getSegment("PID");
+		Segment segment = terser.getSegment(pidSegmentPath);
 		int numberOfRepeitions = segment.getField(3).length;
 		
 		for (int i = 0; i < numberOfRepeitions; i++) {
-			String identifier = terser.get("/PID-3(" + i + ")-4-1");
+			String identifier = terser.get(pidSegmentPath + "-3(" + i + ")-5-1");
 			
 			if (identifier != null) {
 				identifiers.add(identifier);
@@ -114,7 +114,26 @@ class HL7TerserBasedUtils {
 		
 		return identifiers;
 	}
+
 	
+	/**
+	 * Removes patient identifier which do not match the idetifier to keep.
+	 * 
+	 * @param message
+	 * @param identifierToKeep
+	 * @param pidSegmentPath
+	 * @throws Exception
+	 */
+	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep, String pidSegmentPath) throws Exception  {
+		List<String>patientIdentifierCodes = getPatientIdentifierCodes(message, pidSegmentPath);
+		
+		for (String patientIdentifierCode : patientIdentifierCodes) {
+			if (!patientIdentifierCode.equals(identifierToKeep)) {
+				removePatientIdentifierField(message, patientIdentifierCode, pidSegmentPath);
+			}
+		}	
+	}
+
 	
 	/**
 	 * Returns the number of repetitions of a field.
@@ -129,7 +148,7 @@ class HL7TerserBasedUtils {
 		Segment segment = terser.getSegment(segmentPathSpec);
 		return segment.getField(fieldIndex).length;
 	}
-	
+
 	
 	/**
 	 * is the message of the supplied type.  The messageType can contain a wildcard eg. ADT_* for all ADT messages or no wildcard eg. ADT_A60.
