@@ -1,11 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -15,12 +11,10 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Segment;
-import ca.uhn.hl7v2.model.Structure;
-import ca.uhn.hl7v2.util.SegmentFinder;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
- * Utilities that parse/query a HL7 document using a HL7 libnary/terser.
+ * Utilities that parse/query a HL7 document using a HL7 library/terser.
  * 
  * @author Brendan Douglas
  *
@@ -325,77 +319,6 @@ class HL7TerserBasedUtils {
 	
 	
 	/**
-	 * Uses a lookup table to change a fields value.
-	 * 
-	 * @param targetPathSpec
-	 * @param lookupTable
-	 * @throws HL7Exception
-	 */
-	public static void lookup(Message message, String targetPathSpec, String lookupTableClassName) throws Exception {	
-		
-		try {
-			Terser terser = new Terser(message);
-			
-			String existingValue = terser.get(targetPathSpec);
-		
-			// Use reflection to instantiate the appropriate lookup table class
-			Class<?> lookupTableClass = Class.forName(lookupTableClassName);
-			Constructor<?> lookupTableConstructor = lookupTableClass.getConstructor();
-			LookupTable lookupTable = (LookupTable) lookupTableConstructor.newInstance();
-			
-			String transformedValue = lookupTable.lookup(existingValue);
-			terser.set(targetPathSpec, transformedValue);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", lookupTableClassName);
-		} 
-	}
-
-	
-	/**
-	 * Calls a Java class to set the target path value.
-	 * 
-	 * @param targetPathSpec
-	 * @param transformationClass
-	 */
-	public static void updateFieldFromCode(Message message, String targetPathSpec, String fieldTransformationClassName) throws Exception {
-		Terser terser = new Terser(message);
-		
-		try {
-			// Use reflection to instantiate the appropriate code transformation class
-			Class<?> fieldTransformationClass = Class.forName(fieldTransformationClassName);
-			Constructor<?> fieldTransformationClassConstructor = fieldTransformationClass.getConstructor();
-			FieldCodeTransformation transformation = (FieldCodeTransformation) fieldTransformationClassConstructor.newInstance();
-			
-			String transformedValue = transformation.execute(message);
-			terser.set(targetPathSpec, transformedValue);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", fieldTransformationClassName);
-		}
-	}
-
-	
-	/**
-	 * Calls a Java class to set the target path value.
-	 * 
-	 * @param targetPathSpec
-	 * @param transformationClass
-	 */
-	public static void updateMessageFromCode(Message message, String transformationClassName) throws Exception {
-		
-		try {
-			// Use reflection to instantiate the appropriate code transformation class
-			Class<?> transformationClass = Class.forName(transformationClassName);
-			Constructor<?> transformationClassConstructor = transformationClass.getConstructor();
-			MessageCodeTransformation transformation = (MessageCodeTransformation) transformationClassConstructor.newInstance();
-			
-			transformation.execute(message);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", transformationClassName);
-		}
-	}
-
-	
-	/**
 	 * Clear a field value.  This clears ALL subfields.
 	 * 
 	 * @param message
@@ -478,183 +401,6 @@ class HL7TerserBasedUtils {
 		} catch(HL7Exception e ) {
 			LOG.warn("Segment to delete does not exist: {}", sourcePathSpec);
 		}
-	}
-	
-	
-	/**
-	 * Removes all segments matching the segment name no matter where they appear in the message.  Please note the segment name is not a path spec.
-	 * 
-	 * @param message
-	 * @param segmentName
-	 * @throws HL7Exception
-	 */
-	public static void removeAllSegments(Message message, String segmentName) throws Exception {	
-		Terser terser = new Terser(message);
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (name.startsWith(segmentName)) {
-
-					for (Structure structure : finder.getCurrentChildReps()) {
-						AbstractSegment segment = (AbstractSegment)structure;
-						segment.clear();
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
-	}
-	
-	
-	/**
-	 * Sets the segments to send.  All other segments are removed.  
-	 * 
-	 * @param message
-	 * @param requiredSegments
-	 */
-	public static void setSegmentsToKeep(Message message, String ... setSegmentsToKeep) throws Exception {	
-		Terser terser = new Terser(message);
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (!doesContainSegment(message, name, setSegmentsToKeep)) {
-					
-					for (Structure structure : finder.getCurrentChildReps()) {
-						AbstractSegment segment = (AbstractSegment)structure;
-						segment.clear();
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}
-		
-		// Update the message object with the changes.
-		message.parse(message.toString());
-	}
-
-	
-	public static void setSegmentsToKeep(Message message, String setSegmentsToKeep) throws Exception {		
-		setSegmentsToKeep(message, setSegmentsToKeep.split(","));
-	}
-	
-
-	/**
-	 * Returns a list of all matching segments.  Please note the segment name is not a path spec.
-	 * 
-	 * @param message
-	 * @param segmentName
-	 * @return
-	 */
-	public static List<Segment>getAllSegments(Message message, String segmentName) throws Exception {
-		Terser terser = new Terser(message);
-		
-		List<Segment>segments = new ArrayList<>();
-		
-		SegmentFinder finder = terser.getFinder();
-		
-		while(true) {
-			try {
-				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
-				
-				if (name.startsWith(segmentName)) {
-					
-					for (Structure structure : finder.getCurrentChildReps()) {
-						segments.add((Segment)structure);
-					}
-				}
-			} catch(HL7Exception e) {
-				break;
-			}
-		}	
-		
-		return segments;
-	}
-
-	
-	private static boolean doesContainSegment(Message message, String segment, String[] requiredSegments) {
-		for (String requiredSegment : requiredSegments) {
-			if (segment.startsWith(requiredSegment)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	
-	/**
-	 * Check if a segment exists.
-	 * 
-	 * @param message
-	 * @param segment
-	 * @return
-	 */
-	public static boolean doesSegmentExist(Message message, String segment) throws Exception {
-		 String regex = segment + "\\|";
-		 Pattern pattern = Pattern.compile(regex);
-		 Matcher matcher = pattern.matcher(message.toString());
-		 
-		 return matcher.find();
-	}
-
-	
-	/**
-	 * Executes an action for each segment which matches the segment name.
-	 * 
-	 * @param segment
-	 * @param action
-	 */
-	public static void forEachSegment(Message message, String segmentName, String actionClassName) throws Exception {
-		try {
-			
-			// Use reflection to instantiate the appropriate segment action class.
-			Class<?> actionClass = Class.forName(actionClassName);
-			Constructor<?> actionClassConstructor = actionClass.getConstructor();
-			SegmentAction segmentAction = (SegmentAction) actionClassConstructor.newInstance();
-			
-			for (Segment segment : getAllSegments(message, segmentName)) {
-				segmentAction.execute(segment);
-			}
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			LOG.info("Unable to construct lookup class: {} ", actionClassName);
-		}	
-	}
-
-	
-	/**
-	 * Executes an action for a single segment.
-	 * 
-	 * @param segment
-	 * @param action
-	 */
-	public static void segmentAction(Message message, String sourcePathSpec, String actionClassName) throws Exception {
-		try {
-			
-			Terser terser = new Terser(message);
-			AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
-			
-			// Use reflection to instantiate the appropriate segment action class.
-			Class<?> actionClass = Class.forName(actionClassName);
-			Constructor<?> actionClassConstructor = actionClass.getConstructor();
-			SegmentAction segmentAction = (SegmentAction) actionClassConstructor.newInstance();
-			
-			segmentAction.execute(segment);
-		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
-			throw new HL7Exception("Unable to construct segment action class", e);
-		}		
 	}
 	
 	
