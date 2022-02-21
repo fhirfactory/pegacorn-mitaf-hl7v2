@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * A single HL7 message segment.
  * 
@@ -188,5 +190,33 @@ public class Segment {
 	 */
 	public boolean isEmpty() {
 		return this.getFields().size() == 1;
+	}
+	
+	
+	/**
+	 * Checks to see if the field is empty.  Either doesn't exist or is blank.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean isFieldEmpty(int fieldIndex) {
+		Field field =  getField(fieldIndex);
+		
+		if (field == null) {
+			return true;
+		}
+		
+		return field.isEmpty();
+	}
+	
+	
+	/**
+	 * Checks to see if the field is exists.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean doesFieldExist(int fieldIndex) {
+		return getField(fieldIndex) != null;
 	}
 }

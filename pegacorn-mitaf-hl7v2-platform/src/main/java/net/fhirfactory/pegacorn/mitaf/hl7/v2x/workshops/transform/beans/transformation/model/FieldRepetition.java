@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * A repetition of a field.
  * 
@@ -186,5 +188,33 @@ public class FieldRepetition {
 		}
 		
 		return true;
+	}
+	
+	
+	/**
+	 * Checks to see if the subfield is empty.  Either doesn't exist or is blank.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean isSubFieldEmpty(int subFieldIndex) {
+		Subfield subfield =  getSubfield(subFieldIndex);
+		
+		if (subfield == null) {
+			return true;
+		}
+		
+		return subfield.isEmpty();
+	}
+	
+	
+	/**
+	 * Checks to see if the sub field exists.
+	 * 
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public boolean doesSubFieldExist(int subFieldIndex) {
+		return getSubfield(subFieldIndex) != null;
 	}
 }
