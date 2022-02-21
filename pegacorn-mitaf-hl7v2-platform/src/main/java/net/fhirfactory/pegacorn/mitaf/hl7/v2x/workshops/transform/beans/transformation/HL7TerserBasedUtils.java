@@ -11,6 +11,8 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.AbstractSegment;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.Segment;
+import ca.uhn.hl7v2.model.Structure;
+import ca.uhn.hl7v2.util.SegmentFinder;
 import ca.uhn.hl7v2.util.Terser;
 
 /**
@@ -451,5 +453,38 @@ class HL7TerserBasedUtils {
 		}
 		
 		terser.set(targetPathSpec, sourceText);
+	}
+	
+	
+	/**
+	 * Returns a list of all matching segments.  Please note the segment name is not a path spec.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 */
+	public static List<Segment>getAllSegments(Message message, String segmentName) throws Exception {
+		Terser terser = new Terser(message);
+		
+		List<Segment>segments = new ArrayList<>();
+		
+		SegmentFinder finder = terser.getFinder();
+		
+		while(true) {
+			try {
+				String name = finder.iterate(true, false); // iterate segments only.  The first true = segments.
+				
+				if (name.startsWith(segmentName)) {
+					
+					for (Structure structure : finder.getCurrentChildReps()) {
+						segments.add((Segment)structure);
+					}
+				}
+			} catch(HL7Exception e) {
+				break;
+			}
+		}	
+		
+		return segments;
 	}
 }

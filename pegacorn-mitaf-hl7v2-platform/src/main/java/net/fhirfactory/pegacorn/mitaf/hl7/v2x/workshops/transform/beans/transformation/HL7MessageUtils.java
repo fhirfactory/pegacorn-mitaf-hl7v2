@@ -820,4 +820,17 @@ public class HL7MessageUtils {
 		
 		HL7Message.refreshSourceHL7Message();
 	}
+	
+	
+	/**
+	 * Returns a list of all matching segments.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<ca.uhn.hl7v2.model.Segment>getAllSegments(Message message, String segmentName) throws Exception {
+		return HL7TerserBasedUtils.getAllSegments(message, segmentName);
+	}
 }
