@@ -565,6 +565,23 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Inserts an empty segment with only the segment name populated.
+	 * 
+	 * @param message
+	 * @param newSegmentName
+	 * @param segmentIndex
+	 */
+	public static void insertSegment(Message message, String newSegmentName, int segmentIndex, int id) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		Segment segment = new Segment(newSegmentName + "|" + id, hl7Message);
+		
+		hl7Message.getSegments().add(segmentIndex, segment);
+		hl7Message.refreshSourceHL7Message();
+	}
+	
+	
+	/**
 	 * Returns the message row index of the first occurence of the supplied segment name.
 	 * 
 	 * @param message

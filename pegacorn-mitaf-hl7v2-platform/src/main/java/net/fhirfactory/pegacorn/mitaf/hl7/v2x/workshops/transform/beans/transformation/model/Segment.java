@@ -219,4 +219,29 @@ public class Segment {
 	public boolean doesFieldExist(int fieldIndex) {
 		return getField(fieldIndex) != null;
 	}
+	
+	
+	/**
+	 * Changes the name of this segment.
+	 * 
+	 * @param newName
+	 * @throws Exception
+	 */
+	public void changeName(String newName) throws Exception {
+		this.getField(0).setValue(newName);
+		
+		this.getMessage().refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Clears the segment
+	 */
+	public void clear() throws Exception {
+		for (Field field : getFields()) {
+			field.clear();
+		}
+		
+		this.getMessage().refreshSourceHL7Message();
+	}
 }

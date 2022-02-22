@@ -337,4 +337,66 @@ public class Field {
 		
 		return true;
 	}
+	
+	
+	/**
+	 * Checks to see if the sub field is empty.  Either doesn't exist or is blank.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean isSubFieldEmpty(int subFieldIndex) {
+		return isSubFieldEmpty(0, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Checks to see if the sub field is exists.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean doesSubFieldExist(int subFieldIndex) {
+		return doesSubFieldExist(0, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Checks to see if the sub field at the specified repetition is empty.  Either doesn't exist or is blank.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean isSubFieldEmpty(int repetition, int subFieldIndex) {
+		FieldRepetition fieldRepetition = getRepetition(repetition);
+		
+		if (fieldRepetition == null) {
+			return true;
+		}
+		
+		Subfield subField = fieldRepetition.getSubfield(subFieldIndex);
+		
+		if (subField == null) {
+			return true;
+		}
+		
+		return subField.isEmpty();
+	}
+	
+	
+	/**
+	 * Checks to see if the sub field at the specified repetition exists.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean doesSubFieldExist(int repetition, int subFieldIndex) {
+		FieldRepetition fieldRepetition = getRepetition(repetition);
+		
+		if (fieldRepetition == null) {
+			return true;
+		}
+		
+		return fieldRepetition.getSubfield(subFieldIndex) != null;
+	}
 }
