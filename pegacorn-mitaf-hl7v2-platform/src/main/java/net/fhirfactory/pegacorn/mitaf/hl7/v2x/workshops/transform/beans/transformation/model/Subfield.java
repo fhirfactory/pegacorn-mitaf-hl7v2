@@ -1,5 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -8,7 +10,9 @@ import org.apache.commons.lang3.StringUtils;
  * @author Bendan_Douglas
  *
  */
-public class Subfield {
+public class Subfield implements Serializable {
+	private static final long serialVersionUID = -8174677055244513493L;
+
 	private String value;
 	
 	private FieldRepetition fieldRepetition = null;

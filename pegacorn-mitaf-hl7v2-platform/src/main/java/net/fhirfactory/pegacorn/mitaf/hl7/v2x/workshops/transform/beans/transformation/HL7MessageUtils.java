@@ -573,11 +573,7 @@ public class HL7MessageUtils {
 	 */
 	public static void insertSegment(Message message, String newSegmentName, int segmentIndex, int id) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
-		
-		Segment segment = new Segment(newSegmentName + "|" + id, hl7Message);
-		
-		hl7Message.getSegments().add(segmentIndex, segment);
-		hl7Message.refreshSourceHL7Message();
+		hl7Message.insertSegment(newSegmentName, segmentIndex, id);
 	}
 	
 	
@@ -714,8 +710,6 @@ public class HL7MessageUtils {
 	public static void removeSegment(Message message, int rowIndex) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
 		hl7Message.removeSegment(rowIndex);
-		
-		hl7Message.refreshSourceHL7Message();
 	}
 
 	
@@ -729,8 +723,7 @@ public class HL7MessageUtils {
 	 */
 	public static void removeSegment(Message message, String segmentName, int occurence) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
-		hl7Message.removeSegment(segmentName, occurence);
-		hl7Message.refreshSourceHL7Message();		
+		hl7Message.removeSegment(segmentName, occurence);	
 	}
 
 	
@@ -745,8 +738,6 @@ public class HL7MessageUtils {
 		if (segmentName.length() == 3) {
 			HL7Message hl7Message = new HL7Message(message);
 			hl7Message.removeAllMatchingSegments(segmentName);
-			
-			hl7Message.refreshSourceHL7Message();
 		} else {
 			HL7TerserBasedUtils.removeSegment(message, segmentName);	
 		}
@@ -802,7 +793,7 @@ public class HL7MessageUtils {
     	
     	// Now for each of the new messages remove all except one of the matching segments.
     	for (Message newMessage : newMessages) {
-  		HL7Message hl7Message = new HL7Message(newMessage);
+    		HL7Message hl7Message = new HL7Message(newMessage);
     		
     		int indexOfSegmentToKeep = hl7Message.getSegmentIndex(segmentType, occurenceToKeep);
     		    		
@@ -832,10 +823,22 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static void copySegment(Message message, int sourceIndex, int targetIndex) throws Exception {
-		HL7Message HL7Message = new HL7Message(message);
-		HL7Message.copySegment(sourceIndex, targetIndex);
-		
-		HL7Message.refreshSourceHL7Message();
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.copySegment(sourceIndex, targetIndex);
+	}
+	
+	
+	/**
+	 * Moves a segment from one position to another.
+	 * 
+	 * @param message
+	 * @param currentIndex
+	 * @param newIndex
+	 * @throws Exception
+	 */
+	public static void moveSegment(Message message, int currentIndex, int newIndex) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.moveSegment(currentIndex, newIndex);
 	}
 	
 	

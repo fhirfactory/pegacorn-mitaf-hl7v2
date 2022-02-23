@@ -1,5 +1,6 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,7 +13,9 @@ import org.apache.commons.lang3.StringUtils;
  * @author Brendan Douglas
  *
  */
-public class Segment {
+public class Segment implements Serializable {
+	private static final long serialVersionUID = -8797054428191615724L;
+	
 	private List<Field>fields = new ArrayList<Field>();
 	private HL7Message message = null;
 	

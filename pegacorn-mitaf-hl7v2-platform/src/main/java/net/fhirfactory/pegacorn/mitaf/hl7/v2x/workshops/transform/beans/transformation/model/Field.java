@@ -1,5 +1,6 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +11,9 @@ import java.util.stream.Collectors;
  * @author Brendan Douglas
  *
  */
-public class Field {
+public class Field implements Serializable {
+	private static final long serialVersionUID = 3815655672813186758L;
+
 	private List<FieldRepetition> repetitions = new ArrayList<>();
 	
 	private Segment segment = null;

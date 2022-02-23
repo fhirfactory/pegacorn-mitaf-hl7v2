@@ -1,9 +1,12 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.SerializationUtils;
 
 import ca.uhn.hl7v2.model.Message;
 
@@ -14,7 +17,9 @@ import ca.uhn.hl7v2.model.Message;
  * @author Brendan Douglas
  *
  */
-public class HL7Message  {
+public class HL7Message implements Serializable   {
+	private static final long serialVersionUID = -2986106720527032903L;
+
 	private List<Segment>segments = new ArrayList<Segment>();
 	
 	private Message sourceHL7Message = null;
@@ -233,8 +238,69 @@ public class HL7Message  {
 		
 		Segment sourceSegment = getSegments().get(sourceIndex);
 	
-		getSegments().set(targetIndex, sourceSegment);
+		getSegments().set(targetIndex, SerializationUtils.clone(sourceSegment));
 		
 		refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Moves a segment from one location to another.  If the newIndex is not in range then the segment is appended to the end.
+	 * 
+	 * @param message
+	 * @param currentIndex
+	 * @param newIndex
+	 * @throws Exception
+	 */
+	public void moveSegment(int currentIndex, int newIndex) throws Exception {	
+		if (currentIndex >= getSegments().size()) {
+			return;
+		}
+		
+		boolean append = false;
+		
+		if (newIndex >= getSegments().size()) {
+			append = true;
+		}
+		
+		Segment sourceSegment = getSegments().get(currentIndex);
+		
+		if (append) {
+			getSegments().add(SerializationUtils.clone(sourceSegment));
+		} else {
+			getSegments().add(newIndex, SerializationUtils.clone(sourceSegment));
+		}
+			
+		getSegments().remove(sourceSegment);
+		
+		refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Insert a segment.
+	 * 
+	 * @param message
+	 * @param newSegmentName
+	 * @param segmentIndex
+	 * @param id
+	 * @throws Exception
+	 */
+	public void insertSegment(String newSegmentName, int segmentIndex, int id) throws Exception {	
+		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		
+		getSegments().add(segmentIndex, segment);
+		refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Returns the {@link HL7Message} so the messages can be used directly instead of going through this utility class.
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public HL7Message getHL7Message(Message message) {
+		return new HL7Message(message);
 	}
 }
