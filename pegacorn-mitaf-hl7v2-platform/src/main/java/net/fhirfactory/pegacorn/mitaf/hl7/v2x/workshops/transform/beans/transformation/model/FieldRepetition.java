@@ -30,8 +30,8 @@ public class FieldRepetition implements Serializable  {
 		}
 				
 		for (String value : splitSubFieldRepetitions) {
-			Subfield subfield = new Subfield(value, this);
-			subFields.add(subfield);
+			Subfield subField = new Subfield(value, this);
+			subFields.add(subField);
 		}				
 	}
 
@@ -57,12 +57,29 @@ public class FieldRepetition implements Serializable  {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubfield(int subFieldIndex) {
+	public Subfield getSubField(int subFieldIndex) {
 		if (subFieldIndex > subFields.size()) {
 			return null;
 		}
 		
 		return subFields.get(--subFieldIndex);
+	}
+	
+	
+	/**
+	 * Gets a subfield value as a string.  If the subfield does not exist an empty string is returned.
+	 * 
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public String getSubFieldValue(int subFieldIndex) {
+		Subfield subField = getSubField(subFieldIndex);
+		
+		if (subField == null) {
+			return "";
+		}
+		
+		return subField.value();
 	}
 	
 	
@@ -94,7 +111,7 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void clearSubField(int subFieldIndex) throws Exception {	
-		Subfield subField = getSubfield(subFieldIndex);
+		Subfield subField = getSubField(subFieldIndex);
 		
 		if (subField == null) {
 			return;
@@ -129,13 +146,13 @@ public class FieldRepetition implements Serializable  {
 
 	
 	/**
-	 * Sets the first subfield
+	 * Sets the first subField
 	 * 
 	 * @param value
 	 * @throws Exception
 	 */
 	public void setValue(String value) throws Exception {
-		Subfield subField = getSubfield(1);
+		Subfield subField = getSubField(1);
 		
 		if (subField == null) {
 			return;
@@ -154,7 +171,7 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void setValue(String value, int subFieldIndex) throws Exception {
-		Subfield subField = getSubfield(subFieldIndex);
+		Subfield subField = getSubField(subFieldIndex);
 		
 		if (subField == null) {
 			addSubField(value, subFieldIndex);
@@ -193,19 +210,19 @@ public class FieldRepetition implements Serializable  {
 	
 	
 	/**
-	 * Checks to see if the subfield is empty.  Either doesn't exist or is blank.
+	 * Checks to see if the subField is empty.  Either doesn't exist or is blank.
 	 * 
 	 * @param fieldIndex
 	 * @return
 	 */
 	public boolean isSubFieldEmpty(int subFieldIndex) {
-		Subfield subfield =  getSubfield(subFieldIndex);
+		Subfield subField =  getSubField(subFieldIndex);
 		
-		if (subfield == null) {
+		if (subField == null) {
 			return true;
 		}
 		
-		return subfield.isEmpty();
+		return subField.isEmpty();
 	}
 	
 	
@@ -216,6 +233,6 @@ public class FieldRepetition implements Serializable  {
 	 * @return
 	 */
 	public boolean doesSubFieldExist(int subFieldIndex) {
-		return getSubfield(subFieldIndex) != null;
+		return getSubField(subFieldIndex) != null;
 	}
 }

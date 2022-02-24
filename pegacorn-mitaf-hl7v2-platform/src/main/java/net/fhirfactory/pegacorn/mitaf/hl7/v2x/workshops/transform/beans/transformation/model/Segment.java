@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * A single HL7 message segment.
  * 
@@ -16,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Segment implements Serializable {
 	private static final long serialVersionUID = -8797054428191615724L;
 	
-	private List<Field>fields = new ArrayList<Field>();
+    private List<Field>fields = new ArrayList<Field>();
 	private HL7Message message = null;
 	
 	public Segment(String segment, HL7Message message) {
@@ -246,5 +244,40 @@ public class Segment implements Serializable {
 		}
 		
 		this.getMessage().refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Returns the field value as a string.  If the field does not exist an empty string is returned.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @return
+	 */
+	public String getFieldValue(int fieldIndex, int repetition) {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return "";
+		}
+		
+		FieldRepetition fieldRepetition = field.getRepetition(repetition);
+		
+		if (fieldRepetition == null) {
+			return "";
+		}
+		
+		return fieldRepetition.value();
+	}
+	
+	
+	/**
+	 * Returns the field value as a string. Repetition 0.  If the field does not exist an empty string is returned.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public String getFieldValue(int fieldIndex) {
+		return getFieldValue(fieldIndex, 0);
 	}
 }

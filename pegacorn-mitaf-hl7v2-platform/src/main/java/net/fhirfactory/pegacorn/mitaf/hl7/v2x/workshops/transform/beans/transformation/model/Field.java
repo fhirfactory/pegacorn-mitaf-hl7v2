@@ -65,6 +65,23 @@ public class Field implements Serializable {
 		
 		return repetitions.get(repetition);
 	}
+	
+	
+	/**
+	 * Returns the value of a repetition of this field.  If the repetition does not exist the returned value is an empty string.
+	 * 
+	 * @param repetition
+	 * @return
+	 */
+	public String getRepetitionValue(int repetition) {
+		FieldRepetition fieldRepetition = getRepetition(repetition);
+		
+		if (fieldRepetition == null) {
+			return "";
+		}
+		
+		return fieldRepetition.value();
+	}
 
 	
 	/**
@@ -208,19 +225,60 @@ public class Field implements Serializable {
 	
 	
 	/**
-	 * Gets a subfield from this field.
+	 * Gets a subfield from this field.  Repetition 0.
 	 * 
 	 * @param subFieldIndex
 	 * @return
 	 */
 	public Subfield getSubField(int subFieldIndex) {
+		return getSubField(0, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Gets a subfield value as a string. Repetition 0. If the subfield does not exist then an empty string is returned.
+	 * 
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public String getSubFieldValue(int subFieldIndex) {
+		return getSubFieldValue(0, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Gets a subfield from this field.
+	 * 
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public Subfield getSubField(int repetition, int subFieldIndex) {
 		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
 			return null;
 		}
 		
-		Subfield subField = getRepetitions().get(0).getSubfield(subFieldIndex);
+		return getRepetitions().get(0).getSubField(subFieldIndex);
+	}
+	
+	
+	/**
+	 * Gets a subfield value as a string.  If the subfield does not exist then an empty string is returned.
+	 * 
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public String getSubFieldValue(int repetition, int subFieldIndex) {
+		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
+			return "";
+		}
 		
-		return subField;
+		Subfield subField = getRepetitions().get(0).getSubField(subFieldIndex);
+		
+		if (subField == null) {
+			return "";
+		}
+		
+		return subField.value();			
 	}
 	
 	
@@ -377,7 +435,7 @@ public class Field implements Serializable {
 			return true;
 		}
 		
-		Subfield subField = fieldRepetition.getSubfield(subFieldIndex);
+		Subfield subField = fieldRepetition.getSubField(subFieldIndex);
 		
 		if (subField == null) {
 			return true;
@@ -400,6 +458,6 @@ public class Field implements Serializable {
 			return true;
 		}
 		
-		return fieldRepetition.getSubfield(subFieldIndex) != null;
+		return fieldRepetition.getSubField(subFieldIndex) != null;
 	}
 }
