@@ -87,7 +87,7 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
         DataParcelManifest communicationEvents = new DataParcelManifest();
         DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
         communicationEvents.setContainerDescriptor(fhirCommunicationDescriptor);
-        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_SUBSYSTEM_IPC_DATA_PARCEL);
         communicationEvents.setSourceSystem("*");
         communicationEvents.setIntendedTargetSystem("*");
         communicationEvents.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
