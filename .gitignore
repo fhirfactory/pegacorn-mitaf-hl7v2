@@ -34,3 +34,4 @@ build/
 
 *.output
 .factorypath
+/pegacorn-mitaf-hl7v2-platform/nbproject/

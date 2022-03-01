@@ -55,7 +55,7 @@ public class ProcessingPlantAsynchronousCacheDM {
         return asynchronousACKCache.get(messageControlId);
     }
 
-    @Transactional
+     @Transactional
     public void removeAckMessage(String messageControlId) {
         LOG.debug(".removeAckMessage(): Entry, messageControlId --> {}", messageControlId);
 
