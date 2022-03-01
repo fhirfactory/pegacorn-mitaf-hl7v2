@@ -28,6 +28,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipan
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.ResourceType;
 
 import java.util.HashSet;
@@ -78,6 +79,10 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 manifest.setSourceSystem(currentSource);
                 manifest.setSourceProcessingPlantParticipantName(currentSimpleSubscription.getSourceSubsystemParticipantName());
                 manifestList.add(manifest);
+
+                TaskWorkItemManifestType workflowManifest = SerializationUtils.clone(manifest);
+                workflowManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_WORKFLOW_OUTPUT);
+                manifestList.add(workflowManifest);
             }
         }
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
