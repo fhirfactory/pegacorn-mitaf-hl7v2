@@ -37,7 +37,6 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPAsync
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
 import org.apache.camel.model.OnExceptionDefinition;
@@ -45,112 +44,161 @@ import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPEgressMessageMetricsCapture;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPExceptionToUoW;
+import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 
 /**
  * Base class for all Mitaf Egress WUPs.
- * 
+ *
  * @author Brendan Douglas
  * @author Mark Hunter
  *
  */
 public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractEgressMessagingGatewayWUP {
 
-	private String CAMEL_COMPONENT_TYPE="mllp";
+    private String CAMEL_COMPONENT_TYPE = "mllp";
 
-	@Inject
-	private InteractWorkshop interactWorkshop;
+    @Inject
+    private InteractWorkshop interactWorkshop;
 
-	@Inject
-	private HL7V2XTopicFactory hl7v2xTopicIDBuilder;
+    @Inject
+    private HL7V2XTopicFactory hl7v2xTopicIDBuilder;
 
-	@Inject
-	private HL7v2xMessageExtractor messageExtractor;
+    @Inject
+    private HL7v2xMessageExtractor messageExtractor;
 
-	@Inject
-	private MLLPActivityAnswerCollector answerCollector;
+    @Inject
+    private MLLPActivityAnswerCollector answerCollector;
 
-	@Inject
-	private MLLPActivityAuditTrail mllpAuditTrail;
+    @Inject
+    private MLLPActivityAuditTrail mllpAuditTrail;
 
-        @Inject
-	private MLLPAsynchronousMessageFinaliser mLLPAsynchronousMessageFinisher;
-        
-	@Override
-	protected WorkshopInterface specifyWorkshop() {
-		return (interactWorkshop);
-	}
+    @Inject
+    private MLLPEgressMessageMetricsCapture metricsCapture;
 
-	@Override
-	public void configure() throws Exception {
-		getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
-		getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
+    @Inject
+    private MLLPExceptionToUoW exceptionToUoW;
 
-		getMLLPAckException();
-		getMLLPConnectionException();
+    @Inject
+    private MLLPAsynchronousMessageFinaliser mLLPAsynchronousMessageFinisher;
 
-		fromIncludingEgressEndpointDetails(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
-				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
-				.bean(messageExtractor, "convertToMessage(*, Exchange)")                                
-				.to(ExchangePattern.InOnly, egressFeed())
-                                .bean(mLLPAsynchronousMessageFinisher, "awaitACKAndFinaliseMessage");
-	}
+    //
+    // Superclass Method Overrides
+    //
+    //
+    // Superclase Method Overrides
+    //
+    @Override
+    protected String specifyEndpointParticipantName() {
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
+        StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+        String participantName = clientTopologyEndpoint.getParticipantName();
+        return (participantName);
+    }
 
-	@Override
-	protected MessageBasedWUPEndpointContainer specifyEgressEndpoint() {
-		MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
-		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
-		ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
-		MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter) targetSystem.getTargetPorts().get(0);
-		int portValue = externalSystemIPCEndpoint.getPortNumber();
-		String targetInterfaceDNSName = externalSystemIPCEndpoint.getHostName();
-		endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue));
-		endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
-		endpoint.setFrameworkEnabled(false);
-		return endpoint;
-	}
+    @Override
+    protected WorkshopInterface specifyWorkshop() {
+        return (interactWorkshop);
+    }
 
-	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
-		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
-		DataParcelManifest manifest = new DataParcelManifest();
-		manifest.setContentDescriptor(descriptor);
-		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
-		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
-		manifest.setIntendedTargetSystem("*");
-		manifest.setSourceSystem("*");
-		manifest.setInterSubsystemDistributable(false);
-		return manifest;
-	}
+    @Override
+    public void configure() throws Exception {
+        getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
+        getLogger().warn("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
-	/**
-	 * @param uri
-	 * @return the RouteBuilder.from(uri) with all exceptions logged but not handled
-	 */
-	protected RouteDefinition fromIncludingEgressEndpointDetails(String uri) {
-		PortDetailInjector portDetailInjector = new PortDetailInjector();
-		RouteDefinition route = fromWithStandardExceptionHandling(uri);
-		route
-				.process(portDetailInjector)
-		;
-		return route;
-	}
+        getConnectionTimeoutException();
+        getMLLPConnectionException();
+        getMLLPAckException();
 
-	protected OnExceptionDefinition getMLLPAckException() {
-		OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
-				.handled(true)
-				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
-				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)");
-		return(exceptionDef);
-	}
+        fromIncludingEgressEndpointDetails(ingresFeed())
+                .routeId(getNameSet().getRouteCoreWUP())
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+                .bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
+                .bean(messageExtractor, "convertToMessage(*, Exchange)")
+                .to(egressFeed())
+                .delay(5000)
+                .bean(mLLPAsynchronousMessageFinisher, "extractUoWAndAnswer")
+                .bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
+                .bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+    }
 
-	protected OnExceptionDefinition getMLLPConnectionException() {
-		OnExceptionDefinition exceptionDef = onException(ConnectException.class)
-				.handled(true)
-				.log(LoggingLevel.INFO, "MLLP Connection Exception...")
-				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)");
-		return(exceptionDef);
-	}
+    @Override
+    protected MessageBasedWUPEndpointContainer specifyEgressEndpoint() {
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
+        StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+        ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
+        MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter) targetSystem.getTargetPorts().get(0);
+        int portValue = externalSystemIPCEndpoint.getPortNumber();
+        String targetInterfaceDNSName = externalSystemIPCEndpoint.getHostName();
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE + ":" + targetInterfaceDNSName + ":" + Integer.toString(portValue));
+        endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
+        endpoint.setFrameworkEnabled(false);
+        getMeAsATopologyComponent().setEgressEndpoint(clientTopologyEndpoint);
+        return endpoint;
+    }
+
+    protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
+        DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger, version.getVersionText());
+        DataParcelManifest manifest = new DataParcelManifest();
+        manifest.setContentDescriptor(descriptor);
+        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+        manifest.setIntendedTargetSystem("*");
+        manifest.setSourceSystem("*");
+        manifest.setInterSubsystemDistributable(false);
+        return manifest;
+    }
+
+    /**
+     * @param uri
+     * @return the RouteBuilder.from(uri) with all exceptions logged but not handled
+     */
+    protected RouteDefinition fromIncludingEgressEndpointDetails(String uri) {
+        PortDetailInjector portDetailInjector = new PortDetailInjector();
+        RouteDefinition route = fromWithStandardExceptionHandling(uri);
+        route
+                .process(portDetailInjector);
+        return route;
+    }
+
+    //
+    // Exception Handling
+    //
+    protected OnExceptionDefinition getConnectionTimeoutException() {
+        OnExceptionDefinition exceptionDef = onException(SocketTimeoutException.class)
+                .handled(true)
+                .log(LoggingLevel.INFO, "MLLP Connection Exception (Socket Timeout)...")
+                .bean(metricsCapture, "captureTimeoutException(*, Exchange)")
+                .bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+                .bean(EgressActivityFinalisationRegistration.class, "registerActivityFinishAndFinalisation(*,  Exchange)");
+        return (exceptionDef);
+    }
+
+    protected OnExceptionDefinition getMLLPConnectionException() {
+        OnExceptionDefinition exceptionDef = onException(ConnectException.class)
+                .handled(true)
+                .log(LoggingLevel.INFO, "MLLP Connection Exception...")
+                .bean(metricsCapture, "captureConnectionException(*, Exchange)")
+                .bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+                .bean(EgressActivityFinalisationRegistration.class, "registerActivityFinishAndFinalisation(*,  Exchange)");
+        return (exceptionDef);
+    }
+
+    protected OnExceptionDefinition getMLLPAckException() {
+        OnExceptionDefinition exceptionDef = onException(MllpAcknowledgementReceiveException.class)
+                .handled(true)
+                .log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
+                .bean(metricsCapture, "captureMLLPAckException(*, Exchange)")
+                .bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+                .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+                .bean(EgressActivityFinalisationRegistration.class, "registerActivityFinishAndFinalisation(*,  Exchange)");
+        return (exceptionDef);
+    }
 }
