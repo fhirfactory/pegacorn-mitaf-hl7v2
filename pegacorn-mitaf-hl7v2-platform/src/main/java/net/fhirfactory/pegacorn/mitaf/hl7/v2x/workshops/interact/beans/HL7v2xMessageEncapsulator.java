@@ -52,6 +52,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
@@ -61,7 +62,7 @@ import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetr
 @ApplicationScoped
 public class HL7v2xMessageEncapsulator  {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageEncapsulator.class);
-    
+
     private HapiContext context;
     private DateTimeFormatter timeFormatter;
 
@@ -102,8 +103,31 @@ public class HL7v2xMessageEncapsulator  {
     //
     // Business Functions
     //
+    public UoW encapsulateMessage(String hl7MessageString, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue,
+            String messageTriggerEvent, String messageEventType, String messageVersion, String messageTimestamp) {
 
-    public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue){
+        HL7v2xMessageInformationExtractor extractor = new HL7v2xMessageInformationExtractor();
+        Message message = extractor.convertToHL7v2Message(hl7MessageString);
+
+        return this.encapsulateMessage(message, exchange, sourceSystem, intendedTargetSystem, parcelDiscriminatorType, parcelDiscriminatorValue, messageTriggerEvent, messageEventType, messageVersion, messageTimestamp);
+    }
+
+    public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue) {
+        LOG.trace(".encapsulateMessage(): Extracting header details");
+        String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
+        LOG.trace(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
+        String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
+        LOG.trace(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
+        String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
+        LOG.trace(".encapsulateMessage(): message::MessageVersion --> {}", messageVersion);
+        String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
+
+        return this.encapsulateMessage(message, exchange, sourceSystem, intendedTargetSystem, parcelDiscriminatorType, parcelDiscriminatorValue, messageTriggerEvent, messageEventType, messageVersion, messageTimeStamp);
+    }
+
+    private UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue,
+            String messageTriggerEvent, String messageEventType, String messageVersion, String messageTimestamp) {
+
         LOG.debug(".encapsulateMessage(): Entry, message->{}", message);
 
         //
@@ -123,14 +147,6 @@ public class HL7v2xMessageEncapsulator  {
 
 
         try {
-            LOG.trace(".encapsulateMessage(): Extracting header details" );
-            String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
-            LOG.trace(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
-            String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
-            LOG.trace(".encapsulateMessage(): message::messageEventType --> {}", messageEventType);
-            String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
-            LOG.trace(".encapsulateMessage(): message::MessageVersion --> {}", messageVersion);
-            String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
             String portValue = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
 
             //
@@ -195,18 +211,18 @@ public class HL7v2xMessageEncapsulator  {
             int indexOfFieldSeperator = messageVersion.indexOf("^");
 
             if (indexOfFieldSeperator != -1) {
-            	messageVersionFirstField = messageVersion.substring(0, indexOfFieldSeperator);
+                messageVersionFirstField = messageVersion.substring(0, indexOfFieldSeperator);
             }
 
-      //      if(messageVersionFirstField.equalsIgnoreCase(getSupportedVersion().getVersionText())){
-                outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
-                outcomeDescription = "All Good!";
-     //      } else {
-        //        outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
-         //       outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersionFirstField+")!";
-         //       LOG.info(".encapsulateMessage(): " + outcomeDescription);
-        //    }
-      //      LOG.trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersionFirstField );
+            //      if(messageVersionFirstField.equalsIgnoreCase(getSupportedVersion().getVersionText())){
+            outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
+            outcomeDescription = "All Good!";
+            //      } else {
+            //        outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
+            //       outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersionFirstField+")!";
+            //       LOG.info(".encapsulateMessage(): " + outcomeDescription);
+            //    }
+            //      LOG.trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersionFirstField );
 //            String stringMessage = message.encode();
             message.getParser().getParserConfiguration().setValidating(false);
 //            message.getParser().getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
@@ -251,7 +267,7 @@ public class HL7v2xMessageEncapsulator  {
             newPayload.setPayloadManifest(messageManifest);
             LOG.trace(".encapsulateMessage(): newPayload created->{}", newPayload);
             String sourceId = processingPlant.getSubsystemParticipantName() + ":" + portValue + ":" + messageEventType + "-" + messageTriggerEvent ;
-            String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimeStamp;
+            String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimestamp;
             LOG.trace(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
             newUoW.getEgressContent().addPayloadElement(newPayload);
@@ -286,12 +302,12 @@ public class HL7v2xMessageEncapsulator  {
         return(processingPlantMetricsAgentAccessor.getMetricsAgent());
     }
 
-    
+
     public boolean triggerIsSupported(String trigger) {
         return true;
     }
 
-    
+
     public DataParcelTypeDescriptor createDataParcelTypeDescriptor(String messageEventType, String messageTriggerEvent, String version) {
         DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(messageEventType, messageTriggerEvent, version);
         return (descriptor);
