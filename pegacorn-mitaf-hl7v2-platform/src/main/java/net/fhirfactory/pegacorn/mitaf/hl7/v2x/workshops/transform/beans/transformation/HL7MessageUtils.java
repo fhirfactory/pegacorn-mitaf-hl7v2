@@ -571,9 +571,10 @@ public class HL7MessageUtils {
 	 * @param newSegmentName
 	 * @param segmentIndex
 	 */
-	public static void insertSegment(Message message, String newSegmentName, int segmentIndex, int id) throws Exception {
+	public static Segment insertSegment(Message message, String newSegmentName, int segmentIndex, int id) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
-		hl7Message.insertSegment(newSegmentName, segmentIndex, id);
+		
+		return hl7Message.insertSegment(newSegmentName, segmentIndex, id);
 	}
 	
 	
@@ -701,6 +702,20 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Returns the row index of thge supplied segment.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getSegmentIndex(Message message, Segment segment) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		return hl7Message.getSegmentIndex(segment);
+	}
+	
+	
+	/**
 	 * Deletes a segment from a HL7 messages at the supplied row index.
 	 * 
 	 * @param message
@@ -710,6 +725,18 @@ public class HL7MessageUtils {
 	public static void removeSegment(Message message, int rowIndex) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
 		hl7Message.removeSegment(rowIndex);
+	}
+	
+	
+	/**
+	 * Removes a segment
+	 * 
+	 * @param message
+	 * @param segment
+	 */
+	public static void removeSegment(Message message, Segment segment) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.removeSegment(segment);		
 	}
 
 	
@@ -852,5 +879,31 @@ public class HL7MessageUtils {
 	 */
 	public static List<ca.uhn.hl7v2.model.Segment>getAllSegments(Message message, String segmentName) throws Exception {
 		return HL7TerserBasedUtils.getAllSegments(message, segmentName);
+	}
+
+	
+	/**
+	 * Returns the total number of segments.
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static int getTotalSegmentCount(Message message) {
+		HL7Message hl7Message = new HL7Message(message);
+		return hl7Message.getSegments().size();
+	}
+	
+	
+	/**
+	 * Returns all matching segments.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Segment> getSegments(Message message, String segmentName) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		return hl7Message.getSegments(segmentName);		
 	}
 }
