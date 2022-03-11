@@ -3,6 +3,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -459,5 +460,16 @@ public class Field implements Serializable {
 		}
 		
 		return fieldRepetition.getSubField(subFieldIndex) != null;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(this.toString());
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {	
+		return Objects.equals(this.toString(), obj.toString());
 	}
 }

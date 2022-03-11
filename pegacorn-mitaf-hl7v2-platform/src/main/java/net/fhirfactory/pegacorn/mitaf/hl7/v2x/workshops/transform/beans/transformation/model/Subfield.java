@@ -1,6 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,5 +56,16 @@ public class Subfield implements Serializable {
 	 */
 	public boolean isEmpty() {
 		return StringUtils.isBlank(toString());
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(this.toString());
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {	
+		return Objects.equals(this.toString(), obj.toString());
 	}
 }

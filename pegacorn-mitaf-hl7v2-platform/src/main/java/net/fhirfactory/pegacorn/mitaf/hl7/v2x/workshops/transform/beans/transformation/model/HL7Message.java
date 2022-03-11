@@ -93,12 +93,27 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @param rowIndex
 	 */
-	public void removeSegment(int rowIndex) {
+	public void removeSegment(int rowIndex) throws Exception {
 		if (rowIndex >= segments.size()) {
 			return;
 		}
 		
 		this.segments.remove(rowIndex);
+		
+		refreshSourceHL7Message();
+	}
+	
+	
+	/**
+	 * Removes the supplied segment from the list of segments.
+	 * 
+	 * @param segment
+	 * @throws Exception
+	 */
+	public void removeSegment(Segment segment) throws Exception {	
+		this.segments.remove(segment);
+		
+		refreshSourceHL7Message();
 	}
 	
 	
@@ -286,13 +301,15 @@ public class HL7Message implements Serializable   {
 	 * @param id
 	 * @throws Exception
 	 */
-	public void insertSegment(String newSegmentName, int segmentIndex, int id) throws Exception {	
+	public Segment insertSegment(String newSegmentName, int segmentIndex, int id) throws Exception {	
 		Segment segment = new Segment(newSegmentName + "|" + id, this);
 		
 		getSegments().add(segmentIndex, segment);
 		refreshSourceHL7Message();
+		
+		return segment;
 	}
-	
+
 	
 	/**
 	 * Returns the {@link HL7Message} so the messages can be used directly instead of going through this utility class.
@@ -302,5 +319,45 @@ public class HL7Message implements Serializable   {
 	 */
 	public HL7Message getHL7Message(Message message) {
 		return new HL7Message(message);
+	}
+	
+	
+	/**
+	 * Returns all matching segments.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Segment> getSegments(String segmentName) throws Exception {
+		List<Segment>segments = new ArrayList<>();		
+		
+		for (Segment segment : getSegments()) {
+			if (segment.getName().equals(segmentName)) {
+				segments.add(segment);
+			}
+		}
+		
+		return segments;	
+	}
+	
+	
+	/**
+	 * Returns the row index of the supplied segment.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @return
+	 * @throws Exception
+	 */
+	public Integer getSegmentIndex(Segment segment) throws Exception {
+
+		for (int i = 0; i < getSegments().size(); i++) {
+			if (getSegment(i).equals(segment)) {
+				return i;
+			}
+		}
+		
+		return null;
 	}
 }

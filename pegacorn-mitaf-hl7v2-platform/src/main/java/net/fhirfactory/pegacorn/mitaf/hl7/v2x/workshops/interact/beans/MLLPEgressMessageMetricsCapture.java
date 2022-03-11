@@ -22,6 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -295,9 +296,11 @@ public class MLLPEgressMessageMetricsCapture {
         String unformattedMessage = createUnformattedMessage(target, endpointDescription, error);
         String formattedMessage = createFormattedMessage(target, endpointDescription, error);
 
+        String notificationHeading = endpointDescription + ": " + error;
+
         //
         // Endpoint Notification
-        endpointMetricsAgent.sendITOpsNotification(unformattedMessage, formattedMessage);
+        endpointMetricsAgent.sendITOpsNotification(unformattedMessage, formattedMessage, PetasosComponentITOpsNotificationTypeEnum.FAILURE_NOTIFICATION_TYPE, notificationHeading);
         //
         // Processing PlantNotification
         getProcessingPlantMetricsAgent().sendITOpsNotification(unformattedMessage, formattedMessage);
