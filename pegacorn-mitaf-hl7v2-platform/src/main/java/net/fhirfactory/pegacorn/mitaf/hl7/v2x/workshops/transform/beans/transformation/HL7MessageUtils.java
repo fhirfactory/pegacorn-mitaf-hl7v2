@@ -591,7 +591,7 @@ public class HL7MessageUtils {
 	}
 
 	/**
-	 * Returns a segment content as a string.
+	 * Returns a segment.
 	 * 
 	 * @param message
 	 * @param segmentName
@@ -607,6 +607,19 @@ public class HL7MessageUtils {
 		}
 		
 		return getSegment(message, index);
+	}
+	
+	
+	/**
+	 * Returns the 1st occurrence of a segment.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Segment getSegment(Message message, String segmentName) throws Exception {		
+		return getSegment(message, segmentName, 0);
 	}
 	
 	
