@@ -437,7 +437,7 @@ public class HL7MessageUtils {
 		List<String>segmentsToRemove = new ArrayList<>();
 		
 		for (Segment segment : hl7Message.getSegments()) {
-			if(doesContainSegment(segment.getName(), segmentsToKeep)) {
+			if(!doesContainSegment(segment.getName(), segmentsToKeep)) {
 				segmentsToRemove.add(segment.getName());
 			}
 		}
