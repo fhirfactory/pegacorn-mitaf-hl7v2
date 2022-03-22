@@ -309,6 +309,24 @@ public class HL7Message implements Serializable   {
 		
 		return segment;
 	}
+	
+	
+	/**
+	 * Appends a segment to the end of the message.
+	 * 
+	 * @param newSegmentName
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment appendSegment(String newSegmentName, int id) throws Exception {	
+		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		
+		getSegments().add(segment);
+		refreshSourceHL7Message();
+		
+		return segment;
+	}	
 
 	
 	/**

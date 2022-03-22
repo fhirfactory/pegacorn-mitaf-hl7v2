@@ -579,6 +579,23 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Appends a new segment at the end of the message
+	 * 
+	 * @param message
+	 * @param newSegmentName
+	 * @param segmentIndex
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public static Segment appendSegment(Message message, String newSegmentName, int id) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message.appendSegment(newSegmentName, id);
+	}	
+	
+	
+	/**
 	 * Returns the message row index of the first occurence of the supplied segment name.
 	 * 
 	 * @param message
