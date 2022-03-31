@@ -80,6 +80,7 @@ public class HL7v2xTransformMessage {
         Boolean sendMessage = (Boolean) exchange.getProperty("sendMessage");
 
         if (!sendMessage) {
+            fulfillmentTask.getTaskFulfillment().setToBeDiscarded(true);
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
         }
 
