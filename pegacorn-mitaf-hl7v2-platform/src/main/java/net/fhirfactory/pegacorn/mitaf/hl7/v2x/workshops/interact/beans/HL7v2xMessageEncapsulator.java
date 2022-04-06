@@ -26,11 +26,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +67,12 @@ public class HL7v2xMessageEncapsulator  {
 
     private HapiContext context;
     private DateTimeFormatter timeFormatter;
+    private boolean initialised;
+    private boolean includeFullHL7MessageInLog;
+    private Integer maxHL7MessageSize;
+
+    private static final String INCLUDE_FULL_HL7_MESSAGE_IN_LOG =  "INCLUDE_FULL_HL7_MESSAGE_IN_LOG";
+    private static final String MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG = "MAX_HL7_MESSAGE_SIZE_IN_LOG";
 
     @Inject
     private HL7V2XTopicFactory topicFactory;
@@ -84,7 +92,46 @@ public class HL7v2xMessageEncapsulator  {
 
     public HL7v2xMessageEncapsulator() {
         context = new DefaultHapiContext();
-        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
+        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
+        maxHL7MessageSize = 64000;
+        includeFullHL7MessageInLog = false;
+        initialised = false;
+    }
+
+    //
+    // Post Construct
+    //
+
+    @PostConstruct
+    public void initialise(){
+        getLogger().debug(".initialise(): Entry");
+        if(initialised){
+            getLogger().debug(".initialise(): Nothing to do, already initialised!");
+        } else {
+            getLogger().info(".initialise(): Start");
+            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
+            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
+            if(StringUtils.isNotEmpty(includeMessageString)){
+                if(includeMessageString.equalsIgnoreCase("true")){
+                    setIncludeFullHL7MessageInLog(true);
+                }
+            }
+            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
+            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
+            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
+            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
+            if(StringUtils.isNotEmpty(messageMaximumSize)){
+                Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
+                if(messageMaxSize != null){
+                    setMaxHL7MessageSize(messageMaxSize);
+                }
+            }
+            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] MaximumSize->{}", getMaxHL7MessageSize());
+            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Finish");
+            getLogger().info(".initialise(): Finish");
+            this.initialised = true;
+        }
+        getLogger().debug(".initialise(): Exit");
     }
 
 
@@ -100,9 +147,35 @@ public class HL7v2xMessageEncapsulator  {
         return(timeFormatter);
     }
 
+    protected Logger getLogger(){
+        return(LOG);
+    }
+
+    protected ProcessingPlantInterface getProcessingPlant(){
+        return(processingPlant);
+    }
+
+    protected boolean isIncludeFullHL7MessageInLog() {
+        return includeFullHL7MessageInLog;
+    }
+
+    protected void setIncludeFullHL7MessageInLog(boolean includeFullHL7MessageInLog) {
+        this.includeFullHL7MessageInLog = includeFullHL7MessageInLog;
+    }
+
+    protected Integer getMaxHL7MessageSize() {
+        return maxHL7MessageSize;
+    }
+
+    protected void setMaxHL7MessageSize(Integer maxHL7MessageSize) {
+        this.maxHL7MessageSize = maxHL7MessageSize;
+    }
+
     //
     // Business Functions
     //
+
+
     public UoW encapsulateMessage(String hl7MessageString, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue,
             String messageTriggerEvent, String messageEventType, String messageVersion, String messageTimestamp) {
 
@@ -183,30 +256,17 @@ public class HL7v2xMessageEncapsulator  {
                 }
             }
 
-            notificationContent = "-----------------------------------------------------" + "\n" +
-                    "Ingres: " + portDescription + "(" + getTimeFormatter().format(Instant.now()) + ")" + "\n" +
-                    mshSegment + "\n" +
-                    pidSegment + "\n" +
-                    "---";
-
-            StringBuilder formattedNotificationContent = new StringBuilder();
-            formattedNotificationContent.append("<table>");
-            formattedNotificationContent.append("<tr>");
-            formattedNotificationContent.append("<th> From </th><th>" + portDescription + " ("+ getTimeFormatter().format(Instant.now()) + ") </th");
-            formattedNotificationContent.append("</tr>");
-            formattedNotificationContent.append("<tr>");
-            formattedNotificationContent.append("<td> Metadata </td><td>" + mshSegment + "\n" + pidSegment + "</td>");
-            formattedNotificationContent.append("</tr>");
-            formattedNotificationContent.append("</table>");
-            endpointMetricsAgent.sendITOpsNotification(notificationContent,formattedNotificationContent.toString());
-//            getProcessingPlantMetricsAgent().sendITOpsNotification(wupNotificationContent);
+            //
+            // Send ITOps Console Notification about Message Arrival
+            sendMessageReceivedConsoleNotification(portDescription, message, mshSegment, pidSegment, endpointMetricsAgent);
 
             //
             // Now actually process the UoW/Message
             UoWProcessingOutcomeEnum outcomeEnum;
             String outcomeDescription;
 
-//			// Only use the first version subfield.
+            //
+            // Only use the first version subfield.
             String messageVersionFirstField = messageVersion;
             int indexOfFieldSeperator = messageVersion.indexOf("^");
 
@@ -214,22 +274,15 @@ public class HL7v2xMessageEncapsulator  {
                 messageVersionFirstField = messageVersion.substring(0, indexOfFieldSeperator);
             }
 
-            //      if(messageVersionFirstField.equalsIgnoreCase(getSupportedVersion().getVersionText())){
             outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS;
             outcomeDescription = "All Good!";
-            //      } else {
-            //        outcomeEnum = UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED;
-            //       outcomeDescription = "Wrong Version of Message, expected ("+getSupportedVersion().getVersionText()+"), got ("+messageVersionFirstField+")!";
-            //       LOG.info(".encapsulateMessage(): " + outcomeDescription);
-            //    }
-            //      LOG.trace(".encapsulateMessage(): message::messageVersion --> {}", messageVersionFirstField );
-//            String stringMessage = message.encode();
             message.getParser().getParserConfiguration().setValidating(false);
-//            message.getParser().getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
-//            LOG.info(".encapsulateMessage(): Structure --> {}", message);
             LOG.trace(".encapsulateMessage(): Attempting to decode!");
             String encodedString = message.encode();
             LOG.trace(".encapsulateMessage(): Decoded, encodedString --> {}", encodedString);
+
+            //
+            // Create the DataParcelManifest for the message
             LOG.trace(".encapsulateMessage(): Creating Data Parcel Descriptor (messageDescriptor)");
             DataParcelTypeDescriptor messageDescriptor = createDataParcelTypeDescriptor(messageEventType, messageTriggerEvent, messageVersionFirstField );
             if(!StringUtils.isEmpty(parcelDiscriminatorType)) {
@@ -261,6 +314,9 @@ public class HL7v2xMessageEncapsulator  {
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
             messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
             LOG.trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
+
+            //
+            // Populate the UoWPayload
             LOG.trace(".encapsulateMessage(): Creating Egress Payload (newPayload)");
             UoWPayload newPayload = new UoWPayload();
             newPayload.setPayload(encodedString);
@@ -268,11 +324,17 @@ public class HL7v2xMessageEncapsulator  {
             LOG.trace(".encapsulateMessage(): newPayload created->{}", newPayload);
             String sourceId = processingPlant.getSubsystemParticipantName() + ":" + portValue + ":" + messageEventType + "-" + messageTriggerEvent ;
             String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimestamp;
+
+            //
+            // Create the UoW
             LOG.trace(".encapsulateMessage(): creating a new Unit of Work (newUoW)");
             UoW newUoW = new UoW(newPayload);
             newUoW.getEgressContent().addPayloadElement(newPayload);
             newUoW.setProcessingOutcome(outcomeEnum);
             newUoW.setFailureDescription(outcomeDescription);
+
+            //
+            // All Done!
             LOG.debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
@@ -292,6 +354,47 @@ public class HL7v2xMessageEncapsulator  {
             LOG.debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         }
+    }
+
+    protected void sendMessageReceivedConsoleNotification(String portDescription, Message message, String mshSegment, String pidSegment, EndpointMetricsAgent endpointMetricsAgent){
+        getLogger().debug(".sendMessageReceivedConsoleNotification(): Entry, portDescription->{}, message->{}", portDescription, message);
+        StringBuilder notificationContentBuilder = new StringBuilder();
+        notificationContentBuilder.append("Ingres-Message((" + portDescription +")(" + getTimeFormatter().format(Instant.now()) + ")){");
+        if(includeFullHL7MessageInLog){
+            String displayedMessage = null;
+            try {
+                String actualMessage = message.encode();
+
+                if (actualMessage.length() > getMaxHL7MessageSize()) {
+                    displayedMessage = actualMessage.substring(0, getMaxHL7MessageSize());
+                } else {
+                    displayedMessage = actualMessage;
+                }
+            } catch (Exception ex){
+                displayedMessage = "Cannot Parse Message Content";
+                getLogger().warn(".sendMessageReceivedConsoleNotification(): Cannot parse message, error->{}, stackTrace->{}", ExceptionUtils.getMessage(ex), ExceptionUtils.getStackTrace(ex));
+            }
+            notificationContentBuilder.append(displayedMessage);
+        } else {
+            notificationContentBuilder.append(mshSegment);
+            notificationContentBuilder.append(" ::: ");
+            notificationContentBuilder.append(pidSegment);
+        }
+        notificationContentBuilder.append("}");
+
+        StringBuilder formattedNotificationContent = new StringBuilder();
+        formattedNotificationContent.append("<table>");
+        formattedNotificationContent.append("<tr>");
+        formattedNotificationContent.append("<th> From </th><th>" + portDescription + " ("+ getTimeFormatter().format(Instant.now()) + ") </th");
+        formattedNotificationContent.append("</tr>");
+        formattedNotificationContent.append("<tr>");
+        formattedNotificationContent.append("<td> Metadata </td><td>" + mshSegment + "\n" + pidSegment + "</td>");
+        formattedNotificationContent.append("</tr>");
+        formattedNotificationContent.append("</table>");
+
+        endpointMetricsAgent.sendITOpsNotification(notificationContentBuilder.toString(),formattedNotificationContent.toString());
+
+        getLogger().debug(".sendMessageReceivedConsoleNotification(): Exit");
     }
 
     //
