@@ -24,11 +24,14 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelExternallyDistributableStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -36,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 /**
  * Transforms a HL7 message
@@ -44,10 +48,30 @@ import javax.enterprise.context.ApplicationScoped;
  *
  */
 @ApplicationScoped
-public class HL7v2xTransformMessage {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTransformMessage.class);
+public class HL7v2xOutboundMessageTransformationPostProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xOutboundMessageTransformationPostProcessor.class);
 
-    protected Logger getLogger(){return(LOG);}
+    @Inject
+    private HL7v2xInformationExtractionInterface messageInformationExtractionInterface;
+
+    @Inject
+    private HL7V2XTopicFactory hl7v2TopicFactory;
+
+    //
+    // Getters and Setters
+    //
+
+    protected Logger getLogger(){
+        return(LOG);
+    }
+
+    protected HL7V2XTopicFactory getHl7v2TopicFactory(){
+        return(hl7v2TopicFactory);
+    }
+
+    //
+    // Business Logic
+    //
 
     /**
      * Adds the message to the original unit of work and sets the processing outcomes to no processing required if the message was filtered.
@@ -65,11 +89,28 @@ public class HL7v2xTransformMessage {
         UoW uow = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
     	uow.getEgressContent().getPayloadElements().clear();
 
+        //
+        // Create new UoWPayload (egress payload)
         UoWPayload newPayload = new UoWPayload();
-        DataParcelManifest newManifest = uow.getIngresContent().getPayloadManifest();
+        DataParcelManifest newManifest = new DataParcelManifest();
 
-        newManifest.setContainerDescriptor(null);
+        String messageType = messageInformationExtractionInterface.extractMessageType(message);
+        String messageTrigger = messageInformationExtractionInterface.extractMessageTrigger(message);
+        String messageVersion = messageInformationExtractionInterface.extractMessageVersion(message);
+        DataParcelTypeDescriptor parcelTypeDescriptor = hl7v2TopicFactory.newDataParcelDescriptor(messageType, messageTrigger, messageVersion);
+        if (uow.getIngresContent().getPayloadManifest().getContentDescriptor().hasDataParcelDiscriminatorType()) {
+            parcelTypeDescriptor.setDataParcelDiscriminatorType(SerializationUtils.clone(uow.getIngresContent().getPayloadManifest().getContentDescriptor().getDataParcelDiscriminatorType()));
+        }
+        if (uow.getIngresContent().getPayloadManifest().getContentDescriptor().hasDataParcelDiscriminatorValue()) {
+            parcelTypeDescriptor.setDataParcelDiscriminatorValue(SerializationUtils.clone(uow.getIngresContent().getPayloadManifest().getContentDescriptor().getDataParcelDiscriminatorValue()));
+        }
+
+        newManifest.setContentDescriptor(parcelTypeDescriptor);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        newManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_TRUE);
+        newManifest.setValidationStatus(uow.getIngresContent().getPayloadManifest().getValidationStatus());
+        newManifest.setEnforcementPointApprovalStatus(uow.getIngresContent().getPayloadManifest().getEnforcementPointApprovalStatus());
+        newManifest.setEnforcementPointApprovalStatus(uow.getPayloadTopicID().getEnforcementPointApprovalStatus());
 
         newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);
@@ -81,7 +122,7 @@ public class HL7v2xTransformMessage {
 
         if (!sendMessage) {
             fulfillmentTask.getTaskFulfillment().setToBeDiscarded(true);
-            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_NO_PROCESSING_REQUIRED);
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FILTERED);
         }
 
         getLogger().debug(".postTransformProcessing(): Exit, uow->{}", uow);

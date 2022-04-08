@@ -21,14 +21,13 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
+import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
-import org.hl7.fhir.r4.model.ResourceType;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,11 +37,17 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
     private boolean mitafHL7v2SubsystemInitialised;
 
-
+    //
+    // Constructor
+    //
     public MITaFHL7v2xSubSystem(){
         super();
         mitafHL7v2SubsystemInitialised = false;
     }
+
+    //
+    // PostConstruct
+    //
 
     @Override
     protected void executePostConstructActivities() {
@@ -59,24 +64,24 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             getLogger().info(".executePostConstructActivities(): currentSimpleSubscription->{}", currentSimpleSubscription);
             List<DataParcelTypeDescriptor> descriptorList = currentSimpleSubscription.getDescriptorList();
             String currentSource = currentSimpleSubscription.getSourceSystem();
+            String currentSourceParticipantName = currentSimpleSubscription.getSourceProcessingPlantParticipantName();
+            String currentSourceParticipantInterfaceName = currentSimpleSubscription.getSourceProcessingPlantInterfaceName();
             for (DataParcelTypeDescriptor currentDescriptor : descriptorList) {
                 getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}", currentSource, currentDescriptor);
                 getLogger().info(".executePostConstructActivities(): Invoking subscribeToRemoteDataParcels()!");
 
-                getLogger().info(".executePostConstructActivities(): currentDescriptor->{}", currentDescriptor);
-                DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getPegacornReferenceProperties().getPegacornDefaultFHIRVersion());
-                getLogger().info(".executePostConstructActivities(): container->{}", container);
                 TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
                 manifest.setContentDescriptor(currentDescriptor);
-                manifest.setContainerDescriptor(container);
                 manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
                 manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
                 manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
                 manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+                manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_ANY);
                 manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
                 manifest.setInterSubsystemDistributable(true);
                 manifest.setSourceSystem(currentSource);
-                manifest.setSourceProcessingPlantParticipantName(currentSimpleSubscription.getSourceSubsystemParticipantName());
+                manifest.setSourceProcessingPlantParticipantName(currentSourceParticipantName);
+                manifest.setSourceProcessingPlantInterfaceName(currentSourceParticipantInterfaceName);
                 manifestList.add(manifest);
             }
         }

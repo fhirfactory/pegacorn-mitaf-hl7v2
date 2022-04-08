@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -44,9 +45,6 @@ import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
@@ -244,10 +242,12 @@ public class HL7v2xMessageEncapsulator  {
             }
 
             String portDescription = null;
+            String interfaceName = null;
             try{
                 WorkUnitProcessorSoftwareComponent workUnitProcessorSoftwareComponent = exchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorSoftwareComponent.class);
                 IPCTopologyEndpoint ingresEndpoint = workUnitProcessorSoftwareComponent.getIngresEndpoint();
                 portDescription = ingresEndpoint.getParticipantDisplayName();
+                interfaceName = ingresEndpoint.getEndpointConfigurationName();
             } catch(Exception ex){
                 if(StringUtils.isNotEmpty(targetPort)){
                     portDescription = "ServerPort:" + targetPort;
@@ -312,7 +312,16 @@ public class HL7v2xMessageEncapsulator  {
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+            messageManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+            messageManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+            messageManifest.setInterSubsystemDistributable(false);
+            messageManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
             messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
+            if(StringUtils.isNotEmpty(interfaceName)){
+                messageManifest.setSourceProcessingPlantInterfaceName(interfaceName);
+            } else {
+                messageManifest.setSourceProcessingPlantParticipantName("Unknown");
+            }
             LOG.trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
 
             //
@@ -335,7 +344,7 @@ public class HL7v2xMessageEncapsulator  {
 
             //
             // All Done!
-            LOG.debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
+            LOG.info(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
             LOG.warn(".encapsulateMessage(): Exception occurred", ex);
@@ -355,6 +364,10 @@ public class HL7v2xMessageEncapsulator  {
             return(newUoW);
         }
     }
+
+    //
+    // ITOps Activities
+    //
 
     protected void sendMessageReceivedConsoleNotification(String portDescription, Message message, String mshSegment, String pidSegment, EndpointMetricsAgent endpointMetricsAgent){
         getLogger().debug(".sendMessageReceivedConsoleNotification(): Entry, portDescription->{}, message->{}", portDescription, message);

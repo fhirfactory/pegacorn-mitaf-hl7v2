@@ -47,11 +47,10 @@ import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +72,7 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     private PegacornReferenceProperties referenceProperties;
 
     @Inject
-    private FHIRElementTopicFactory fhirTopicFactory;
+    private HL7V2XTopicFactory topicFactory;
 
     @Override
     protected Logger specifyLogger() {
@@ -84,18 +83,26 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         getLogger().debug(".specifySubscriptionTopics(): Entry");
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelManifest communicationEvents = new DataParcelManifest();
-        DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
-        communicationEvents.setContainerDescriptor(fhirCommunicationDescriptor);
-        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-        communicationEvents.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-        communicationEvents.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        communicationEvents.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
-        communicationEvents.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
-        communicationEvents.setInterSubsystemDistributable(true);
-        communicationEvents.setSourceSystem("*");
-        communicationEvents.setIntendedTargetSystem("*");
-        subscriptionList.add(communicationEvents);
+        DataParcelManifest hl7EventManifest = new DataParcelManifest();
+        DataParcelTypeDescriptor hl7EventDescriptor = new DataParcelTypeDescriptor();
+        hl7EventDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
+        hl7EventDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
+        hl7EventDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventManifest.setContentDescriptor(hl7EventDescriptor);
+        hl7EventManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+        hl7EventManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+        hl7EventManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        hl7EventManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+        hl7EventManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        hl7EventManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_ANY);
+        hl7EventManifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventManifest.setInterSubsystemDistributable(true);
+        hl7EventManifest.setSourceSystem("*");
+        hl7EventManifest.setIntendedTargetSystem("*");
+        subscriptionList.add(hl7EventManifest);
         return (subscriptionList);
     }
 
