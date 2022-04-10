@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.model;
 
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
 
 import java.util.ArrayList;
 import java.util.List;
