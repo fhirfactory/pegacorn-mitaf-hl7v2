@@ -37,6 +37,7 @@ import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.OnExceptionDefinition;
+import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,7 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
 
         specifyDefaultInboundExceptionHandler();
 
-        fromIncludingPetasosServices(ingresFeed())
+        fromIncludingPetasosAndEndpointDetail(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(hl7v2TextToMessage, "convertToMessage")
                 .bean(freemarkerConfig, "configure(*, Exchange)")
@@ -112,6 +113,30 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
         return(exceptionDef);
     }
 
+    //
+    // Path Context Injection
+    //
+
+    /**
+     * @param uri
+     * @return the RouteBuilder.from(uri) with port details and audit/metrics agents injected
+     */
+    protected RouteDefinition fromIncludingPetasosAndEndpointDetail(String uri) {
+        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
+        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
+        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
+        RouteDefinition route = from(uri);;
+        route
+                .process(nodeDetailInjector)
+                .process(auditAgentInjector)
+                .process(taskReportAgentInjector)
+        ;
+        return route;
+    }
+
+    //
+    // Superclass/subclass Helper Functions
+    //
 
     public HL7V2XTopicFactory getTopicFactory() {
         return topicFactory;

@@ -26,6 +26,7 @@ import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelExternallyDistributableStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -63,13 +64,15 @@ public class MLLPActivityAnswerCollector {
         PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
         //
         // The UoW is extracted from the fulfillmentTask.
-        UoW uow = fulfillmentTask.getTaskWorkItem();
+        UoW uow = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
 
-        UoWPayload payload = new UoWPayload();
-        DataParcelManifest payloadTopicID = SerializationUtils.clone(uow.getPayloadTopicID());
-        DataParcelTypeDescriptor descriptor = payloadTopicID.getContentDescriptor();
-        descriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
-        descriptor.setDataParcelDiscriminatorValue("External-MLLP");
+
+        DataParcelManifest egressManifest = SerializationUtils.clone(uow.getPayloadTopicID());
+        DataParcelTypeDescriptor egressContentDescriptor = egressManifest.getContentDescriptor();
+        egressContentDescriptor.setDataParcelDiscriminatorType("Activity-Message-Exchange");
+        egressContentDescriptor.setDataParcelDiscriminatorValue("External-MLLP");
+        egressManifest.setContentDescriptor(egressContentDescriptor);
+        egressManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
         String acknowledgeString = (String)camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString");
         // Because auditing is not running yet
         // Remove once Auditing is in place
@@ -80,12 +83,11 @@ public class MLLPActivityAnswerCollector {
         //
         //
         //
-        payload.setPayload(acknowledgeString);
-        payload.setPayloadManifest(payloadTopicID);
-        uow.getEgressContent().addPayloadElement(payload);
+        UoWPayload egressPayload = new UoWPayload();
+        egressPayload.setPayload(acknowledgeString);
+        egressPayload.setPayloadManifest(egressManifest);
+        uow.getEgressContent().addPayloadElement(egressPayload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-
-
 
         LOG.debug(".extractUoWAndAnswer(): Exit, uow->{}", uow);
         return(uow);

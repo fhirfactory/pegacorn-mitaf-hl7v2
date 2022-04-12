@@ -92,7 +92,7 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
         hl7EventDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setContainerDescriptor(hl7EventDescriptor);
+        hl7EventMessageManifest.setContentDescriptor(hl7EventDescriptor);
         hl7EventMessageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
         hl7EventMessageManifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventMessageManifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
@@ -101,6 +101,10 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
         hl7EventMessageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         hl7EventMessageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
         hl7EventMessageManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_ANY);
+        hl7EventMessageManifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventMessageManifest.setInterSubsystemDistributable(false);
         subscriptionList.add(hl7EventMessageManifest);
         return (subscriptionList);

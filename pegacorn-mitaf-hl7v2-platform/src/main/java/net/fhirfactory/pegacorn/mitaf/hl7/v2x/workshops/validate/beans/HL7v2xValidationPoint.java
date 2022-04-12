@@ -19,9 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate.beans;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelExternallyDistributableStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
@@ -31,8 +33,8 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
-    private static final Logger LOG = LoggerFactory.getLogger(PegacornEdgeHL7v2xPolicyEnforcementPoint.class);
+public class HL7v2xValidationPoint {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xValidationPoint.class);
 
     protected Logger getLogger(){
         return(LOG);
@@ -40,37 +42,26 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
 
     ObjectMapper jsonMapper;
 
-    public PegacornEdgeHL7v2xPolicyEnforcementPoint(){
+    public HL7v2xValidationPoint(){
         jsonMapper = new ObjectMapper();
     }
 
-    public UoW enforceInboundPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceInboundPolicy(): Entry, uow->{}", uow);
+    public UoW validateOutboundMessage(UoW uow, Exchange camelExchange){
+        getLogger().debug(".validateOutboundMessage(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }
         if(!uow.hasIngresContent()){
             return(uow);
         }
-        UoWPayload newEgressPayload = SerializationUtils.clone(uow.getIngresContent());
-        newEgressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(newEgressPayload);
-        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-        return(uow);
-    }
 
-    public UoW enforceOutboundPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceOutboundPolicy(): Entry, uow->{}", uow);
-        if(uow == null){
-            return(null);
-        }
-        if(!uow.hasIngresContent()){
-            return(uow);
-        }
-        UoWPayload newEgressPayload = SerializationUtils.clone(uow.getIngresContent());
-        newEgressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(newEgressPayload);
+        UoWPayload validatedPayload = SerializationUtils.clone(uow.getIngresContent());
+        validatedPayload.getPayloadManifest().setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+        validatedPayload.getPayloadManifest().setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_TRUE);
+        uow.getEgressContent().addPayloadElement(validatedPayload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+
+        getLogger().debug(".validateOutboundMessage(): Exit, uow->{}", uow);
         return(uow);
     }
 }

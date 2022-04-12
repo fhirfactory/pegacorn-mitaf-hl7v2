@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2020 Mark A. Hunter (ACT Health)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,21 +19,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate;
 
-@Deprecated
-public abstract class BaseHL7v2xMessageEgressWUP extends BaseHL7v2MessageEgressWUP {
+import net.fhirfactory.pegacorn.workshops.base.PetasosEnabledWorkshop;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private String WUP_VERSION="1.0.0";
-    private String CAMEL_COMPONENT_TYPE="mllp";
+import javax.enterprise.context.ApplicationScoped;
 
-    @Override
-    protected String specifyWUPInstanceName() {
-        return (this.getClass().getSimpleName());
+@ApplicationScoped
+public class DiscreteValidationWorkshop extends PetasosEnabledWorkshop {
+    private static final Logger LOG = LoggerFactory.getLogger(DiscreteValidationWorkshop.class);
+
+    private String WORKSHOP_VERSION = "1.0.0";
+
+    public DiscreteValidationWorkshop(){
+        super();
     }
 
     @Override
-    protected String specifyWUPInstanceVersion() {
-        return (WUP_VERSION);
+    protected Logger specifyLogger() {
+        return (LOG);
+    }
+
+    @Override
+    protected String specifyWorkshopName() {
+        return ("DiscreteDataValidationWorkshop");
+    }
+
+    @Override
+    protected String specifyWorkshopVersion() {
+        return (WORKSHOP_VERSION);
+    }
+
+    @Override
+    protected void invokePostConstructInitialisation() {
+
     }
 }
