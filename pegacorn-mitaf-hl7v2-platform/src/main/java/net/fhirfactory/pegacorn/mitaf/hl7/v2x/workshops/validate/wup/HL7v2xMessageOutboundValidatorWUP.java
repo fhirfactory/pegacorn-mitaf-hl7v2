@@ -40,16 +40,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate.wup;
 
 import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
-import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate.DiscreteValidationWorkshop;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate.beans.HL7v2xValidationPoint;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +60,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageInboundCheckPointWUP.class);
+public class HL7v2xMessageOutboundValidatorWUP extends MOAStandardWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageOutboundValidatorWUP.class);
 
     private static String WUP_VERSION = "1.0.0";
 
     @Inject
-    private PolicyEnforcementWorkshop policyEnforcementWorkshop;
+    private DiscreteValidationWorkshop workshop;
 
     @Inject
     private PegacornReferenceProperties referenceProperties;
@@ -83,7 +83,8 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         getLogger().debug(".specifySubscriptionTopics(): Entry");
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelManifest hl7EventManifest = new DataParcelManifest();
+        DataParcelManifest hl7EventMessageManifest = new DataParcelManifest();
+
         DataParcelTypeDescriptor hl7EventDescriptor = new DataParcelTypeDescriptor();
         hl7EventDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
         hl7EventDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
@@ -91,21 +92,21 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
         hl7EventDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
         hl7EventDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setContentDescriptor(hl7EventDescriptor);
-        hl7EventManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-        hl7EventManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-        hl7EventManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        hl7EventManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-        hl7EventManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-        hl7EventManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_ANY);
-        hl7EventManifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setInterSubsystemDistributable(true);
-        hl7EventManifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventManifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        subscriptionList.add(hl7EventManifest);
+        hl7EventMessageManifest.setContentDescriptor(hl7EventDescriptor);
+        hl7EventMessageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        hl7EventMessageManifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        hl7EventMessageManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        hl7EventMessageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        hl7EventMessageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
+        hl7EventMessageManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
+        hl7EventMessageManifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        hl7EventMessageManifest.setInterSubsystemDistributable(false);
+        subscriptionList.add(hl7EventMessageManifest);
         return (subscriptionList);
     }
 
@@ -121,12 +122,12 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
 
     @Override
     protected WorkshopInterface specifyWorkshop() {
-        return (policyEnforcementWorkshop);
+        return (workshop);
     }
 
     @Override
     protected String specifyParticipantDisplayName(){
-        return("InboundMessageCheckpoint");
+        return("OutboundMessageValidator");
     }
 
     @Override
@@ -136,7 +137,7 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(PegacornEdgeHL7v2xPolicyEnforcementPoint.class, "enforceInboundPolicy")
+                .bean(HL7v2xValidationPoint.class, "validateOutboundMessage")
                 .to(egressFeed());
     }
 

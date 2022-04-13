@@ -21,11 +21,13 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
+import net.fhirfactory.pegacorn.core.model.topology.valuesets.ProcessingPlantProviderRoleEnum;
+import net.fhirfactory.pegacorn.core.model.topology.valuesets.ProcessingPlantTypeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 
@@ -82,6 +84,8 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 manifest.setSourceSystem(currentSource);
                 manifest.setSourceProcessingPlantParticipantName(currentSourceParticipantName);
                 manifest.setSourceProcessingPlantInterfaceName(currentSourceParticipantInterfaceName);
+                manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+                manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
                 manifestList.add(manifest);
             }
         }
@@ -95,7 +99,12 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
     abstract protected List<SimpleSubscriptionItem> registerSubscriptionList();
 
     @Override
-    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
-        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_MITAF_GENERAL);
+    public ProcessingPlantProviderRoleEnum specifyPlantProviderRole() {
+        return (ProcessingPlantProviderRoleEnum.PETASOS_SERVICE_PROVIDER_MITAF_GENERAL);
+    }
+
+    @Override
+    public ProcessingPlantTypeEnum specifyProcessingPlantType(){
+        return(ProcessingPlantTypeEnum.PROCESSING_PLANT_TYPE_MITAF);
     }
 }

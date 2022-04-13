@@ -35,6 +35,7 @@ import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.OnExceptionDefinition;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,8 +105,8 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 
         specifyDefaultOutboundExceptionHandler();
 
-        
-        fromIncludingPetasosServices(ingresFeed())
+
+        fromIncludingPetasosAndEndpointDetail(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
 			.bean(freemarkerConfig,"configure(*, Exchange)")
 			.to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
@@ -127,6 +128,27 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
     }
 
     //
+    // Path Context Injection
+    //
+
+    /**
+     * @param uri
+     * @return the RouteBuilder.from(uri) with port details and audit/metrics agents injected
+     */
+    protected RouteDefinition fromIncludingPetasosAndEndpointDetail(String uri) {
+        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
+        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
+        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
+        RouteDefinition route = from(uri);;
+        route
+                .process(nodeDetailInjector)
+                .process(auditAgentInjector)
+                .process(taskReportAgentInjector)
+        ;
+        return route;
+    }
+
+    //
     // WUP Configuration
     //
 
@@ -138,16 +160,23 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
         parcelDescriptor.setDataParcelCategory(SerializationUtils.clone(hl7v2xTopicIDBuilder.getHl7MessageCategory()));
         parcelDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
         parcelDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
+        parcelDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        parcelDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
         DataParcelManifest manifest = new DataParcelManifest();
         manifest.setContentDescriptor(parcelDescriptor);
         manifest.setSourceSystem("*");
         manifest.setIntendedTargetSystem("*");
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
-        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
         manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
+        manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setInterSubsystemDistributable(false);
         subscriptionList.add(manifest);
         return (subscriptionList);
     }
