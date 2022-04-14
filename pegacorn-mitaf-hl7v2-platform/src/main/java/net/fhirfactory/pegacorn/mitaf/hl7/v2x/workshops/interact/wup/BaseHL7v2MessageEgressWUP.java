@@ -129,8 +129,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.to(egressFeed())
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
-				.to(getNameSet().getEndPointWUPEgress());
-				//.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
 	//
@@ -138,16 +137,11 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	//
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
-		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version.getVersionText(), DataParcelManifest.WILDCARD_CHARACTER, DataParcelManifest.WILDCARD_CHARACTER);
+		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version.getVersionText());
 		return manifest;
 	}
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, String version) {
-		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version, DataParcelManifest.WILDCARD_CHARACTER, DataParcelManifest.WILDCARD_CHARACTER);
-		return manifest;
-	}
-
-	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, String version, String sourceParticipantName, String sourceInterfaceName) {
 
 		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger,version);
 		DataParcelManifest manifest = new DataParcelManifest();
@@ -155,15 +149,10 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
 		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
 		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-		manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_TRUE);
-		manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setSourceProcessingPlantParticipantName(sourceParticipantName);
-		manifest.setSourceProcessingPlantInterfaceName(sourceInterfaceName);
-		manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+		manifest.setIntendedTargetSystem("*");
+		manifest.setSourceSystem("*");
 		manifest.setInterSubsystemDistributable(false);
 		return manifest;
 	}

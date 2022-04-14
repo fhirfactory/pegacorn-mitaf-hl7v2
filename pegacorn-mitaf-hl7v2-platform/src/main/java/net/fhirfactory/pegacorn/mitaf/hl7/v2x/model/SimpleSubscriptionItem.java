@@ -27,8 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleSubscriptionItem {
-    private String sourceProcessingPlantParticipantName;
-    private String sourceProcessingPlantInterfaceName;
+    private String sourceSubsystemParticipantName;
     private String sourceSystem;
     private List<DataParcelTypeDescriptor> descriptorList;
 
@@ -37,8 +36,7 @@ public class SimpleSubscriptionItem {
     //
     public SimpleSubscriptionItem(){
         descriptorList = new ArrayList<>();
-        sourceProcessingPlantParticipantName = null;
-        sourceProcessingPlantInterfaceName = null;
+        sourceSubsystemParticipantName = null;
         sourceSystem = null;
     }
 
@@ -47,20 +45,12 @@ public class SimpleSubscriptionItem {
     //
 
 
-    public String getSourceProcessingPlantInterfaceName() {
-        return sourceProcessingPlantInterfaceName;
+    public String getSourceSubsystemParticipantName() {
+        return sourceSubsystemParticipantName;
     }
 
-    public void setSourceProcessingPlantInterfaceName(String sourceProcessingPlantInterfaceName) {
-        this.sourceProcessingPlantInterfaceName = sourceProcessingPlantInterfaceName;
-    }
-
-    public String getSourceProcessingPlantParticipantName() {
-        return sourceProcessingPlantParticipantName;
-    }
-
-    public void setSourceProcessingPlantParticipantName(String sourceProcessingPlantParticipantName) {
-        this.sourceProcessingPlantParticipantName = sourceProcessingPlantParticipantName;
+    public void setSourceSubsystemParticipantName(String sourceSubsystemParticipantName) {
+        this.sourceSubsystemParticipantName = sourceSubsystemParticipantName;
     }
 
     public String getSourceSystem() {
@@ -88,8 +78,7 @@ public class SimpleSubscriptionItem {
         return "SimpleSubscriptionItem{" +
                 "sourceSystem=" + sourceSystem +
                 ", descriptorList=" + descriptorList +
-                ", sourceProcessingPlantParticipantName=" + sourceProcessingPlantParticipantName +
-                ", sourceProcessingPlantInterfaceName=" + sourceProcessingPlantInterfaceName +
+                ", sourceSubsystemParticipantName=" + sourceSubsystemParticipantName +
                 '}';
     }
 }

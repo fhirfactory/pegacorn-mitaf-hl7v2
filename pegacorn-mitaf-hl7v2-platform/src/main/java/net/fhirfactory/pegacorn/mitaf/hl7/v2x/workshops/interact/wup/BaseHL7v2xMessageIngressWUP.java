@@ -22,7 +22,6 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.component.valuesets.SoftwareComponentConnectivityContextEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;

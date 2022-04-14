@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Mark A. Hunter (ACT Health)
+ * Copyright (c) 2021 ACT Health
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,41 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.validate;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import net.fhirfactory.pegacorn.workshops.base.PetasosEnabledWorkshop;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hl7.fhir.r4.model.Communication;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class DiscreteValidationWorkshop extends PetasosEnabledWorkshop {
-    private static final Logger LOG = LoggerFactory.getLogger(DiscreteValidationWorkshop.class);
+public class FHIRResourceSecurityMarkerInjection {
 
-    private String WORKSHOP_VERSION = "1.0.0";
-
-    public DiscreteValidationWorkshop(){
-        super();
-    }
-
-    @Override
-    protected Logger specifyLogger() {
-        return (LOG);
-    }
-
-    @Override
-    protected String specifyWorkshopName() {
-        return ("DiscreteDataValidationWorkshop");
-    }
-
-    @Override
-    protected String specifyWorkshopVersion() {
-        return (WORKSHOP_VERSION);
-    }
-
-    @Override
-    protected void invokePostConstructInitialisation() {
-
+    public Communication injectSecurityMarkers(Communication communication){
+        return(communication); // do nothing!
     }
 }

@@ -51,7 +51,7 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
     HL7v2xInformationExtractionInterface informationExtractionInterface;
 
     public Message convertToMessage(UoW incomingUoW, Exchange camelExchange) throws HL7Exception{
-        LOG.info(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+        LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
         if(incomingUoW == null){
             UoW uowFromExchange = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
             if(uowFromExchange == null){

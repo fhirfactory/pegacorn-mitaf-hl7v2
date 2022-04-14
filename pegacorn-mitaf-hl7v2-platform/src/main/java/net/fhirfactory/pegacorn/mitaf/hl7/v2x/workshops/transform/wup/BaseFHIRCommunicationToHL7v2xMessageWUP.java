@@ -28,28 +28,27 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationExceptionHandler;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationPostProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-import org.apache.camel.LoggingLevel;
-import org.apache.camel.model.OnExceptionDefinition;
-import org.apache.camel.model.RouteDefinition;
-import org.apache.commons.lang3.SerializationUtils;
+
+import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
+public class BaseFHIRCommunicationToHL7v2xMessageWUP extends MOAStandardWUP {
 	
-    private static final Logger LOG = LoggerFactory.getLogger(BaseHL7v2xOutboundMessageTransformationWUP.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BaseFHIRCommunicationToHL7v2xMessageWUP.class);
 
     private String WUP_VERSION="1.0.0";
 
@@ -67,9 +66,6 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 	
 	@Inject
 	private FreeMarkerConfiguration freemarkerConfig;
-
-    @Inject
-    private HL7v2xOutboundMessageTransformationExceptionHandler outboundTransformationExceptionHandler;
 	
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
@@ -86,10 +82,6 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
         return (LOG);
     }
 
-    //
-    // Business Logic
-    //
-
 	@Override
 	public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
@@ -103,80 +95,30 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
         	throw new RuntimeException("Transformation file not found: " + fileName);
         }
 
-        specifyDefaultOutboundExceptionHandler();
-
-
-        fromIncludingPetasosAndEndpointDetail(ingresFeed())
+        
+        fromIncludingPetasosServices(ingresFeed())
 			.routeId(getNameSet().getRouteCoreWUP())
+                        .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
 			.bean(freemarkerConfig,"configure(*, Exchange)")
 			.to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
-			.bean(HL7v2xOutboundMessageTransformationPostProcessor.class, "postTransformProcessing(*, Exchange)")
+			.bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
 			.to(egressFeed());
 	}
 
-    //
-    // Exception Handling
-    //
-
-    protected OnExceptionDefinition specifyDefaultOutboundExceptionHandler(){
-        OnExceptionDefinition exceptionDef = onException(Exception.class)
-                .handled(true)
-                .log(LoggingLevel.WARN, "Exception in Transformation")
-                .bean(outboundTransformationExceptionHandler, "processException(*, Exchange)")
-                .to(egressFeed());
-        return(exceptionDef);
-    }
-
-    //
-    // Path Context Injection
-    //
-
-    /**
-     * @param uri
-     * @return the RouteBuilder.from(uri) with port details and audit/metrics agents injected
-     */
-    protected RouteDefinition fromIncludingPetasosAndEndpointDetail(String uri) {
-        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
-        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
-        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
-        RouteDefinition route = from(uri);;
-        route
-                .process(nodeDetailInjector)
-                .process(auditAgentInjector)
-                .process(taskReportAgentInjector)
-        ;
-        return route;
-    }
-
-    //
-    // WUP Configuration
-    //
 
     @Override
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelTypeDescriptor parcelDescriptor = new DataParcelTypeDescriptor();
-        parcelDescriptor.setDataParcelDefiner(SerializationUtils.clone(hl7v2xTopicIDBuilder.getHl7MessageDefiner()));
-        parcelDescriptor.setDataParcelCategory(SerializationUtils.clone(hl7v2xTopicIDBuilder.getHl7MessageCategory()));
-        parcelDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        DataParcelTypeDescriptor parcelDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
         DataParcelManifest manifest = new DataParcelManifest();
-        manifest.setContentDescriptor(parcelDescriptor);
+        manifest.setContainerDescriptor(parcelDescriptor);
         manifest.setSourceSystem("*");
         manifest.setIntendedTargetSystem("*");
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
-        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
-        manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setInterSubsystemDistributable(false);
         subscriptionList.add(manifest);
         return (subscriptionList);
     }

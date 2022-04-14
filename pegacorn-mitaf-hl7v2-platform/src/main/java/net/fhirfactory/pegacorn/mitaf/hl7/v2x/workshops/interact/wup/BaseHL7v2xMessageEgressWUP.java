@@ -21,7 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-@Deprecated
 public abstract class BaseHL7v2xMessageEgressWUP extends BaseHL7v2MessageEgressWUP {
 
     private String WUP_VERSION="1.0.0";

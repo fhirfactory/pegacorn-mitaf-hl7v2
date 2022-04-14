@@ -52,9 +52,9 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         if(!uow.hasIngresContent()){
             return(uow);
         }
-        UoWPayload newEgressPayload = SerializationUtils.clone(uow.getIngresContent());
-        newEgressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(newEgressPayload);
+        UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
+        ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        uow.getEgressContent().addPayloadElement(ingresPayload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
@@ -67,9 +67,9 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         if(!uow.hasIngresContent()){
             return(uow);
         }
-        UoWPayload newEgressPayload = SerializationUtils.clone(uow.getIngresContent());
-        newEgressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(newEgressPayload);
+        UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
+        ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        uow.getEgressContent().addPayloadElement(ingresPayload);
         uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
