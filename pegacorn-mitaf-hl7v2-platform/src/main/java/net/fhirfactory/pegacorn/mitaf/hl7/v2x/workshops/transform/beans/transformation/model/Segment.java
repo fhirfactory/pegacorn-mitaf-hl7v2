@@ -89,7 +89,25 @@ public class Segment implements Serializable {
 		
 		return fields.get(fieldIndex);
 	}
+
 	
+	/**
+	 * Returns a field repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetition(int fieldIndex, int repetition) {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return null;
+		}
+		
+		return field.getRepetition(repetition);
+	}
+
 	
 	/**
 	 * Gets the segment type.
@@ -183,7 +201,87 @@ public class Segment implements Serializable {
 		
 		field.clear(repetition);
 	}
+
 	
+	/**
+	 * Clears a sub field from the supplied repetition of a field.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @throws Exception
+	 */
+	public void clearSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
+		Field field = this.getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}
+		
+		field.clearSubField(subFieldIndex, repetition);
+	}
+
+	
+	/**
+	 * Clears a sub field from the 1st repetition of a field.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @throws Exception
+	 */
+	public void clearSubField(int fieldIndex, int subFieldIndex) throws Exception {
+		clearSubField(fieldIndex, 0, subFieldIndex);
+	}
+	
+	
+	/**
+	 * Clears a subField from all repetitions of a field.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldFromAllFieldRepetitions(int fieldIndex, int subFieldIndex) throws Exception {
+		Field field = this.getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}
+		
+		field.clearSubField(subFieldIndex);		
+	}
+
+	
+	/**
+	 * Returns the subfield for the supplied field repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) {
+		FieldRepetition fieldRepetition = getFieldRepetition(subFieldIndex, repetition);
+		
+		if (fieldRepetition == null) {
+			return null;
+		}
+		
+		return fieldRepetition.getSubField(subFieldIndex);
+	}
+
+	
+	/**
+	 * Returns the subfield for the 1st field repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param repetition
+	 * @param subFieldIndex
+	 * @return
+	 */
+	public Subfield getSubField(int fieldIndex, int subFieldIndex) {
+		return getSubField(fieldIndex, 0, subFieldIndex);
+	}
+
 	
 	/**
 	 * Is this segment empty?
@@ -193,7 +291,7 @@ public class Segment implements Serializable {
 	public boolean isEmpty() {
 		return this.getFields().size() == 1;
 	}
-	
+
 	
 	/**
 	 * Checks to see if the field is empty.  Either doesn't exist or is blank.
@@ -210,7 +308,7 @@ public class Segment implements Serializable {
 		
 		return field.isEmpty();
 	}
-	
+
 	
 	/**
 	 * Checks to see if the field is exists.
@@ -221,7 +319,35 @@ public class Segment implements Serializable {
 	public boolean doesFieldExist(int fieldIndex) {
 		return getField(fieldIndex) != null;
 	}
+
 	
+	/**
+	 * Checks to see if the sub field is exists in the supplied repetition of the field.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean doesSubFieldExist(int fieldIndex, int repetition, int subFieldIndex) {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return false;
+		}
+		
+		return field.doesSubFieldExist(repetition, subFieldIndex);	
+	}
+
+	
+	/**
+	 * Checks to see if the sub field is exists in the 1st repetition of the field.
+	 * 
+	 * @param fieldIndex
+	 * @return
+	 */
+	public boolean doesSubFieldExist(int fieldIndex, int subFieldIndex) {
+		return doesSubFieldExist(fieldIndex, subFieldIndex);
+	}
+
 	
 	/**
 	 * Changes the name of this segment.

@@ -320,7 +320,7 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubField(int subFieldIndex) throws Exception {
+	public void clearSubFieldFromAllFieldRepetitions(int subFieldIndex) throws Exception {
 		for (FieldRepetition repetition : this.getRepetitions()) {
 			repetition.clearSubField(subFieldIndex);
 		}
@@ -343,7 +343,19 @@ public class Field implements Serializable {
 		
 		fieldRepetition.clearSubField(subFieldIndex);
 	}
+
 	
+	/**
+	 * Clears a subfield in the 1st field repetition.
+	 * 
+	 * @param subFieldIndex
+	 * @param repetition
+	 * @throws Exception
+	 */
+	public void clearSubField(int subFieldIndex) throws Exception {
+		clearSubField(subFieldIndex, 0);
+	}
+
 	
 	/**
 	 * Adds a subfield at the supplied position.  This inserts a new subfield, it does not replace the value
