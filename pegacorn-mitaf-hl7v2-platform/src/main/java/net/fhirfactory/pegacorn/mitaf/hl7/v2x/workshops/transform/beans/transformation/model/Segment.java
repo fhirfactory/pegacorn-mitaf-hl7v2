@@ -201,6 +201,23 @@ public class Segment implements Serializable {
 		
 		field.clear(repetition);
 	}
+	
+	
+	/**
+	 * Clears all repetitions of a field.
+	 * 
+	 * @param fieldIndex
+	 * @throws Exception
+	 */
+	public void clearAllFieldRepetitions(int fieldIndex) throws Exception {
+		Field field = this.getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}
+		
+		field.clearAllRepetitions(fieldIndex);
+	}
 
 	
 	/**

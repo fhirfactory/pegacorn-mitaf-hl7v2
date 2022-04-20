@@ -325,6 +325,19 @@ public class Field implements Serializable {
 			repetition.clearSubField(subFieldIndex);
 		}
 	}
+
+	
+	/**
+	 * Clears all repetitions of a field.
+	 * 
+	 * @param fieldIndex
+	 * @throws Exception
+	 */
+	public void clearAllRepetitions(int fieldIndex) throws Exception {
+		for (FieldRepetition repetition : this.getRepetitions()) {
+			repetition.clear();
+		}		
+	}
 	
 	
 	/**

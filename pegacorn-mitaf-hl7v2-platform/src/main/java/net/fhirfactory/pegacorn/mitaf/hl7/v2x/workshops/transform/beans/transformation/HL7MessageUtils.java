@@ -815,63 +815,6 @@ public class HL7MessageUtils {
 	
 	
 	/**
-	 * Duplicates a message based on a segment type.  eg. if the supplied segmentType is OBX and the message contains 5 OBX segments then 5 messages are
-	 * returned with a single OBX segment.
-	 * 
-	 * @param message
-	 * @param segmentType
-	 * @return
-	 */
-	public static List<Message>duplicateMessage(Message message, String segmentType) throws Exception {
-		List<Message>newMessages = new ArrayList<>();
-        
-		// Create an array of messages.  1 message for each matching segment type. eg. if the segment type exists 5 times then create 5 messages.
-    	try (HapiContext context = new DefaultHapiContext();) {	
-			PipeParser parser = context.getPipeParser();
-			parser.getParserConfiguration().setValidating(false);
-	
-			ModelClassFactory cmf = new DefaultModelClassFactory();
-			context.setModelClassFactory(cmf);
-			    	
-	    	// Count the number of segments
-	    	int numberOfMatchingSegments = getSegmentCount(message, segmentType);
-	    	
-	    	if (numberOfMatchingSegments == 0) {
-	    		throw new HL7Exception("Unable to duplicate the message as the supplied segment does not exist in the message.  Segment: " + segmentType);
-	    	}
-	    	
-	    	for (int i = 0; i < numberOfMatchingSegments; i++) {
-	    		String clonedMessage = SerializationUtils.clone(message.toString());
-	    		newMessages.add(parser.parse(clonedMessage));	    		    		
-	    	}
-    	}	
-    	
-    	int occurenceToKeep = 0;
-    	
-    	// Now for each of the new messages remove all except one of the matching segments.
-    	for (Message newMessage : newMessages) {
-    		HL7Message hl7Message = new HL7Message(newMessage);
-    		
-    		int indexOfSegmentToKeep = hl7Message.getSegmentIndex(segmentType, occurenceToKeep);
-    		    		
-    		// Get all the segments indexes
-    		List<Integer>allSegmentIndexes = hl7Message.getSegmentIndexes(segmentType);
-    		
-    		// Make the first matching segment the same as the segment to keep.  This way we just delete the segments which are not the first.
-    		hl7Message.copySegment(indexOfSegmentToKeep, allSegmentIndexes.get(0));
-    		
-    		for (int i = 1; i < allSegmentIndexes.size(); i++) {
-    			hl7Message.removeSegment(segmentType, 1);
-    		}
-    		
-    		occurenceToKeep++;
-    	}
-    	
-    	return newMessages;
-	}
-	
-	
-	/**
 	 * Copies the content of one segment to another.
 	 * 
 	 * @param message
