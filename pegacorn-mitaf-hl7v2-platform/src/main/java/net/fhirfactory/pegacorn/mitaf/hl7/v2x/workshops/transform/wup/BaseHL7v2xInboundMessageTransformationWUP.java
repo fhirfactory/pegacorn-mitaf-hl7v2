@@ -21,34 +21,30 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import java.io.File;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRCommunicationToUoW;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.FHIRResourceSecurityMarkerInjection;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationExceptionHandler;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationPostProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.model.OnExceptionDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.File;
 
 
-public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends MOAStandardWUP {
-    private static final Logger LOG = LoggerFactory.getLogger(BaseHL7v2xMessageToFHIRCommunicationWUP.class);
+public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStandardWUP {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseHL7v2xInboundMessageTransformationWUP.class);
     
     private String WUP_VERSION = "1.0.0";
 
@@ -64,19 +60,19 @@ public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends MOAStandar
     private HL7v2MessageAsTextToHL7V2xMessage hl7v2TextToMessage;
 
     @Inject
-    private HL7v2xMessageIntoFHIRCommunication hl7v2xMessageIntoFHIRCommunication;
-
-    @Inject
-    private FHIRResourceSecurityMarkerInjection securityMarkerInjection;
-
-    @Inject
-    private FHIRCommunicationToUoW communicationIntoUoW;
-
-    @Inject
     private HL7V2XTopicFactory topicFactory;
 
     @Inject
     private FreeMarkerConfiguration freemarkerConfig;
+
+    @Inject
+    private HL7v2xInboundMessageTransformationPostProcessor transformationPostProcessor;
+
+    @Inject
+    private HL7v2xInboundMessageTransformationExceptionHandler inboundMessageTransformationExceptionHandler;
+
+    @Inject
+    private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
 
     @Override
     public void configure() throws Exception {
@@ -91,18 +87,30 @@ public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends MOAStandar
             throw new RuntimeException("Transformation file not found: " + fileName);
         }
 
-
+        specifyDefaultInboundExceptionHandler();
 
         fromIncludingPetasosServices(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(hl7v2TextToMessage, "convertToMessage")
                 .bean(freemarkerConfig, "configure(*, Exchange)")
                 .to("freemarker:file:" + fileName + "?allowTemplateFromHeader=true&allowContextMapAll=true")
-                .bean(hl7v2xMessageIntoFHIRCommunication, "encapsulateMessage")
-                .bean(securityMarkerInjection, "injectSecurityMarkers")
-                .bean(communicationIntoUoW, "packageCommunicationResource")
+                .bean(transformationPostProcessor, "postTransformProcessing(*, Exchange)")
                 .to(egressFeed());
     }
+
+    //
+    // Exception Handling
+    //
+
+    protected OnExceptionDefinition specifyDefaultInboundExceptionHandler(){
+        OnExceptionDefinition exceptionDef = onException(Exception.class)
+                .handled(true)
+                .log(LoggingLevel.WARN, "Exception in Transformation")
+                .bean(inboundMessageTransformationExceptionHandler, "processException(*, Exchange)")
+                .to(egressFeed());
+        return(exceptionDef);
+    }
+
 
     public HL7V2XTopicFactory getTopicFactory() {
         return topicFactory;
@@ -117,11 +125,14 @@ public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends MOAStandar
         manifest.setContentDescriptor(descriptor);
         manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_ANY);
+        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
         manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
         manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
+        manifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
+        manifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
         manifest.setInterSubsystemDistributable(false);
         getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
         return (manifest);
