@@ -22,13 +22,13 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelTypeEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
@@ -95,7 +95,7 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
 		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
 		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
 		manifest.setIntendedTargetSystem("*");
 		manifest.setSourceSystem("*");
 		manifest.setInterSubsystemDistributable(false);

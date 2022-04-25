@@ -24,15 +24,15 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelExternallyDistributableStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.exceptions.TransformationSoftFailureExceptionHandlerBase;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -46,7 +46,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class HL7v2xInboundMessageTransformationExceptionHandler {
+public class HL7v2xInboundMessageTransformationExceptionHandler extends TransformationSoftFailureExceptionHandlerBase {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xInboundMessageTransformationExceptionHandler.class);
 
     private boolean allowingSoftFailures;
@@ -98,20 +98,27 @@ public class HL7v2xInboundMessageTransformationExceptionHandler {
     //
 
     public UoW processException(Message message, Exchange camelExchange) {
-        getLogger().info(".processTransformationExceptionError(): Entry, message->{}", message);
+        getLogger().info(".processException(): Entry, message->{}", message);
 
         //
         // 1st Check to see if the Exception has been handled
         Exception caughtException = camelExchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-        getLogger().trace(".updateUoWWithExceptionDetails(): caughtException->{}", caughtException);
+        getLogger().trace(".processException(): caughtException->{}", caughtException);
+        String exceptionMessage = null;
         if(caughtException == null){
-            getLogger().info(".processTransformationExceptionError(): Exception is null (already handled), returning null!");
-            return(null);
+            getLogger().error(".processException(): Exception is null (already handled), returning null!");
+            exceptionMessage = "unknown error";
+        } else {
+            exceptionMessage = caughtException.getMessage();
         }
 
         //
         // Extract the fulfillmentTask from the exchange
         PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+
+        //
+        // Log Exception
+        sendExceptionNotification(exceptionMessage, camelExchange);
 
         //
         // Get the UoW from the fulfillmentTask (clone it...)
@@ -131,25 +138,24 @@ public class HL7v2xInboundMessageTransformationExceptionHandler {
         UoWPayload payload = new UoWPayload();
         payload.setPayloadManifest(exceptionManifest);
         String exceptionStackTrace = ExceptionUtils.getStackTrace(caughtException);
-        String exceptionMessage = ExceptionUtils.getMessage(caughtException);
         String exceptionDescription = "Error: message-> "+ exceptionMessage + ", stack trace-> "+ exceptionStackTrace;
         payload.setPayload(exceptionDescription);
         uow.getEgressContent().addPayloadElement(payload);
         uow.setFailureDescription(exceptionDescription);
 
         if(isAllowingSoftFailures()){
-            getLogger().warn(".processTransformationExceptionError(): Allowing for Soft-Errors, forwarding message");
+            getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
             UoWPayload continuationMessage = SerializationUtils.clone(uow.getIngresContent());
             continuationMessage.getPayloadManifest().setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
             continuationMessage.getPayloadManifest().setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-            continuationMessage.getPayloadManifest().setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
             continuationMessage.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
             uow.getEgressContent().addPayloadElement(continuationMessage);
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         } else {
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
         }
 
-        getLogger().info(".updateUoWWithExceptionDetails(): Exit, uow->{}", uow);
+        getLogger().info(".processException(): Exit, uow->{}", uow);
         return(uow);
 
     }
@@ -158,6 +164,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler {
     // Getters and Setters
     //
 
+    @Override
     protected Logger getLogger(){
         return(LOG);
     }

@@ -26,7 +26,7 @@ import java.util.Date;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacor.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -42,14 +42,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.SerializationUtils;
-import org.hl7.fhir.r4.model.Communication;
-import org.hl7.fhir.r4.model.StringType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class HL7v2xMessageIntoFHIRCommunication {

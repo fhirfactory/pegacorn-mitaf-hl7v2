@@ -22,9 +22,9 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
@@ -149,7 +149,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
 		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
 		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
 		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
 		manifest.setIntendedTargetSystem("*");
 		manifest.setSourceSystem("*");

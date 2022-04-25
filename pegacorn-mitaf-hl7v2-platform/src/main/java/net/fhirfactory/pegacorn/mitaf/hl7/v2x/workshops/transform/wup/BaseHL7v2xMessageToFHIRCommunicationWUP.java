@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2022 ACT Health
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,25 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import ca.uhn.hl7v2.model.Message;
-
-import java.util.Date;
-
-public interface HL7v2xInformationExtractionInterface {
-    public String extractMessageID(Message message);
-    public String extractMessageID(String messageAsText);
-    public Date extractMessageDate(Message message);
-    public Date extractMessageDate(String messageAsText);
-    public String extractMessageSource(Message message);
-    public String extractMessageSource(String messageAsText);
-    public String extractMessageVersion(Message message);
-    public String extractMessageVersion(String messageAsText);
-    public String convertMessageToString(Message message);
-    public Message convertToHL7v2Message(String messageAsText);
-    public String extractMessageTrigger(Message message);
-    public String extractMessageTrigger(String messageAsText);
-    public String extractMessageType(Message message);
-    public String extractMessageType(String messageAsText);
+@Deprecated
+public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends BaseHL7v2xInboundMessageTransformationWUP{
 }

@@ -23,9 +23,10 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
 import ca.uhn.hl7v2.model.Message;
 
+import net.fhirfactory.pegacor.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -35,7 +36,6 @@ import org.apache.commons.lang3.SerializationUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import org.slf4j.Logger;

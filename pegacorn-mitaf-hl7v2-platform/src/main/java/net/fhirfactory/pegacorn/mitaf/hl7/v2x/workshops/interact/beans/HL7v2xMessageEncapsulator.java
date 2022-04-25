@@ -30,6 +30,8 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import net.fhirfactory.pegacor.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -53,8 +55,6 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
@@ -70,9 +70,6 @@ public class HL7v2xMessageEncapsulator  {
     private boolean initialised;
     private boolean includeFullHL7MessageInLog;
     private Integer maxHL7MessageSize;
-
-    private static final String INCLUDE_FULL_HL7_MESSAGE_IN_LOG =  "INCLUDE_FULL_HL7_MESSAGE_IN_LOG";
-    private static final String MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG = "MAX_HL7_MESSAGE_SIZE_IN_LOG";
 
     @Inject
     private HL7V2XTopicFactory topicFactory;
@@ -110,7 +107,7 @@ public class HL7v2xMessageEncapsulator  {
         } else {
             getLogger().info(".initialise(): Start");
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
+            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
             if(StringUtils.isNotEmpty(includeMessageString)){
                 if(includeMessageString.equalsIgnoreCase("true")){
                     setIncludeFullHL7MessageInLog(true);
@@ -119,7 +116,7 @@ public class HL7v2xMessageEncapsulator  {
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
             getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
-            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
+            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
             if(StringUtils.isNotEmpty(messageMaximumSize)){
                 Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
                 if(messageMaxSize != null){
@@ -310,7 +307,7 @@ public class HL7v2xMessageEncapsulator  {
                 }
             }
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-            messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+            messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
             messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
             LOG.trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);

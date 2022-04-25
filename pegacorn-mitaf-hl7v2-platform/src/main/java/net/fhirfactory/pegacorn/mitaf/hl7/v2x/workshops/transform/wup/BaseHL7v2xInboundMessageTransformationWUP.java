@@ -22,15 +22,16 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationExceptionHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationPostProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
@@ -74,6 +75,9 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
     @Inject
     private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
 
+    @Inject
+    private HL7v2xMessageIntoFHIRCommunication intoFHIRCommunicationBean;
+
     @Override
     public void configure() throws Exception {
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getName(), ingresFeed());
@@ -89,7 +93,7 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
 
         specifyDefaultInboundExceptionHandler();
 
-        fromIncludingPetasosServices(ingresFeed())
+        fromIncludingPetasosServicesNoExceptionHandling(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .bean(hl7v2TextToMessage, "convertToMessage")
                 .bean(freemarkerConfig, "configure(*, Exchange)")
@@ -127,12 +131,10 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
         manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
         manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
         manifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
-        manifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
         manifest.setInterSubsystemDistributable(false);
         getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
         return (manifest);
