@@ -35,6 +35,7 @@ import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetr
 import net.fhirfactory.pegacorn.petasos.oam.notifications.PetasosITOpsNotificationContentFactory;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,8 @@ public class MLLPEgressMessageMetricsCapture {
     private boolean initialised;
     private boolean includeFullHL7MessageInLog;
     private Integer maxHL7MessageSize;
+
+    private static final Integer DEFAULT_MAX_MESSAGE_LENGTH = 64000;
 
     @Inject
     private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
@@ -101,6 +104,8 @@ public class MLLPEgressMessageMetricsCapture {
                 Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
                 if(messageMaxSize != null){
                     setMaxHL7MessageSize(messageMaxSize);
+                } else {
+                    setMaxHL7MessageSize(DEFAULT_MAX_MESSAGE_LENGTH);
                 }
             }
             getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] MaximumSize->{}", getMaxHL7MessageSize());
@@ -161,16 +166,24 @@ public class MLLPEgressMessageMetricsCapture {
         metricsAgent.touchLastActivityInstant();
 
         //
-        // Do some Endpiint Metrics
-        EndpointMetricsAgent endpointMetricsAgent = camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_METRICS_AGENT_EXCHANGE_PROPERTY, EndpointMetricsAgent.class);
-        endpointMetricsAgent.touchLastActivityInstant();
-        endpointMetricsAgent.incrementEgressSendAttemptCount();
+        // Do some Endpoint Metrics
+        try {
+            EndpointMetricsAgent endpointMetricsAgent = camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_METRICS_AGENT_EXCHANGE_PROPERTY, EndpointMetricsAgent.class);
+            endpointMetricsAgent.touchLastActivityInstant();
+            endpointMetricsAgent.incrementEgressSendAttemptCount();
 
-        boolean isHL7v2Message = hl7v2xTaskMetadataExtractor.isHL7V2Payload(uow.getIngresContent());
-        if(isHL7v2Message){
-            String messageHeaderSegment = hl7v2xTaskMetadataExtractor.getMSH(uow.getIngresContent().getPayload());
-            String patientIdentifierSegment = hl7v2xTaskMetadataExtractor.getPID(uow.getIngresContent().getPayload());
-            sendTrafficNotification(endpointMetricsAgent, messageHeaderSegment, patientIdentifierSegment, uow.getIngresContent().getPayload());
+            boolean isHL7v2Message = hl7v2xTaskMetadataExtractor.isHL7V2Payload(payload);
+            if (isHL7v2Message) {
+                String messageHeaderSegment = hl7v2xTaskMetadataExtractor.getMSH(payload.getPayload());
+                String patientIdentifierSegment = hl7v2xTaskMetadataExtractor.getPID(payload.getPayload());
+                if(StringUtils.isNotEmpty(payload.getPayload())) {
+                    sendTrafficNotification(endpointMetricsAgent, messageHeaderSegment, patientIdentifierSegment, payload.getPayload());
+                } else {
+                    sendTrafficNotification(endpointMetricsAgent, messageHeaderSegment, patientIdentifierSegment, "Unable to Extract Payload Content");
+                }
+            }
+        } catch(Exception ex){
+            getLogger().warn(".capturePreSendMetricDetail(): Unable to access Metrics Agent, error message->{}, stack trace->{}", ExceptionUtils.getMessage(ex), ExceptionUtils.getStackTrace(ex));
         }
 
         getLogger().debug(".capturePreSendMetricDetail(): Exit, uow->{}", uow);
@@ -207,7 +220,17 @@ public class MLLPEgressMessageMetricsCapture {
         unformattedMessageBuilder.append(target);
         unformattedMessageBuilder.append(" via ");
         unformattedMessageBuilder.append(endpointDisplayName + "\n");
-        formattedMessageBuilder.append("::: Message{" + message + "}");
+        if(isIncludeFullHL7MessageInLog()) {
+            String displayedMessage = null;
+            if(message.length() > getMaxHL7MessageSize()){
+                displayedMessage = message.substring(0, getMaxHL7MessageSize());
+            } else {
+                displayedMessage = message;
+            }
+            unformattedMessageBuilder.append("::: Message{" + displayedMessage + "}");
+        } else {
+            unformattedMessageBuilder.append(":::{"+msh+"\n"+pid+"}");
+        }
         String unformattedMessage = unformattedMessageBuilder.toString();
 
         //
@@ -225,7 +248,7 @@ public class MLLPEgressMessageMetricsCapture {
 
         if(uow.getProcessingOutcome().equals(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS)){
             //
-            // Do some Procesing Plant Metrics
+            // Do some Processing Plant Metrics
             getProcessingPlantMetricsAgent().incrementEgressMessageSuccessCount();
             getProcessingPlantMetricsAgent().touchLastActivityInstant();
 
@@ -307,6 +330,19 @@ public class MLLPEgressMessageMetricsCapture {
         unformattedMessageBuilder.append(target);
         unformattedMessageBuilder.append(" via ");
         unformattedMessageBuilder.append(endpointDescription + "\n");
+        if(success){
+            if(isIncludeFullHL7MessageInLog()) {
+                String displayedMessage = null;
+                if(acknowledgementPayload.length() > getMaxHL7MessageSize()){
+                    displayedMessage = acknowledgementPayload.substring(0, getMaxHL7MessageSize());
+                } else {
+                    displayedMessage = acknowledgementPayload;
+                }
+                unformattedMessageBuilder.append("::: Message{" + displayedMessage + "}");
+            }
+        } else {
+            unformattedMessageBuilder.append("::: Error{"+acknowledgementPayload+"}");
+        }
 
         String unformattedMessage = unformattedMessageBuilder.toString();
 
@@ -317,7 +353,6 @@ public class MLLPEgressMessageMetricsCapture {
         if(!success){
             getProcessingPlantMetricsAgent().sendITOpsNotification(unformattedMessage, formattedMessage);
         }
-
         getLogger().debug(".sendACKNotification(): Exit ...");
     }
 
@@ -343,6 +378,15 @@ public class MLLPEgressMessageMetricsCapture {
         getLogger().debug(".captureConnectionException(): Entry, info->{}", info);
 
         sendExceptionNotification("Connection Error", camelExchange);
+
+        getLogger().debug(".captureConnectionException(): Exit, info->{}", info);
+        return(info);
+    }
+
+    public Object captureGeneralException(Object info, Exchange camelExchange){
+        getLogger().debug(".captureConnectionException(): Entry, info->{}", info);
+
+        sendExceptionNotification("General Exception", camelExchange);
 
         getLogger().debug(".captureConnectionException(): Exit, info->{}", info);
         return(info);

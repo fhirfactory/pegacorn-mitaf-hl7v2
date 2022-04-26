@@ -43,6 +43,7 @@ import javax.enterprise.context.ApplicationScoped;
  * @author Brendan Douglas
  *
  */
+@Deprecated
 @ApplicationScoped
 public class HL7v2xTransformMessage {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTransformMessage.class);

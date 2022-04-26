@@ -121,7 +121,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getMLLPConnectionException();
 		getMLLPAckException();
 
-		fromIncludingEgressEndpointDetails(ingresFeed())
+		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
@@ -201,6 +201,17 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
 				.bean(metricsCapture, "captureMLLPAckException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+		return(exceptionDef);
+	}
+
+	protected OnExceptionDefinition getGeneralException() {
+		OnExceptionDefinition exceptionDef = onException(Exception.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "General Exception...")
+				.bean(metricsCapture, "captureGeneralException(*, Exchange)")
 				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");

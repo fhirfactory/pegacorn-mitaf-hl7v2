@@ -28,6 +28,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationExceptionHandler;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationPostProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
@@ -62,6 +63,9 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 
     @Inject
     private HL7v2xOutboundMessageTransformationExceptionHandler generalExceptionHandler;
+
+    @Inject
+    private HL7v2xOutboundMessageTransformationPostProcessor outboundMessageTransformationPostProcessor;
 
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
@@ -99,10 +103,9 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 
         fromIncludingPetasosServicesNoExceptionHandling(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(HL7v2xMessageOutOfFHIRCommunication.class, "extractMessage")
                 .bean(freemarkerConfig,"configure(*, Exchange)")
                 .to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
-                .bean(HL7v2xTransformMessage.class, "postTransformProcessing(*, Exchange)")
+                .bean(outboundMessageTransformationPostProcessor, "postTransformProcessing(*, Exchange)")
                 .to(egressFeed());
 	}
 

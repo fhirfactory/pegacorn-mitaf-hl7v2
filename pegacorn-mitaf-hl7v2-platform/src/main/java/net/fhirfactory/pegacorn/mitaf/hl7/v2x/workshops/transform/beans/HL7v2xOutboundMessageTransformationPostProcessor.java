@@ -26,7 +26,10 @@ import net.fhirfactory.pegacor.internals.hl7v2.interfaces.HL7v2xInformationExtra
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -106,9 +109,10 @@ public class HL7v2xOutboundMessageTransformationPostProcessor {
 
         newManifest.setContentDescriptor(parcelTypeDescriptor);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-        newManifest.setValidationStatus(uow.getIngresContent().getPayloadManifest().getValidationStatus());
+        newManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
         newManifest.setEnforcementPointApprovalStatus(uow.getIngresContent().getPayloadManifest().getEnforcementPointApprovalStatus());
-        newManifest.setEnforcementPointApprovalStatus(uow.getPayloadTopicID().getEnforcementPointApprovalStatus());
+        newManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        newManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
 
         newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);
