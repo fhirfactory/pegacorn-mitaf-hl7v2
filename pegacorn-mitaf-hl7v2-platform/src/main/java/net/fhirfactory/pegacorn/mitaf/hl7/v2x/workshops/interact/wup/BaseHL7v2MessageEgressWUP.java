@@ -120,6 +120,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getConnectionTimeoutException();
 		getMLLPConnectionException();
 		getMLLPAckException();
+		getGeneralException();
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())

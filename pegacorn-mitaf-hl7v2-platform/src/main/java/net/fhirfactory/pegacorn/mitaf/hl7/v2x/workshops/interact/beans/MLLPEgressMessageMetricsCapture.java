@@ -386,7 +386,16 @@ public class MLLPEgressMessageMetricsCapture {
     public Object captureGeneralException(Object info, Exchange camelExchange){
         getLogger().debug(".captureConnectionException(): Entry, info->{}", info);
 
-        sendExceptionNotification("General Exception", camelExchange);
+        Exception caughtException = camelExchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        String exceptionString = "General Exception";
+        if(caughtException != null){
+            String messageFromException = ExceptionUtils.getMessage(caughtException);
+            if(StringUtils.isNotEmpty(messageFromException)){
+                exceptionString = "General Exception("+ messageFromException+")";
+            }
+        }
+
+        sendExceptionNotification(exceptionString, camelExchange);
 
         getLogger().debug(".captureConnectionException(): Exit, info->{}", info);
         return(info);

@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import net.fhirfactory.pegacor.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
+import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

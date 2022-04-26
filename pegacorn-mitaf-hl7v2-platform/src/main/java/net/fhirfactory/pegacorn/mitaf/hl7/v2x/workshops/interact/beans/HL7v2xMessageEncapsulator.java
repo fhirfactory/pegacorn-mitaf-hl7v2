@@ -24,13 +24,14 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import net.fhirfactory.pegacor.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
+import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.Segment;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
@@ -55,7 +55,6 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
@@ -82,6 +81,9 @@ public class HL7v2xMessageEncapsulator  {
 
     @Inject
     private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
+
+    @Inject
+    private UltraDefensivePipeParser defensivePipeParser;
 
     //
     // Constructor(s)
@@ -200,6 +202,10 @@ public class HL7v2xMessageEncapsulator  {
 
         LOG.debug(".encapsulateMessage(): Entry, message->{}", message);
 
+        // -------------------------------------------------
+        LOG.warn("Incoming Message->{}", message);
+        // -------------------------------------------------
+
         //
         // add to Processing Plant metrics
         getProcessingPlantMetricsAgent().incrementIngresMessageCount();
@@ -228,12 +234,13 @@ public class HL7v2xMessageEncapsulator  {
             String mshSegment = null;
             String pidSegment = null;
             try{
-                List<Segment> messageHeaders = HL7MessageUtils.getAllSegments(message, "MSH");
-                List<Segment> pidSegments = HL7MessageUtils.getAllSegments(message, "PID");
-                mshSegment = messageHeaders.get(0).encode();
-                pidSegment = "No PID Segment";
-                if(!pidSegments.isEmpty()) {
-                    pidSegment = pidSegments.get(0).encode();
+                mshSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.MSH);
+                pidSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.PID);
+                if(StringUtils.isEmpty(pidSegment)) {
+                    pidSegment = "PID: Unknown";
+                }
+                if(StringUtils.isEmpty(mshSegment)){
+                    mshSegment = "MSH: unknown";
                 }
             } catch (Exception encodingException) {
                 mshSegment = "MSH: unknown";
