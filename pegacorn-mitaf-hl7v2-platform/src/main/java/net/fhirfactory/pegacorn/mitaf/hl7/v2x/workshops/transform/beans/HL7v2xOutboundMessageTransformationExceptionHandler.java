@@ -151,7 +151,7 @@ public class HL7v2xOutboundMessageTransformationExceptionHandler extends Transfo
             continuationMessage.getPayloadManifest().setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             continuationMessage.getPayloadManifest().setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             uow.getEgressContent().addPayloadElement(continuationMessage);
-            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SOFTFAILURE);
         } else {
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
         }
