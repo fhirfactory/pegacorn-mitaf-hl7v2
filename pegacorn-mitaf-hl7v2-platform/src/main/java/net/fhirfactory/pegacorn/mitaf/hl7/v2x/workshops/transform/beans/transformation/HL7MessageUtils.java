@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -606,7 +604,27 @@ public class HL7MessageUtils {
 	public static Integer getFirstSegmentIndex(Message message, String segmentName) throws Exception {
 		return getSegmentIndex(message, segmentName, 0);
 	}
-
+	
+	
+	/**
+	 * Returns the message row index of the last occurence of the supplied segment name.
+	 * 
+	 * @param message
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public static Integer getLastSegmentIndex(Message message, String segmentName) throws Exception {
+		List<Integer> segmentIndexes = getSegmentIndexes(message, segmentName);
+		
+		if (segmentIndexes.isEmpty()) {
+			return null;
+		}
+		
+		return segmentIndexes.get(segmentIndexes.size()-1);		
+	}
+	
+	
 	/**
 	 * Returns a segment.
 	 * 
