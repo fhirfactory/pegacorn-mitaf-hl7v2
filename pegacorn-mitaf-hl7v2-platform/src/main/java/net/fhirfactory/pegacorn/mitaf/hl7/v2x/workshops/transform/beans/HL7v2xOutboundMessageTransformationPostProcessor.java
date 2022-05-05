@@ -22,17 +22,18 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelExternallyDistributableStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -93,7 +94,7 @@ public class HL7v2xOutboundMessageTransformationPostProcessor {
         //
         // Create new UoWPayload (egress payload)
         UoWPayload newPayload = new UoWPayload();
-        DataParcelManifest newManifest = SerializationUtils.clone(uow.getIngresContent().getPayloadManifest());
+        DataParcelManifest newManifest = new DataParcelManifest();
 
         String messageType = messageInformationExtractionInterface.extractMessageType(message);
         String messageTrigger = messageInformationExtractionInterface.extractMessageTrigger(message);
@@ -108,8 +109,10 @@ public class HL7v2xOutboundMessageTransformationPostProcessor {
 
         newManifest.setContentDescriptor(parcelTypeDescriptor);
         newManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-        newManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
         newManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        newManifest.setEnforcementPointApprovalStatus(uow.getIngresContent().getPayloadManifest().getEnforcementPointApprovalStatus());
+        newManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        newManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
 
         newPayload.setPayload(message.toString());
         newPayload.setPayloadManifest(newManifest);

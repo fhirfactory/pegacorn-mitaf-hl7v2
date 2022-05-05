@@ -21,22 +21,21 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationExceptionHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationPostProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xTransformMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.OnExceptionDefinition;
 import org.apache.camel.model.RouteDefinition;
-import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +52,6 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 
     private String WUP_VERSION="1.0.0";
 
-    @Inject
-    private FHIRElementTopicFactory fhirTopicFactory;
-
-    @Inject
-    private PegacornReferenceProperties referenceProperties;
-
 	@Inject
 	protected HL7V2XTopicFactory hl7v2xTopicIDBuilder;
 
@@ -69,8 +62,11 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
 	private FreeMarkerConfiguration freemarkerConfig;
 
     @Inject
-    private HL7v2xOutboundMessageTransformationExceptionHandler outboundTransformationExceptionHandler;
-	
+    private HL7v2xOutboundMessageTransformationExceptionHandler generalExceptionHandler;
+
+    @Inject
+    private HL7v2xOutboundMessageTransformationPostProcessor outboundMessageTransformationPostProcessor;
+
 	@Override
 	protected WorkshopInterface specifyWorkshop() {
 		return (workshop);
@@ -87,7 +83,7 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
     }
 
     //
-    // Business Logic
+    // Route
     //
 
 	@Override
@@ -103,81 +99,60 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
         	throw new RuntimeException("Transformation file not found: " + fileName);
         }
 
-        specifyDefaultOutboundExceptionHandler();
+        handleGeneralException();
 
-
-        fromIncludingPetasosAndEndpointDetail(ingresFeed())
-			.routeId(getNameSet().getRouteCoreWUP())
-			.bean(freemarkerConfig,"configure(*, Exchange)")
-			.to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
-			.bean(HL7v2xOutboundMessageTransformationPostProcessor.class, "postTransformProcessing(*, Exchange)")
-			.to(egressFeed());
+        fromIncludingPetasosServicesNoExceptionHandling(ingresFeed())
+                .routeId(getNameSet().getRouteCoreWUP())
+                .bean(freemarkerConfig,"configure(*, Exchange)")
+                .to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+                .bean(outboundMessageTransformationPostProcessor, "postTransformProcessing(*, Exchange)")
+                .to(egressFeed());
 	}
 
     //
-    // Exception Handling
+    // Exception Handler for (Outbound) Transformation WUPs
     //
 
-    protected OnExceptionDefinition specifyDefaultOutboundExceptionHandler(){
+    protected OnExceptionDefinition handleGeneralException(){
         OnExceptionDefinition exceptionDef = onException(Exception.class)
+                .log(LoggingLevel.INFO, ".handleGeneralException(): Exception (General Exception)...")
                 .handled(true)
-                .log(LoggingLevel.WARN, "Exception in Transformation")
-                .bean(outboundTransformationExceptionHandler, "processException(*, Exchange)")
+                .bean(generalExceptionHandler, "processException(*, Exchange)")
                 .to(egressFeed());
         return(exceptionDef);
     }
 
     //
-    // Path Context Injection
-    //
-
-    /**
-     * @param uri
-     * @return the RouteBuilder.from(uri) with port details and audit/metrics agents injected
-     */
-    protected RouteDefinition fromIncludingPetasosAndEndpointDetail(String uri) {
-        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
-        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
-        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
-        RouteDefinition route = from(uri);;
-        route
-                .process(nodeDetailInjector)
-                .process(auditAgentInjector)
-                .process(taskReportAgentInjector)
-        ;
-        return route;
-    }
-
-    //
-    // WUP Configuration
+    // WUP Construction/Definition
     //
 
     @Override
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelTypeDescriptor parcelDescriptor = new DataParcelTypeDescriptor();
-        parcelDescriptor.setDataParcelDefiner(SerializationUtils.clone(hl7v2xTopicIDBuilder.getHl7MessageDefiner()));
-        parcelDescriptor.setDataParcelCategory(SerializationUtils.clone(hl7v2xTopicIDBuilder.getHl7MessageCategory()));
-        parcelDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        parcelDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
-        DataParcelManifest manifest = new DataParcelManifest();
-        manifest.setContentDescriptor(parcelDescriptor);
-        manifest.setSourceSystem("*");
-        manifest.setIntendedTargetSystem("*");
-        manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
-        manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
-        manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-        manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
-        manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setInterSubsystemDistributable(false);
-        subscriptionList.add(manifest);
+
+        DataParcelManifest subscriptionManifest = new DataParcelManifest();
+
+        DataParcelTypeDescriptor messageDescriptor = new DataParcelTypeDescriptor();
+        messageDescriptor.setDataParcelDefiner(hl7v2xTopicIDBuilder.getHl7MessageDefiner());
+        messageDescriptor.setDataParcelCategory(hl7v2xTopicIDBuilder.getHl7MessageCategory());
+        messageDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        subscriptionManifest.setContentDescriptor(messageDescriptor);
+
+        subscriptionManifest.setSourceSystem("*");
+        subscriptionManifest.setIntendedTargetSystem("*");
+
+        subscriptionManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        subscriptionManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        subscriptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        subscriptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        subscriptionManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        subscriptionManifest.setInterSubsystemDistributable(false);
+
+        subscriptionList.add(subscriptionManifest);
         return (subscriptionList);
     }
 

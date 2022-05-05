@@ -22,9 +22,9 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
@@ -120,8 +120,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getConnectionTimeoutException();
 		getMLLPConnectionException();
 		getMLLPAckException();
+		getGeneralException();
 
-		fromIncludingEgressEndpointDetails(ingresFeed())
+		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
@@ -129,8 +130,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.to(egressFeed())
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
-				.to(getNameSet().getEndPointWUPEgress());
-				//.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 	}
 
 	//
@@ -138,16 +138,11 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	//
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, HL7v2VersionEnum version) {
-		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version.getVersionText(), DataParcelManifest.WILDCARD_CHARACTER, DataParcelManifest.WILDCARD_CHARACTER);
+		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version.getVersionText());
 		return manifest;
 	}
 
 	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, String version) {
-		DataParcelManifest manifest = createSubscriptionManifestForInteractEgressHL7v2Messages(eventType, eventTrigger, version, DataParcelManifest.WILDCARD_CHARACTER, DataParcelManifest.WILDCARD_CHARACTER);
-		return manifest;
-	}
-
-	protected DataParcelManifest createSubscriptionManifestForInteractEgressHL7v2Messages(String eventType, String eventTrigger, String version, String sourceParticipantName, String sourceInterfaceName) {
 
 		DataParcelTypeDescriptor descriptor = hl7v2xTopicIDBuilder.newDataParcelDescriptor(eventType, eventTrigger,version);
 		DataParcelManifest manifest = new DataParcelManifest();
@@ -156,14 +151,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
 		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
 		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
-		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-		manifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_TRUE);
-		manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setSourceProcessingPlantParticipantName(sourceParticipantName);
-		manifest.setSourceProcessingPlantInterfaceName(sourceInterfaceName);
-		manifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-		manifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
+		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
+		manifest.setIntendedTargetSystem("*");
+		manifest.setSourceSystem("*");
 		manifest.setInterSubsystemDistributable(false);
 		return manifest;
 	}
@@ -212,6 +202,17 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
 				.bean(metricsCapture, "captureMLLPAckException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+		return(exceptionDef);
+	}
+
+	protected OnExceptionDefinition getGeneralException() {
+		OnExceptionDefinition exceptionDef = onException(Exception.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "General Exception...")
+				.bean(metricsCapture, "captureGeneralException(*, Exchange)")
 				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");

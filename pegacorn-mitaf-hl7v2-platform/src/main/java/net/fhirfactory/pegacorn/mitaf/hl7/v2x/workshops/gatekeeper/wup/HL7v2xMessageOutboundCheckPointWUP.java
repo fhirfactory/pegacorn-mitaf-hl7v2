@@ -42,15 +42,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
+import io.github.linuxforhealth.hl7.HL7ToFHIRConverter;
 import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
+import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,30 +86,25 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         getLogger().debug(".specifySubscriptionTopics(): Entry");
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelManifest hl7EventMessageManifest = new DataParcelManifest();
-
-        DataParcelTypeDescriptor hl7EventDescriptor = new DataParcelTypeDescriptor();
-        hl7EventDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
-        hl7EventDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
-        hl7EventDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setContentDescriptor(hl7EventDescriptor);
-        hl7EventMessageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
-        hl7EventMessageManifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-        hl7EventMessageManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        hl7EventMessageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
-        hl7EventMessageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
-        hl7EventMessageManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_ANY);
-        hl7EventMessageManifest.setSourceProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setSourceProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setTargetProcessingPlantParticipantName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setTargetProcessingPlantInterfaceName(DataParcelManifest.WILDCARD_CHARACTER);
-        hl7EventMessageManifest.setInterSubsystemDistributable(false);
-        subscriptionList.add(hl7EventMessageManifest);
+        DataParcelManifest subscriptionManifest = new DataParcelManifest();
+        DataParcelTypeDescriptor messageDescriptor = new DataParcelTypeDescriptor();
+        messageDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
+        messageDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
+        messageDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        subscriptionManifest.setContentDescriptor(messageDescriptor);
+        subscriptionManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
+        subscriptionManifest.setSourceSystem("*");
+        subscriptionManifest.setIntendedTargetSystem("*");
+        subscriptionManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+        subscriptionManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        subscriptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
+        subscriptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        subscriptionManifest.setInterSubsystemDistributable(false);
+        subscriptionList.add(subscriptionManifest);
         return (subscriptionList);
     }
 

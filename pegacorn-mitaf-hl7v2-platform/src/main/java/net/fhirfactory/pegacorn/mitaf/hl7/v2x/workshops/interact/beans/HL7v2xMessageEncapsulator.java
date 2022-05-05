@@ -24,13 +24,15 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
+import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -40,20 +42,19 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.Segment;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.common.HL7v2xMessageInformationExtractor;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
@@ -69,9 +70,6 @@ public class HL7v2xMessageEncapsulator  {
     private boolean includeFullHL7MessageInLog;
     private Integer maxHL7MessageSize;
 
-    private static final String INCLUDE_FULL_HL7_MESSAGE_IN_LOG =  "INCLUDE_FULL_HL7_MESSAGE_IN_LOG";
-    private static final String MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG = "MAX_HL7_MESSAGE_SIZE_IN_LOG";
-
     @Inject
     private HL7V2XTopicFactory topicFactory;
 
@@ -83,6 +81,9 @@ public class HL7v2xMessageEncapsulator  {
 
     @Inject
     private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
+
+    @Inject
+    private UltraDefensivePipeParser defensivePipeParser;
 
     //
     // Constructor(s)
@@ -108,7 +109,7 @@ public class HL7v2xMessageEncapsulator  {
         } else {
             getLogger().info(".initialise(): Start");
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
+            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
             if(StringUtils.isNotEmpty(includeMessageString)){
                 if(includeMessageString.equalsIgnoreCase("true")){
                     setIncludeFullHL7MessageInLog(true);
@@ -117,7 +118,7 @@ public class HL7v2xMessageEncapsulator  {
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
             getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
-            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
+            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
             if(StringUtils.isNotEmpty(messageMaximumSize)){
                 Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
                 if(messageMaxSize != null){
@@ -201,6 +202,10 @@ public class HL7v2xMessageEncapsulator  {
 
         LOG.debug(".encapsulateMessage(): Entry, message->{}", message);
 
+        // -------------------------------------------------
+        LOG.warn("Incoming Message->{}", message);
+        // -------------------------------------------------
+
         //
         // add to Processing Plant metrics
         getProcessingPlantMetricsAgent().incrementIngresMessageCount();
@@ -229,12 +234,13 @@ public class HL7v2xMessageEncapsulator  {
             String mshSegment = null;
             String pidSegment = null;
             try{
-                List<Segment> messageHeaders = HL7MessageUtils.getAllSegments(message, "MSH");
-                List<Segment> pidSegments = HL7MessageUtils.getAllSegments(message, "PID");
-                mshSegment = messageHeaders.get(0).encode();
-                pidSegment = "No PID Segment";
-                if(!pidSegments.isEmpty()) {
-                    pidSegment = pidSegments.get(0).encode();
+                mshSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.MSH);
+                pidSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.PID);
+                if(StringUtils.isEmpty(pidSegment)) {
+                    pidSegment = "PID: Unknown";
+                }
+                if(StringUtils.isEmpty(mshSegment)){
+                    mshSegment = "MSH: unknown";
                 }
             } catch (Exception encodingException) {
                 mshSegment = "MSH: unknown";
@@ -242,12 +248,10 @@ public class HL7v2xMessageEncapsulator  {
             }
 
             String portDescription = null;
-            String interfaceName = null;
             try{
                 WorkUnitProcessorSoftwareComponent workUnitProcessorSoftwareComponent = exchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorSoftwareComponent.class);
                 IPCTopologyEndpoint ingresEndpoint = workUnitProcessorSoftwareComponent.getIngresEndpoint();
                 portDescription = ingresEndpoint.getParticipantDisplayName();
-                interfaceName = ingresEndpoint.getEndpointConfigurationName();
             } catch(Exception ex){
                 if(StringUtils.isNotEmpty(targetPort)){
                     portDescription = "ServerPort:" + targetPort;
@@ -312,16 +316,7 @@ public class HL7v2xMessageEncapsulator  {
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-            messageManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-            messageManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-            messageManifest.setInterSubsystemDistributable(false);
-            messageManifest.setExternallyDistributable(DataParcelExternallyDistributableStatusEnum.DATA_PARCEL_EXTERNALLY_DISTRIBUTABLE_FALSE);
             messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
-            if(StringUtils.isNotEmpty(interfaceName)){
-                messageManifest.setSourceProcessingPlantInterfaceName(interfaceName);
-            } else {
-                messageManifest.setSourceProcessingPlantParticipantName("Unknown");
-            }
             LOG.trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
 
             //
@@ -344,7 +339,7 @@ public class HL7v2xMessageEncapsulator  {
 
             //
             // All Done!
-            LOG.info(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
+            LOG.debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         } catch (Exception ex) {
             LOG.warn(".encapsulateMessage(): Exception occurred", ex);
@@ -364,10 +359,6 @@ public class HL7v2xMessageEncapsulator  {
             return(newUoW);
         }
     }
-
-    //
-    // ITOps Activities
-    //
 
     protected void sendMessageReceivedConsoleNotification(String portDescription, Message message, String mshSegment, String pidSegment, EndpointMetricsAgent endpointMetricsAgent){
         getLogger().debug(".sendMessageReceivedConsoleNotification(): Entry, portDescription->{}, message->{}", portDescription, message);
