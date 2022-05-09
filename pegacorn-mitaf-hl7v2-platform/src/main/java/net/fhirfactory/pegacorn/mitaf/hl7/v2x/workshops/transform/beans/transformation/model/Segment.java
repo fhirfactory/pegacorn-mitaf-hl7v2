@@ -416,6 +416,44 @@ public class Segment implements Serializable {
 	
 	
 	/**
+	 * Combines multiple subField values into a single field value.  This methids combines the fields in the supplied repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param fieldRepetition
+	 * @param separator
+	 * @param allowSequentialSeparators
+	 * @throws Exception
+	 */
+	public void combinedSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}		
+		
+		field.combinedSubFields(fieldRepetition, separator, allowSequentialSeparators);
+	}
+	
+	
+	/**
+	 * Combines multiple subField values into a single field value.  This method combines the fields in the 1st repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param separator
+	 * @throws Exception
+	 */
+	public void combinedSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}		
+		
+		field.combinedSubFields(0, separator, allowSequentialSeparators);
+	}
+	
+	
+	/**
 	 * Returns the field value as a string. Repetition 0.  If the field does not exist an empty string is returned.
 	 * 
 	 * @param fieldIndex

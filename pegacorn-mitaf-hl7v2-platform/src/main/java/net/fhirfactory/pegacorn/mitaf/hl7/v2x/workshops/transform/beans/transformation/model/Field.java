@@ -497,4 +497,65 @@ public class Field implements Serializable {
 	public boolean equals(Object obj) {	
 		return Objects.equals(this.toString(), obj.toString());
 	}
+	
+	
+	/**
+	 * Combine all subField values into a single field with the supplied separator between the subfields.
+	 */
+	public void combinedSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		
+		for (Subfield subField : getSubFields(fieldRepetition)) {
+		
+			if (sb.length() > 0) {
+				if (allowSequentialSeparators) {
+					sb.append(separator);
+				} else {
+					if (!sb.toString().endsWith(separator)) {
+						sb.append(separator);
+					}
+				}
+			}
+			
+			sb.append(subField.value());
+		}
+		
+		this.setValue(sb.toString());
+	}
+	
+	
+	/**
+	 * Combine all subField values into a single field with the supplied separator between the subfields.
+	 */
+	public void combinedSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
+		combinedSubFields(0, separator, allowSequentialSeparators);
+	}
+	
+	
+	/**
+	 * returns a list of the subFields for a field repetition.
+	 * 
+	 * @param fieldRepetition
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Subfield>getSubFields(int fieldRepetition) throws Exception {
+		if (this.getRepetition(fieldRepetition) == null) {
+			return new ArrayList<Subfield>();
+		}
+		
+		return this.getRepetition(fieldRepetition).getSubFields();
+	}
+	
+	
+	/**
+	 * returns a list of the subFields for the 1st field repetition.
+	 * 
+	 * @param fieldRepetition
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Subfield>getSubFields() throws Exception {
+		return getSubFields(0);
+	}
 }
