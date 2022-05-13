@@ -254,11 +254,11 @@ public class Field implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int repetition, int subFieldIndex) {
-		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
+		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
 			return null;
 		}
 		
-		return getRepetitions().get(0).getSubField(subFieldIndex);
+		return getRepetitions().get(repetition).getSubField(subFieldIndex);
 	}
 	
 	
@@ -269,11 +269,11 @@ public class Field implements Serializable {
 	 * @return
 	 */
 	public String getSubFieldValue(int repetition, int subFieldIndex) {
-		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
+		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
 			return "";
 		}
 		
-		Subfield subField = getRepetitions().get(0).getSubField(subFieldIndex);
+		Subfield subField = getRepetitions().get(repetition).getSubField(subFieldIndex);
 		
 		if (subField == null) {
 			return "";
@@ -333,7 +333,7 @@ public class Field implements Serializable {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public void clearAllRepetitions(int fieldIndex) throws Exception {
+	public void clearAllRepetitions() throws Exception {
 		for (FieldRepetition repetition : this.getRepetitions()) {
 			repetition.clear();
 		}		
