@@ -216,7 +216,7 @@ public class Segment implements Serializable {
 			return;
 		}
 		
-		field.clearAllRepetitions(fieldIndex);
+		field.clearAllRepetitions();
 	}
 
 	
