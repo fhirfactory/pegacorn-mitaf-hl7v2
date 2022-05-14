@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>net.fhirfactory.pegacorn</groupId>
-        <artifactId>pegacorn-mitaf</artifactId>
-        <version>1.5.0-SNAPSHOT</version>
+        <groupId>net.fhirfactory.dricats</groupId>
+        <artifactId>dricats-mitaf</artifactId>
+        <version>1.6.0-SNAPSHOT</version>
         <relativePath>../../pegacorn-mitaf</relativePath>
     </parent>
 
-    <artifactId>pegacorn-mitaf-hl7v2</artifactId>
+    <artifactId>dricats-mitaf-hl7v2</artifactId>
     <packaging>pom</packaging>
 
-    <name>Pegacorn :: MITaF :: HL7v2</name>
+    <name>DRICATS :: MITaF :: HL7v2</name>
     <description></description>
 
     <modules>
