@@ -399,12 +399,12 @@ class HL7TerserBasedUtils {
 			AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
 
 			segment.clear();
-			
-			// Update the message object with the changes.
-			message.parse(message.toString());
 		} catch(HL7Exception e ) {
 			LOG.warn("Segment to delete does not exist: {}", sourcePathSpec);
 		}
+		
+		// Update the message object with the changes.
+		message.parse(message.toString());
 	}
 	
 	
