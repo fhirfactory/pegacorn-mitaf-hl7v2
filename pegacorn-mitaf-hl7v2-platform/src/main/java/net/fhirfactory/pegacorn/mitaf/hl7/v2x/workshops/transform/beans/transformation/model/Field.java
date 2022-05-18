@@ -379,14 +379,14 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public Subfield addSubField(String value, int repetition, int subFieldIndex) throws Exception {
+	public void addSubField(String value, int repetition, int subFieldIndex) throws Exception {
 		FieldRepetition fieldRepetition = this.getRepetition(repetition);
 		
 		if (fieldRepetition == null) {
-			return null;
+			return;
 		}
 		
-		return fieldRepetition.addSubField(value, subFieldIndex);
+		fieldRepetition.addSubField(value, subFieldIndex);
 	}
 
 	
