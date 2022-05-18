@@ -323,7 +323,7 @@ public class HL7MessageUtils {
         // get the target field and copy
         Field targetField = targetSegment.getField(targetFieldIndex);
         if (targetField == null) {
-            targetField = targetSegment.addField(sourceField.value(), targetFieldIndex);
+            targetSegment.addField(sourceField.value(), targetFieldIndex);
         } else {
             targetField.setValue(sourceField.value());
         }
@@ -418,13 +418,14 @@ public class HL7MessageUtils {
         Field targetField = targetSegment.getField(targetFieldIndex);
         if (targetField == null) {
             // add the target field
-            targetField = targetSegment.addField("", targetFieldIndex);
+            targetSegment.addField("", targetFieldIndex);
+            targetField = targetSegment.getField(targetFieldIndex);
         }
         
         // get the target subfield and copy
         Subfield targetSubField = targetField.getSubField(targetSubfieldIndex);
         if (targetSubField == null) {
-            targetSubField = targetField.addSubField(sourceSubField.value(), 0, targetSubfieldIndex);
+            targetField.addSubField(sourceSubField.value(), 0, targetSubfieldIndex);
         } else {
             targetSubField.setValue(sourceSubField.value());
         }
