@@ -123,90 +123,28 @@ public class Field implements Serializable {
 		FieldRepetition fieldRepetition = new FieldRepetition(value, false, this);
 		this.addRepetition(fieldRepetition);
 	}
-	
-	
-	/**
-	 * Sets the field value.  The value becomes the entire field value.  All existing repetitions are
-	 * removed and as a result the value becomes the only field in the first repetition.
-	 * 
-	 * @param value
-	 * @throws Exception
-	 */
-	public void setValue(String value) throws Exception {
-		setValue(value, true);
-	}
-	
+
 	
 	/**
-	 * Sets a field value as the 1st subfield in the 1st repetition.  Optionally clears all existing
-	 * content before setting the new value.
+	 * Sets a field value.
 	 * 
 	 * @param value
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
-	public void setValue(String value, boolean clearExistingContent) throws Exception {
-		if (clearExistingContent) {
-			getRepetition(0).clear();
-		}
-		
-		getRepetition(0).setValue(value);
-	}
-	
-	
-	/**
-	 * Sets as value as the first subfield of the supplied repetition.  If the repetition does not
-	 * exist then it is created.  If the repetition does exist then the current field content is removed
-	 * prior to setting the new value.
-	 * 
-	 * @param value
-	 * @param epetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int repetition) throws Exception {
-		setValue(value, repetition, true);
-	}
-	
-	
-	/**
-	 * Sets a value as the first subfield of the supplied repetition.  If the repetition does not
-	 * exist then it is created.  Optionally clears the existing field content before storing.
-	 * 
-	 * @param value
-	 * @param epetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int repetition, boolean clearExistingContent) throws Exception {		
-		FieldRepetition fieldRepetition = this.getRepetition(repetition);
-		
-		if (fieldRepetition == null) {
-			return;
-		}
-		
-		if (clearExistingContent) {
-			this.getRepetition(repetition).clear();
-		}
-		
-		fieldRepetition.setValue(value);
-	}
+	public void setValue(String value) throws Exception {
+		repetitions.clear();
 
-	
-	/**
-	 * Sets a sub field value for the supplied repetition.
-	 * 
-	 * @param value
-	 * @param subFieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int subFieldIndex, int repetition) throws Exception {
-		FieldRepetition fieldRepetition = this.getRepetition(repetition);
+		String[] splitFieldRepetitions = null;
 		
-		if (fieldRepetition == null) {
-			return;
+		splitFieldRepetitions = value.split("\\~");
+		
+		for (String fieldValue : splitFieldRepetitions) {
+			FieldRepetition repetition = new FieldRepetition(fieldValue, true, this);
+			repetitions.add(repetition);
 		}
 		
-		fieldRepetition.setValue(value, subFieldIndex);		
+		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
