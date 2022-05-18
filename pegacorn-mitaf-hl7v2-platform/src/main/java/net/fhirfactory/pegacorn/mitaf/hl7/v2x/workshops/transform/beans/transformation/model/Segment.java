@@ -165,8 +165,10 @@ public class Segment implements Serializable {
 	 * @param index
 	 * @throws Exception
 	 */
-	public void addField(String value, int index) throws Exception {
-		addField(new Field(value, true, this),index);
+	public Field addField(String value, int index) throws Exception {
+	    Field field = new Field(value, true, this);
+		addField(field,index);
+		return field;
 	}
 	
 	

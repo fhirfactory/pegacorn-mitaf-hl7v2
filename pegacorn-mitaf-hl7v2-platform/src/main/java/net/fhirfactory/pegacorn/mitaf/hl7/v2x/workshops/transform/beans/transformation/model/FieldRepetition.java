@@ -193,8 +193,10 @@ public class FieldRepetition implements Serializable  {
 	 * @param index
 	 * @throws Exception
 	 */
-	public void addSubField(String value, int index) throws Exception {
-		addSubField(new Subfield(value, this),index);
+	public Subfield addSubField(String value, int index) throws Exception {
+	    Subfield subfield = new Subfield(value, this);
+		addSubField(subfield,index);
+		return subfield;
 	}
 	
 	
