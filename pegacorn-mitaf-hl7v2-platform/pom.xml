@@ -219,6 +219,18 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        
+
+        <!--*******************************************************************************-->
+        <!-- Pegacorn CSV Data Models                                                     -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-buildingblocks-datamodels-csv</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!--*******************************************************************************-->
         <!-- Pegacorn (Deployment) Libraries                                               -->
