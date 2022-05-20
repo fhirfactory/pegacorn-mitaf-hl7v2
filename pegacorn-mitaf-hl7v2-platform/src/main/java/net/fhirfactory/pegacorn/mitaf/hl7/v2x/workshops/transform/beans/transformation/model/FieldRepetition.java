@@ -153,16 +153,20 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void setValue(String value) throws Exception {
-		Subfield subField = getSubField(1);
+		subFields.clear();
+			
+		String[] splitSubFieldRepetitions = null;
 		
-		if (subField == null) {
-			return;
-		}
+		splitSubFieldRepetitions = value.split("\\^");
+			
+		for (String fieldRepetitonValue : splitSubFieldRepetitions) {
+			Subfield subField = new Subfield(fieldRepetitonValue, this);
+			subFields.add(subField);
+		}	
 		
-		subField.setValue(value);
+		this.getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
-	
-	
+
 	/**
 	 * Sets a value at the supplied subFIeldIndex.  If the subFieldIndex does not exist then the 
 	 * sub field is created.
