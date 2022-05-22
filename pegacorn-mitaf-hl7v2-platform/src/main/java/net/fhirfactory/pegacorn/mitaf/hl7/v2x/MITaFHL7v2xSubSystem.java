@@ -68,7 +68,6 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 getLogger().info(".executePostConstructActivities(): container->{}", container);
                 TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
                 manifest.setContentDescriptor(currentDescriptor);
-                manifest.setContainerDescriptor(container);
                 manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
                 manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
                 manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);

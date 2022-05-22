@@ -24,6 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,6 @@ import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
 
 @ApplicationScoped
 public class HL7v2MessageAsTextToHL7V2xMessage {

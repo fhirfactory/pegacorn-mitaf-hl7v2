@@ -33,6 +33,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2Me
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -66,7 +67,7 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
-        fromIncludingPetasosServices(ingresFeed())
+        this.fromIncludingPetasosServices(ingresFeed())
                 .to(getA19DirectCamelEndpointName());
 
         from(getA19DirectCamelEndpointName())
@@ -114,5 +115,22 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     private String getA19DirectCamelEndpointName(){
         String name = "direct:" + getClass().getSimpleName() + "-A19QueryPoint";
         return(name);
+    }
+
+    //
+    // Route Helper Functions
+    //
+
+    protected RouteDefinition fromIncludingPetasosServices(String uri) {
+        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
+        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
+        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
+        RouteDefinition route = fromWithStandardExceptionHandling(uri);
+        route
+                .process(nodeDetailInjector)
+                .process(auditAgentInjector)
+                .process(taskReportAgentInjector)
+        ;
+        return route;
     }
 }
