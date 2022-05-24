@@ -358,13 +358,13 @@ public class Segment implements Serializable {
 
 	
 	/**
-	 * Checks to see if the sub field is exists in the 1st repetition of the field.
+	 * Checks to see if the sub field exists in the 1st repetition of the field.
 	 * 
 	 * @param fieldIndex
 	 * @return
 	 */
 	public boolean doesSubFieldExist(int fieldIndex, int subFieldIndex) {
-		return doesSubFieldExist(fieldIndex, subFieldIndex);
+		return doesSubFieldExist(fieldIndex, 0, subFieldIndex);
 	}
 
 	
