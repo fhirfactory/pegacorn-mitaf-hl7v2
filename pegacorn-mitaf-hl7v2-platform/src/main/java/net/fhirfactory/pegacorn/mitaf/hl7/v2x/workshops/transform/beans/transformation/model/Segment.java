@@ -58,8 +58,10 @@ public class Segment implements Serializable {
 	 * 
 	 * @param fields
 	 */
-	public void setFields(List<Field> fields) {
+	public void setFields(List<Field> fields) throws Exception {
 		this.fields = fields;
+		
+		this.getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -386,8 +388,6 @@ public class Segment implements Serializable {
 		for (Field field : getFields()) {
 			field.clear();
 		}
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
