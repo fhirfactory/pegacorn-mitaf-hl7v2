@@ -44,7 +44,7 @@ public class Subfield implements Serializable {
 	}
 	
 	
-    public FieldRepetition geFIeldRepetition() {
+    public FieldRepetition geFieldRepetition() {
 		return fieldRepetition;
 	}
 	
