@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import ca.uhn.hl7v2.HL7Exception;
+
 /**
  * A single HL7 message segment.
  * 
@@ -145,13 +147,15 @@ public class Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public void addField(Field field, int index) throws Exception {
+		
+		if (index < getFields().size()) {
+			throw new HL7Exception("This method adds a field to the end of the segment so the index supplied must not be the index of an existing field");
+		}
 			
-		if (index >= getFields().size()) {
-			int sizeDifference = index - getFields().size();
-			
-			for (int i = 0; i < sizeDifference; i++) {
-				getFields().add(new Field("", true, this));
-			}
+		int sizeDifference = index - getFields().size();
+		
+		for (int i = 0; i < sizeDifference; i++) {
+			getFields().add(new Field("", true, this));
 		}
 		
 		this.getFields().add(index, field);

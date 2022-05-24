@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import ca.uhn.hl7v2.HL7Exception;
+
 /**
  * A repetition of a field.
  * 
@@ -130,6 +132,10 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void addSubField(Subfield subField, int index) throws Exception {
+		if (index <= getSubFields().size()) {
+			throw new HL7Exception("This method adds a subField to the end of the field so the index supplied must not be the index of an existing subField");
+		}
+		
 		index--;	
 		
 		if (index >= getSubFields().size()) {
