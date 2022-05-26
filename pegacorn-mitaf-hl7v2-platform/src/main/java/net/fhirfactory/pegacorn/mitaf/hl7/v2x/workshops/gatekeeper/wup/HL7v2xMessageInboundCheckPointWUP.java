@@ -48,6 +48,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
@@ -75,6 +76,9 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     @Inject
     private FHIRElementTopicFactory fhirTopicFactory;
 
+    @Inject
+    private HL7V2XTopicFactory topicFactory;
+
     @Override
     protected Logger specifyLogger() {
         return LOG;
@@ -84,18 +88,25 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     protected List<DataParcelManifest> specifySubscriptionTopics() {
         getLogger().debug(".specifySubscriptionTopics(): Entry");
         List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelManifest communicationEvents = new DataParcelManifest();
-        DataParcelTypeDescriptor fhirCommunicationDescriptor = fhirTopicFactory.newTopicToken(ResourceType.Communication.name(), referenceProperties.getPegacornDefaultFHIRVersion());
-        communicationEvents.setContainerDescriptor(fhirCommunicationDescriptor);
-        communicationEvents.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-        communicationEvents.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-        communicationEvents.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        communicationEvents.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
-        communicationEvents.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_ANY);
-        communicationEvents.setInterSubsystemDistributable(true);
-        communicationEvents.setSourceSystem("*");
-        communicationEvents.setIntendedTargetSystem("*");
-        subscriptionList.add(communicationEvents);
+        DataParcelManifest subscriptionManifest = new DataParcelManifest();
+        DataParcelTypeDescriptor messageDescriptor = new DataParcelTypeDescriptor();
+        messageDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
+        messageDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
+        messageDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
+        messageDescriptor.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        subscriptionManifest.setContentDescriptor(messageDescriptor);
+        subscriptionManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
+        subscriptionManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
+        subscriptionManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        subscriptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+        subscriptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+        subscriptionManifest.setInterSubsystemDistributable(false);
+        subscriptionManifest.setSourceSystem("*");
+        subscriptionManifest.setIntendedTargetSystem("*");
+        subscriptionList.add(subscriptionManifest);
         return (subscriptionList);
     }
 

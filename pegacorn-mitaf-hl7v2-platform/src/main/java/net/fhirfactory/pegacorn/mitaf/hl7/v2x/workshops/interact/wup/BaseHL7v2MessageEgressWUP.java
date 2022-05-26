@@ -120,8 +120,9 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getConnectionTimeoutException();
 		getMLLPConnectionException();
 		getMLLPAckException();
+		getGeneralException();
 
-		fromIncludingEgressEndpointDetails(ingresFeed())
+		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(ingresFeed())
 				.routeId(getNameSet().getRouteCoreWUP())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
@@ -149,7 +150,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
 		manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
 		manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
+		manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
 		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
 		manifest.setIntendedTargetSystem("*");
 		manifest.setSourceSystem("*");
@@ -201,6 +202,17 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.handled(true)
 				.log(LoggingLevel.INFO, "MLLP Acknowledgement Exception...")
 				.bean(metricsCapture, "captureMLLPAckException(*, Exchange)")
+				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
+				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+		return(exceptionDef);
+	}
+
+	protected OnExceptionDefinition getGeneralException() {
+		OnExceptionDefinition exceptionDef = onException(Exception.class)
+				.handled(true)
+				.log(LoggingLevel.INFO, "General Exception...")
+				.bean(metricsCapture, "captureGeneralException(*, Exchange)")
 				.bean(exceptionToUoW, "updateUoWWithExceptionDetails(*, Exchange)")
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");

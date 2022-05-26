@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 
 @ApplicationScoped
 public class MLLPActivityAnswerCollector {
