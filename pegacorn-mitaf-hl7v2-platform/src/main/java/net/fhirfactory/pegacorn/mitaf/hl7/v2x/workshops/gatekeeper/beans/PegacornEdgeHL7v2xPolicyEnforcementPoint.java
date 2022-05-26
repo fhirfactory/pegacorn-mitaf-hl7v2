@@ -22,9 +22,10 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.fhirfactory.pegacorn.components.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
@@ -43,31 +44,34 @@ public class PegacornEdgeHL7v2xPolicyEnforcementPoint {
         jsonMapper = new ObjectMapper();
     }
 
-    public UoW enforceIngresPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceIngresPolicy(): Entry, uow->{}", uow);
+    public UoW enforceInboundPolicy(UoW uow, Exchange camelExchange){
+        getLogger().debug(".enforceInboundPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }
         if(!uow.hasIngresContent()){
             return(uow);
         }
-        UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
-        ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(ingresPayload);
+        UoWPayload egressPayload = SerializationUtils.clone(uow.getIngresContent());
+        egressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        egressPayload.getPayloadManifest().setInterSubsystemDistributable(true);
+        uow.getEgressContent().addPayloadElement(egressPayload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
 
-    public UoW enforceEgressPolicy(UoW uow, Exchange camelExchange){
-        getLogger().debug(".enforceEgressPolicy(): Entry, uow->{}", uow);
+    public UoW enforceOutboundPolicy(UoW uow, Exchange camelExchange){
+        getLogger().debug(".enforceOutboundPolicy(): Entry, uow->{}", uow);
         if(uow == null){
             return(null);
         }
         if(!uow.hasIngresContent()){
             return(uow);
         }
-        UoWPayload ingresPayload = SerializationUtils.clone(uow.getIngresContent());
-        ingresPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-        uow.getEgressContent().addPayloadElement(ingresPayload);
+        UoWPayload egressPayload = SerializationUtils.clone(uow.getIngresContent());
+        egressPayload.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+        uow.getEgressContent().addPayloadElement(egressPayload);
+        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         return(uow);
     }
 }

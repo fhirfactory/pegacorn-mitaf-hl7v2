@@ -21,19 +21,21 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HapiContext;
-import ca.uhn.hl7v2.model.Message;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.interfaces.HL7v2xInformationExtractionInterface;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.HapiContext;
+import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 
 @ApplicationScoped
 public class HL7v2MessageAsTextToHL7V2xMessage {
@@ -48,7 +50,7 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
     @Inject
     HL7v2xInformationExtractionInterface informationExtractionInterface;
 
-    public Message convertToMessage(UoW incomingUoW, Exchange camelExchange){
+    public Message convertToMessage(UoW incomingUoW, Exchange camelExchange) throws HL7Exception{
         LOG.debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
         if(incomingUoW == null){
             UoW uowFromExchange = camelExchange.getProperty(PetasosPropertyConstants.WUP_CURRENT_UOW_EXCHANGE_PROPERTY_NAME, UoW.class);
@@ -61,8 +63,9 @@ public class HL7v2MessageAsTextToHL7V2xMessage {
                 return(null);
             }
         }
-        String messageAsText= incomingUoW.getIngresContent().getPayload();
+        String messageAsText= incomingUoW.getIngresContent().getPayload();     
         Message message = informationExtractionInterface.convertToHL7v2Message(messageAsText);
+            
         LOG.debug(".convertToMessage(): Exit, message->{}", message);
         return(message);
     }

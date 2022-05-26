@@ -21,18 +21,19 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.components.capabilities.CapabilityFulfillmentInterface;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationRequest;
-import net.fhirfactory.pegacorn.components.capabilities.base.CapabilityUtilisationResponse;
-import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.base.ExternalSystemIPCEndpoint;
-import net.fhirfactory.pegacorn.deployment.topology.model.endpoints.interact.StandardInteractClientTopologyEndpointPort;
-import net.fhirfactory.pegacorn.deployment.topology.model.nodes.external.ConnectedExternalSystemTopologyNode;
+import net.fhirfactory.pegacorn.core.interfaces.capabilities.CapabilityFulfillmentInterface;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
+import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19ResponseACKExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpoint;
+import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.model.RouteDefinition;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -66,7 +67,7 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
-        fromIncludingPetasosServices(ingresFeed())
+        this.fromIncludingPetasosServices(ingresFeed())
                 .to(getA19DirectCamelEndpointName());
 
         from(getA19DirectCamelEndpointName())
@@ -77,13 +78,13 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     }
 
     @Override
-    protected MessageBasedWUPEndpoint specifyEgressEndpoint() {
-        MessageBasedWUPEndpoint endpoint = new MessageBasedWUPEndpoint();
+    protected MessageBasedWUPEndpointContainer specifyEgressEndpoint() {
+        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
         ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
-        ExternalSystemIPCEndpoint externalSystemIPCEndpoint = targetSystem.getTargetPorts().get(0);
-        int portValue = externalSystemIPCEndpoint.getTargetPortValue();
-        String targetInterfaceDNSName = externalSystemIPCEndpoint.getTargetPortDNSName();
+        MLLPClientAdapter externalSystemIPCEndpoint = (MLLPClientAdapter)targetSystem.getTargetPorts().get(0);
+        int portValue = externalSystemIPCEndpoint.getPortNumber();
+        String targetInterfaceDNSName = externalSystemIPCEndpoint.getHostName();
         endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue)+"?requireEndOfData=false");
         endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
@@ -94,11 +95,11 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     @Override
     public CapabilityUtilisationResponse executeTask(CapabilityUtilisationRequest request) {
         getLogger().info(".executeTask(): Entry, request->{}", request);
-        String queryString = request.getRequestContent();
+        String queryString = request.getRequestStringContent();
         String response = hl7MessageInjector.requestBody(getA19DirectCamelEndpointName(), queryString, String.class);
         getLogger().info(".executeTask(): response->{}", response);
         CapabilityUtilisationResponse outcome = new CapabilityUtilisationResponse();
-        outcome.setDateCompleted(Instant.now());
+        outcome.setInstantCompleted(Instant.now());
         outcome.setSuccessful(true);
         outcome.setAssociatedRequestID(request.getRequestID());
         outcome.setResponseContent(response);
@@ -114,5 +115,22 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
     private String getA19DirectCamelEndpointName(){
         String name = "direct:" + getClass().getSimpleName() + "-A19QueryPoint";
         return(name);
+    }
+
+    //
+    // Route Helper Functions
+    //
+
+    protected RouteDefinition fromIncludingPetasosServices(String uri) {
+        NodeDetailInjector nodeDetailInjector = new NodeDetailInjector();
+        AuditAgentInjector auditAgentInjector = new AuditAgentInjector();
+        TaskReportAgentInjector taskReportAgentInjector = new TaskReportAgentInjector();
+        RouteDefinition route = fromWithStandardExceptionHandling(uri);
+        route
+                .process(nodeDetailInjector)
+                .process(auditAgentInjector)
+                .process(taskReportAgentInjector)
+        ;
+        return route;
     }
 }

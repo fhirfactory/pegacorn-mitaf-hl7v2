@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ACT Health
+ * Copyright (c) 2022 ACT Health
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,16 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import org.hl7.fhir.r4.model.Communication;
-
-import javax.enterprise.context.ApplicationScoped;
-
-@ApplicationScoped
-public class FHIRResourceSecurityMarkerInjection {
-
-    public Communication injectSecurityMarkers(Communication communication){
-        return(communication); // do nothing!
-    }
+@Deprecated
+public abstract class BaseHL7v2xMessageToFHIRCommunicationWUP extends BaseHL7v2xInboundMessageTransformationWUP{
 }

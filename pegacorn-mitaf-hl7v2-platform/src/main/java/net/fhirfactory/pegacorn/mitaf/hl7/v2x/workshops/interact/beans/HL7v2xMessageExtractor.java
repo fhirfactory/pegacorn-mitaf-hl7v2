@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2021 ACT Health
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,22 +19,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
+
+import javax.enterprise.context.Dependent;
 
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 
-@ApplicationScoped
-public class HL7v24A19ResponseACKExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v24A19ResponseACKExtractor.class);
+@Dependent
+public class HL7v2xMessageExtractor {
+	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
-    public String extractACKContent(String incoming, Exchange camelExchange){
-        LOG.info(".getAckMessage(): Entry, incoming --> {}", incoming);
-        String responseString = camelExchange.getMessage().getHeader("CamelMllpAcknowledgementString", String.class);
-        LOG.info(".getAckMessage(): extracted response --> {}", responseString);
-        return(responseString);
+
+
+
+	//
+	// Constructor(s)
+	//
+
+	public HL7v2xMessageExtractor(){
+	}
+
+	//
+	// Getters (and Setters)
+	//
+
+    protected Logger getLogger(){
+        return(LOG);
     }
+
+
+
+    //
+	// Business Methods
+	//
+
+	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
+		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+
+		String messageAsString = incomingUoW.getIngresContent().getPayload();
+
+		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
+		getLogger().info("OutgoingMessage->{}", messageAsString);
+		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
+
+		getLogger().debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+		return (messageAsString);
+	}
 }

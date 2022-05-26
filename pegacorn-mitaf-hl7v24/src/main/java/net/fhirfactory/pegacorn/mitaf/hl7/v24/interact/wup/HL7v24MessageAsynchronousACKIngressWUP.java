@@ -21,22 +21,27 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import static org.apache.camel.component.hl7.HL7.ack;
-
-import org.apache.camel.component.hl7.HL7DataFormat;
-import org.apache.camel.spi.DataFormat;
-
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
-import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPAsynchronousMessageACKCollector;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageAsynchronousACKIngresWUP;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import org.apache.camel.ExchangePattern;
 
-public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
+import javax.inject.Inject;
+
+public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2MessageAsynchronousACKIngresWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
+
+    @Inject
+    private MLLPActivityAuditTrail mllpAuditTrail;
+    
+    @Inject
+    private MLLPAsynchronousMessageACKCollector mllpAsynchronousMessageACKCollector;
 
     @Override
     protected String specifyWUPInstanceName() {
@@ -50,24 +55,20 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
 
     @Override
     public void configure() throws Exception {
-        getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
+        getLogger().warn("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
-
-        DataFormat hl7 = new HL7DataFormat();
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .unmarshal(hl7)
+                .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
                 .choice()
-                    .when(header("CamelHL7TriggerEvent").contains("A19"))
-                        .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
-                    .otherwise()
-                        .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                    .when(header("CamelMllpEventType").isEqualTo("ACK"))
+                        .bean(mllpAsynchronousMessageACKCollector, "extractAndSaveACKMessage(*, Exchange)")
+                .otherwise()
                         .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
-                        .to(egressFeed())
-                .end()
-                .marshal(hl7)
-               .transform(ack());
+                        .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
+                        .to(ExchangePattern.InOnly, egressFeed())
+                .end();
     }
 
     @Override
@@ -78,7 +79,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
         getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getPortNumber();
         String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();
-        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+"?requireEndOfData=false&autoAck=true");
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+ getMllpConfigurationString());
         endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
         getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);

@@ -1,11 +1,32 @@
+/*
+ * Copyright (c) 2021 Mark A. Hunter
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import net.fhirfactory.pegacorn.petasos.audit.brokers.MOAServicesAuditBroker;
-import net.fhirfactory.pegacorn.petasos.core.common.resilience.processingplant.cache.ProcessingPlantParcelCacheDM;
-import net.fhirfactory.pegacorn.petasos.model.configuration.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.petasos.model.resilience.activitymatrix.moa.ParcelStatusElement;
-import net.fhirfactory.pegacorn.petasos.model.resilience.parcel.ResilienceParcel;
-import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalFulfillmentTaskCache;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -16,22 +37,23 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private ProcessingPlantParcelCacheDM parcelCacheDM;
+    private LocalFulfillmentTaskCache parcelCacheDM;
 
     @Inject
-    private MOAServicesAuditBroker servicesBroker;
+    private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
 
-    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange) {
-        ParcelStatusElement statusElement = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_PARCEL_STATUS_EXCHANGE_PROPERTY_NAME, ParcelStatusElement.class);
-        ResilienceParcel parcelInstance = parcelCacheDM.getParcelInstance(statusElement.getParcelInstanceID());
-        String portType = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_TYPE, String.class);
-        String portValue = camelExchange.getProperty(PetasosPropertyConstants.WUP_INTERACT_PORT_VALUE, String.class);
-        if (portType != null && portValue != null) {
-            parcelInstance.setAssociatedPortValue(portValue);
-            parcelInstance.setAssociatedPortType(portType);
-            UoW cloneUoW = SerializationUtils.clone(incomingUoW);
-            servicesBroker.logMLLPTransactions(parcelInstance, cloneUoW, true);
-        }
+    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String filtered) {
+        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
+        servicesBroker.logMLLPTransactions(clonedFulfillmentTask, filtered, true);
         return (incomingUoW);
     }
+
+    public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange) {
+        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
+        servicesBroker.logMLLPTransactions(clonedFulfillmentTask, "false", true);
+        return (incomingUoW);
+    }
+
 }
