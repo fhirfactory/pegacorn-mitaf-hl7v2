@@ -223,12 +223,12 @@ public class HL7v2xMessageEncapsulator  {
 
 
         try {
-            String portValue = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
+//            String portValue = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
 
             //
             // Add some notifications
             String targetPort = exchange.getProperty(PetasosPropertyConstants.ENDPOINT_PORT_VALUE, String.class);
-            String notificationContent;
+//            String notificationContent;
 
 
             String mshSegment = null;
@@ -326,8 +326,8 @@ public class HL7v2xMessageEncapsulator  {
             newPayload.setPayload(encodedString);
             newPayload.setPayloadManifest(messageManifest);
             LOG.trace(".encapsulateMessage(): newPayload created->{}", newPayload);
-            String sourceId = processingPlant.getSubsystemParticipantName() + ":" + portValue + ":" + messageEventType + "-" + messageTriggerEvent ;
-            String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimestamp;
+//            String sourceId = processingPlant.getSubsystemParticipantName() + ":" + portValue + ":" + messageEventType + "-" + messageTriggerEvent ;
+//            String transactionId = messageEventType + "-" + messageTriggerEvent + "-" + messageTimestamp;
 
             //
             // Create the UoW
