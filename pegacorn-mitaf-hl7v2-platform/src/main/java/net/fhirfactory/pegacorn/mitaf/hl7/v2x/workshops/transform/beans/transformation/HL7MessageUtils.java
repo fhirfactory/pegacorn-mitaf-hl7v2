@@ -1,5 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -17,6 +19,7 @@ import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Terser;
+import net.fhirfactory.pegacorn.csv.core.CSV;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Field;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.HL7Message;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Segment;
@@ -1097,5 +1100,27 @@ public class HL7MessageUtils {
 	public static List<Segment> getSegments(Message message, String segmentName) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
 		return hl7Message.getSegments(segmentName);		
+	}
+
+	
+	/**
+	 * Constructs and returns a CSV class which can be used in the transformation templates.
+	 * 
+	 * @param classname
+	 * @param csvContent
+	 * @return
+	 */
+	public static CSV getCSV(String classname, String csvContent) {
+		try {
+			Class<?> csvClass = Class.forName(classname);
+			Constructor<?> csvClassConstructor = csvClass.getConstructor(String.class);
+			CSV csv = (CSV) csvClassConstructor.newInstance(new Object[] {csvContent});
+			
+			return csv;
+		} catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+			LOG.info("Unable to construct csv class: {} ", classname);		
+		}
+		
+		return null;
 	}
 }
