@@ -109,6 +109,10 @@ public class FreeMarkerConfiguration {
 			hl7Message = uow.getIngresContent().getPayload();
 		}
 		
+		if (hl7Message == null) {
+			throw new RuntimeException("Unable to extract the HL7 message");
+		}
+		
 		try (HapiContext hapiContext = new DefaultHapiContext();) {
 			PipeParser parser = hapiContext.getPipeParser();
 			parser.getParserConfiguration().setValidating(false);

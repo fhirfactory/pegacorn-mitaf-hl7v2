@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import ca.uhn.hl7v2.HL7Exception;
+
 /**
  * A single HL7 message segment.
  * 
@@ -58,8 +60,10 @@ public class Segment implements Serializable {
 	 * 
 	 * @param fields
 	 */
-	public void setFields(List<Field> fields) {
+	public void setFields(List<Field> fields) throws Exception {
 		this.fields = fields;
+		
+		this.getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -143,13 +147,15 @@ public class Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public void addField(Field field, int index) throws Exception {
+		
+		if (index < getFields().size()) {
+			throw new HL7Exception("This method adds a field to the end of the segment so the index supplied must not be the index of an existing field");
+		}
 			
-		if (index >= getFields().size()) {
-			int sizeDifference = index - getFields().size();
-			
-			for (int i = 0; i < sizeDifference; i++) {
-				getFields().add(new Field("", true, this));
-			}
+		int sizeDifference = index - getFields().size();
+		
+		for (int i = 0; i < sizeDifference; i++) {
+			getFields().add(new Field("", true, this));
 		}
 		
 		this.getFields().add(index, field);
@@ -216,7 +222,7 @@ public class Segment implements Serializable {
 			return;
 		}
 		
-		field.clearAllRepetitions(fieldIndex);
+		field.clearAllRepetitions();
 	}
 
 	
@@ -356,13 +362,13 @@ public class Segment implements Serializable {
 
 	
 	/**
-	 * Checks to see if the sub field is exists in the 1st repetition of the field.
+	 * Checks to see if the sub field exists in the 1st repetition of the field.
 	 * 
 	 * @param fieldIndex
 	 * @return
 	 */
 	public boolean doesSubFieldExist(int fieldIndex, int subFieldIndex) {
-		return doesSubFieldExist(fieldIndex, subFieldIndex);
+		return doesSubFieldExist(fieldIndex, 0, subFieldIndex);
 	}
 
 	
@@ -386,8 +392,6 @@ public class Segment implements Serializable {
 		for (Field field : getFields()) {
 			field.clear();
 		}
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -412,6 +416,44 @@ public class Segment implements Serializable {
 		}
 		
 		return fieldRepetition.value();
+	}
+	
+	
+	/**
+	 * Combines multiple subField values into a single field value.  This methids combines the fields in the supplied repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param fieldRepetition
+	 * @param separator
+	 * @param allowSequentialSeparators
+	 * @throws Exception
+	 */
+	public void combinedSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}		
+		
+		field.combinedSubFields(fieldRepetition, separator, allowSequentialSeparators);
+	}
+	
+	
+	/**
+	 * Combines multiple subField values into a single field value.  This method combines the fields in the 1st repetition.
+	 * 
+	 * @param fieldIndex
+	 * @param separator
+	 * @throws Exception
+	 */
+	public void combinedSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field == null) {
+			return;
+		}		
+		
+		field.combinedSubFields(0, separator, allowSequentialSeparators);
 	}
 	
 	

@@ -332,9 +332,11 @@ class HL7TerserBasedUtils {
 			
 		terser.set(targetPathSpec, "");
 		
-		// Clear any subfields. //TODO get the number of sub fields if possible.  30 should be OK for now.
+		// Clear any subfields. //TODO get the number of sub fields and sub components if possible.  30 subfields and 5 sub components should be OK for now.
 		for (int i = 1; i <= 30; i++) {
-			terser.set(targetPathSpec + "-" + i, "");
+			for (int j = 1; j <= 5; j++ ) {
+			    terser.set(targetPathSpec + "-" + i + "-" + j, "");
+			}
 		}
 	}
 	
@@ -397,12 +399,12 @@ class HL7TerserBasedUtils {
 			AbstractSegment segment = (AbstractSegment)terser.getSegment(sourcePathSpec);
 
 			segment.clear();
-			
-			// Update the message object with the changes.
-			message.parse(message.toString());
 		} catch(HL7Exception e ) {
 			LOG.warn("Segment to delete does not exist: {}", sourcePathSpec);
 		}
+		
+		// Update the message object with the changes.
+		message.parse(message.toString());
 	}
 	
 	

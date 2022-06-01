@@ -123,90 +123,28 @@ public class Field implements Serializable {
 		FieldRepetition fieldRepetition = new FieldRepetition(value, false, this);
 		this.addRepetition(fieldRepetition);
 	}
-	
-	
-	/**
-	 * Sets the field value.  The value becomes the entire field value.  All existing repetitions are
-	 * removed and as a result the value becomes the only field in the first repetition.
-	 * 
-	 * @param value
-	 * @throws Exception
-	 */
-	public void setValue(String value) throws Exception {
-		setValue(value, true);
-	}
-	
+
 	
 	/**
-	 * Sets a field value as the 1st subfield in the 1st repetition.  Optionally clears all existing
-	 * content before setting the new value.
+	 * Sets a field value.
 	 * 
 	 * @param value
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
-	public void setValue(String value, boolean clearExistingContent) throws Exception {
-		if (clearExistingContent) {
-			getRepetition(0).clear();
-		}
-		
-		getRepetition(0).setValue(value);
-	}
-	
-	
-	/**
-	 * Sets as value as the first subfield of the supplied repetition.  If the repetition does not
-	 * exist then it is created.  If the repetition does exist then the current field content is removed
-	 * prior to setting the new value.
-	 * 
-	 * @param value
-	 * @param epetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int repetition) throws Exception {
-		setValue(value, repetition, true);
-	}
-	
-	
-	/**
-	 * Sets a value as the first subfield of the supplied repetition.  If the repetition does not
-	 * exist then it is created.  Optionally clears the existing field content before storing.
-	 * 
-	 * @param value
-	 * @param epetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int repetition, boolean clearExistingContent) throws Exception {		
-		FieldRepetition fieldRepetition = this.getRepetition(repetition);
-		
-		if (fieldRepetition == null) {
-			return;
-		}
-		
-		if (clearExistingContent) {
-			this.getRepetition(repetition).clear();
-		}
-		
-		fieldRepetition.setValue(value);
-	}
+	public void setValue(String value) throws Exception {
+		repetitions.clear();
 
-	
-	/**
-	 * Sets a sub field value for the supplied repetition.
-	 * 
-	 * @param value
-	 * @param subFieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void setValue(String value, int subFieldIndex, int repetition) throws Exception {
-		FieldRepetition fieldRepetition = this.getRepetition(repetition);
+		String[] splitFieldRepetitions = null;
 		
-		if (fieldRepetition == null) {
-			return;
+		splitFieldRepetitions = value.split("\\~");
+		
+		for (String fieldValue : splitFieldRepetitions) {
+			FieldRepetition repetition = new FieldRepetition(fieldValue, true, this);
+			repetitions.add(repetition);
 		}
 		
-		fieldRepetition.setValue(value, subFieldIndex);		
+		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -254,11 +192,11 @@ public class Field implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int repetition, int subFieldIndex) {
-		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
+		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
 			return null;
 		}
 		
-		return getRepetitions().get(0).getSubField(subFieldIndex);
+		return getRepetitions().get(repetition).getSubField(subFieldIndex);
 	}
 	
 	
@@ -269,11 +207,11 @@ public class Field implements Serializable {
 	 * @return
 	 */
 	public String getSubFieldValue(int repetition, int subFieldIndex) {
-		if (subFieldIndex > getRepetitions().get(0).getSubFields().size()) {
+		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
 			return "";
 		}
 		
-		Subfield subField = getRepetitions().get(0).getSubField(subFieldIndex);
+		Subfield subField = getRepetitions().get(repetition).getSubField(subFieldIndex);
 		
 		if (subField == null) {
 			return "";
@@ -333,7 +271,7 @@ public class Field implements Serializable {
 	 * @param fieldIndex
 	 * @throws Exception
 	 */
-	public void clearAllRepetitions(int fieldIndex) throws Exception {
+	public void clearAllRepetitions() throws Exception {
 		for (FieldRepetition repetition : this.getRepetitions()) {
 			repetition.clear();
 		}		
@@ -496,5 +434,66 @@ public class Field implements Serializable {
 	@Override
 	public boolean equals(Object obj) {	
 		return Objects.equals(this.toString(), obj.toString());
+	}
+	
+	
+	/**
+	 * Combine all subField values into a single field with the supplied separator between the subfields.
+	 */
+	public void combinedSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		
+		for (Subfield subField : getSubFields(fieldRepetition)) {
+		
+			if (sb.length() > 0) {
+				if (allowSequentialSeparators) {
+					sb.append(separator);
+				} else {
+					if (!sb.toString().endsWith(separator)) {
+						sb.append(separator);
+					}
+				}
+			}
+			
+			sb.append(subField.value());
+		}
+		
+		this.setValue(sb.toString());
+	}
+	
+	
+	/**
+	 * Combine all subField values into a single field with the supplied separator between the subfields.
+	 */
+	public void combinedSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
+		combinedSubFields(0, separator, allowSequentialSeparators);
+	}
+	
+	
+	/**
+	 * returns a list of the subFields for a field repetition.
+	 * 
+	 * @param fieldRepetition
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Subfield>getSubFields(int fieldRepetition) throws Exception {
+		if (this.getRepetition(fieldRepetition) == null) {
+			return new ArrayList<Subfield>();
+		}
+		
+		return this.getRepetition(fieldRepetition).getSubFields();
+	}
+	
+	
+	/**
+	 * returns a list of the subFields for the 1st field repetition.
+	 * 
+	 * @param fieldRepetition
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Subfield>getSubFields() throws Exception {
+		return getSubFields(0);
 	}
 }
