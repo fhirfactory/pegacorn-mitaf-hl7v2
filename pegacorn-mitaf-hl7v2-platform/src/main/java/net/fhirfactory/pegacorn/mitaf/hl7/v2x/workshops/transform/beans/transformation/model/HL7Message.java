@@ -378,4 +378,58 @@ public class HL7Message implements Serializable   {
 		
 		return null;
 	}
+
+	
+	/**
+	 * Clears the same field from each occurrences of a segment.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 */
+	public void clearFieldFromAllSegments(String segmentName, int fieldIndex) throws Exception {
+		setFieldInAllSegments(segmentName, fieldIndex, "");
+	}
+
+	
+	/**
+	 * Sets a field to the same value in all occurrences of a segment.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 */
+	public void setFieldInAllSegments(String segmentName, int fieldIndex, String value) throws Exception {
+		for (Segment segment : getSegments(segmentName)) {
+			Field field = segment.getField(fieldIndex);
+			
+			if (field != null) {
+				for (FieldRepetition repetition : field.getRepetitions()) {
+					repetition.setValue(value);
+				}
+			}
+		}
+	}
+
+	
+	/**
+	 * Sets a sub field to the same value in all occurrences of a segment.
+	 * 
+	 * @param segment
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 */
+	public void setSubFieldInAllSegments(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		for (Segment segment : getSegments(segmentName)) {
+			Field field = segment.getField(fieldIndex);
+			
+			if (field != null) {
+				for (FieldRepetition repetition : field.getRepetitions()) {
+					Subfield subField = repetition.getSubField(subFieldIndex);
+					
+					if (subField != null) {
+						subField.setValue(value);
+					}
+				}
+			}
+		}
+	}
 }

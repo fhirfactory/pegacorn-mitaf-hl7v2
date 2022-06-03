@@ -1123,4 +1123,45 @@ public class HL7MessageUtils {
 		
 		return null;
 	}
+	
+	
+	/**
+	 * Moves a field from the source to the target.
+	 * 
+	 * @param message
+	 * @param targetPathSpec
+	 * @param sourcePathSpec
+	 * @throws Exception
+	 */
+	public static void move(Message message, String targetPathSpec, String sourcePathSpec) throws Exception {
+		copy(message, targetPathSpec, sourcePathSpec);
+		clear(message, sourcePathSpec);
+	}
+
+	
+	/**
+	 * Clears a field from all matching segments.
+	 */ 
+	public static void clearFieldFromAllSegments(Message message, String segment, int fieldIndex) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.clearFieldFromAllSegments(segment, fieldIndex);			
+	}
+
+	
+	/**
+	 * Sets a field value in all matching segments.  All repetitions.
+	 */ 
+	public static void setFieldInAllSegments(Message message, String segment, int fieldIndex, String value) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.setFieldInAllSegments(segment, fieldIndex, value);			
+	}
+
+	
+	/**
+	 * Sets a sub field value in all matching segments.  All repetitions.
+	 */ 
+	public static void setSubFieldInAllSegments(Message message, String segment, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.setSubFieldInAllSegments(segment, fieldIndex, subFieldIndex, value);			
+	}
 }
