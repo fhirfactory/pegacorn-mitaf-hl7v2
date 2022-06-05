@@ -333,10 +333,14 @@ public class MLLPEgressMessageMetricsCapture {
         if(success){
             if(isIncludeFullHL7MessageInLog()) {
                 String displayedMessage = null;
-                if(acknowledgementPayload.length() > getMaxHL7MessageSize()){
-                    displayedMessage = acknowledgementPayload.substring(0, getMaxHL7MessageSize());
+                if(StringUtils.isNotEmpty(acknowledgementPayload)) {
+                    if (acknowledgementPayload.length() > getMaxHL7MessageSize()) {
+                        displayedMessage = acknowledgementPayload.substring(0, getMaxHL7MessageSize());
+                    } else {
+                        displayedMessage = acknowledgementPayload;
+                    }
                 } else {
-                    displayedMessage = acknowledgementPayload;
+                    displayedMessage = "ERROR: No Acknowledgement Payload!";
                 }
                 unformattedMessageBuilder.append("::: Message{" + displayedMessage + "}");
             }

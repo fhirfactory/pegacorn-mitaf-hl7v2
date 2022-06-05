@@ -36,6 +36,7 @@ import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.thymeleaf.util.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -79,13 +80,17 @@ public class MLLPActivityAnswerCollector {
         //
         //
         //
+        if(StringUtils.isEmpty(acknowledgeString)){
+            acknowledgeString = "No Acknowledgement Received!";
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
+            uow.setFailureDescription(acknowledgeString);
+        } else {
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+        }
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
         uow.getEgressContent().addPayloadElement(payload);
-        uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
-
-
-
+        
         LOG.debug(".extractUoWAndAnswer(): Exit, uow->{}", uow);
         return(uow);
     }
