@@ -80,12 +80,14 @@ public class MLLPActivityAnswerCollector {
         //
         //
         //
+        if(StringUtils.isEmpty(acknowledgeString) && uow.getProcessingOutcome().equals(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS)){
+            acknowledgeString = "ACK: Non-MLLP Message Response-Type";
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
+        }
         if(StringUtils.isEmpty(acknowledgeString)){
-            acknowledgeString = "No Acknowledgement Received!";
+            acknowledgeString = "No Acknowledgement String";
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
             uow.setFailureDescription(acknowledgeString);
-        } else {
-            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         }
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
