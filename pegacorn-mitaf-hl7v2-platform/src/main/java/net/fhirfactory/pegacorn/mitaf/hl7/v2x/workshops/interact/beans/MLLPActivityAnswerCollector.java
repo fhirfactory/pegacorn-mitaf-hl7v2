@@ -88,7 +88,10 @@ public class MLLPActivityAnswerCollector {
             acknowledgeString = "No Acknowledgement String";
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
             uow.setFailureDescription(acknowledgeString);
+        } else {
+        	uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
         }
+        
         payload.setPayload(acknowledgeString);
         payload.setPayloadManifest(payloadTopicID);
         uow.getEgressContent().addPayloadElement(payload);
