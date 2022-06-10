@@ -1146,6 +1146,32 @@ public class HL7MessageUtils {
 		HL7Message hl7Message = new HL7Message(message);
 		hl7Message.clearFieldFromAllSegments(segment, fieldIndex);			
 	}
+	
+	
+	/**
+	 * Clears all fields from a segment starting at the supplied startingFieldIndex in all matching segments.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param startingFieldIndex
+	 */
+	public static void clearFieldsFrom(Message message, String segment, int startingFieldIndex) throws Exception {
+		clearFieldRange(message, segment, startingFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in all matching segments.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 */
+	public static void clearFieldRange(Message message, String segment, int startingFieldIndex, int endingFieldIndex) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		hl7Message.clearFieldRange(segment, startingFieldIndex, endingFieldIndex);			
+	}
 
 	
 	/**

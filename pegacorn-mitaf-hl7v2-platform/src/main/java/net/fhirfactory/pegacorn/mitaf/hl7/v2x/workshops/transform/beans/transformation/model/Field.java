@@ -169,7 +169,7 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubField(int subFieldIndex) {
+	public Subfield getSubField(int subFieldIndex) throws Exception {
 		return getSubField(0, subFieldIndex);
 	}
 	
@@ -180,7 +180,7 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public String getSubFieldValue(int subFieldIndex) {
+	public String getSubFieldValue(int subFieldIndex) throws Exception {
 		return getSubFieldValue(0, subFieldIndex);
 	}
 	
@@ -191,9 +191,13 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubField(int repetition, int subFieldIndex) {
+	public Subfield getSubField(int repetition, int subFieldIndex) throws Exception {
+	
+		// If the subfield does not exist then add it.
 		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
-			return null;
+			addSubField("", subFieldIndex);
+			
+			return getSubField(subFieldIndex);
 		}
 		
 		return getRepetitions().get(repetition).getSubField(subFieldIndex);
@@ -206,17 +210,13 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public String getSubFieldValue(int repetition, int subFieldIndex) {
+	public String getSubFieldValue(int repetition, int subFieldIndex) throws Exception {
 		if (subFieldIndex > getRepetitions().get(repetition).getSubFields().size()) {
 			return "";
 		}
 		
 		Subfield subField = getRepetitions().get(repetition).getSubField(subFieldIndex);
-		
-		if (subField == null) {
-			return "";
-		}
-		
+				
 		return subField.value();			
 	}
 	
@@ -326,6 +326,19 @@ public class Field implements Serializable {
 		
 		fieldRepetition.addSubField(value, subFieldIndex);
 	}
+	
+	
+	/**
+	 * Adds a subfield at the supplied position.  This inserts a new subfield, it does not replace the value
+	 * of an existing subfield.  1st repetition only.
+	 * 
+	 * @param value
+	 * @param subFieldIndex
+	 * @throws Exception
+	 */
+	public void addSubField(String value, int subFieldIndex) throws Exception {
+		addSubField(value, 0, subFieldIndex);
+	}
 
 	
 	/**
@@ -349,6 +362,20 @@ public class Field implements Serializable {
 	
 	
 	/**
+	 * Adds a subfield at the supplied position.  This inserts a new subfield, it does not replace the value
+	 * of an existing subfield.  1st repetition only.
+	 * 
+	 * @param subField
+	 * @param repetition
+	 * @param subFieldIndex
+	 * @throws Exception
+	 */	
+	public void addSubField(Subfield subField, int subFieldIndex) throws Exception {
+		addSubField(subField, subFieldIndex);
+	}
+
+	
+	/**
 	 * Is this field empty?
 	 * 
 	 * @return
@@ -370,21 +397,10 @@ public class Field implements Serializable {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public boolean isSubFieldEmpty(int subFieldIndex) {
+	public boolean isSubFieldEmpty(int subFieldIndex) throws Exception {
 		return isSubFieldEmpty(0, subFieldIndex);
 	}
-	
-	
-	/**
-	 * Checks to see if the sub field is exists.
-	 * 
-	 * @param fieldIndex
-	 * @return
-	 */
-	public boolean doesSubFieldExist(int subFieldIndex) {
-		return doesSubFieldExist(0, subFieldIndex);
-	}
-	
+
 	
 	/**
 	 * Checks to see if the sub field at the specified repetition is empty.  Either doesn't exist or is blank.
@@ -392,7 +408,7 @@ public class Field implements Serializable {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public boolean isSubFieldEmpty(int repetition, int subFieldIndex) {
+	public boolean isSubFieldEmpty(int repetition, int subFieldIndex) throws Exception {
 		FieldRepetition fieldRepetition = getRepetition(repetition);
 		
 		if (fieldRepetition == null) {
@@ -400,30 +416,10 @@ public class Field implements Serializable {
 		}
 		
 		Subfield subField = fieldRepetition.getSubField(subFieldIndex);
-		
-		if (subField == null) {
-			return true;
-		}
-		
+				
 		return subField.isEmpty();
 	}
 	
-	
-	/**
-	 * Checks to see if the sub field at the specified repetition exists.
-	 * 
-	 * @param fieldIndex
-	 * @return
-	 */
-	public boolean doesSubFieldExist(int repetition, int subFieldIndex) {
-		FieldRepetition fieldRepetition = getRepetition(repetition);
-		
-		if (fieldRepetition == null) {
-			return true;
-		}
-		
-		return fieldRepetition.getSubField(subFieldIndex) != null;
-	}
 	
 	@Override
 	public int hashCode() {
@@ -495,5 +491,85 @@ public class Field implements Serializable {
 	 */
 	public List<Subfield>getSubFields() throws Exception {
 		return getSubFields(0);
+	}
+	
+	
+	/**
+	 * Clears all subFields from the startingSubFieldIndex in the supplied field repetition.
+	 * 
+	 * @param fieldRepetition
+	 * @param startingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldsFrom(int fieldRepetition, int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(fieldRepetition, startingSubFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all subFields from the startingSubFieldIndex in the 1st field repetition.
+	 * 
+	 * @param startingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldsFrom(int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(0, startingSubFieldIndex, -1);
+	}
+
+	
+	/**
+	 * Clears all subFields from the startingSubFieldIndex in all field repetitions.
+	 * 
+	 * @param startingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldsFromAllRepetitions(int startingSubFieldIndex) throws Exception {
+		for (FieldRepetition repetition : this.repetitions) {
+			repetition.clearSubFieldsFrom(startingSubFieldIndex);
+		}
+	}
+
+	
+	/**
+	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in the supplied field repetition.
+	 * 
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRange(int fieldRepetition, int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+		FieldRepetition repetition = this.getRepetition(fieldRepetition);
+		
+		if (repetition == null) {
+			return;
+		}
+		
+		repetition.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
+	}
+
+	
+	/**
+	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in the 1st field repetition.
+	 * 
+	 * @param startingSubFieldIndex
+	 * @param endingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+		clearSubFieldRange(0, startingSubFieldIndex, endingSubFieldIndex);
+	}
+
+	
+	/**
+	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in all field repetitions.
+	 * 
+	 * @param startingSubFieldIndex
+	 * @param endingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRangeAllRepetitions(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+		for (FieldRepetition fieldRepetition : this.repetitions) {
+			fieldRepetition.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
+		}
 	}
 }

@@ -432,4 +432,30 @@ public class HL7Message implements Serializable   {
 			}
 		}
 	}
+
+	
+	/**
+	 * Clears all fields from a segment starting at the supplied startingFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param startingFieldIndex
+	 */
+	public void clearFieldsFrom(String segmentName, int startingFieldIndex) throws Exception {
+		clearFieldRange(segmentName, startingFieldIndex, -1);
+	}
+
+	
+	/**
+	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 */
+	public void clearFieldRange(String segmentName, int startingFieldIndex, int endingFieldIndex) throws Exception {
+
+		for (Segment segment : getSegments(segmentName)) {
+			segment.clearFieldRange(startingFieldIndex, endingFieldIndex);
+		}
+	}
 }
