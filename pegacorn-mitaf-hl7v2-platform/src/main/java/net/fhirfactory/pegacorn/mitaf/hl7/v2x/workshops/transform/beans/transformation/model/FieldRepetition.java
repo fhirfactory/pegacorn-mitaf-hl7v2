@@ -60,9 +60,11 @@ public class FieldRepetition implements Serializable  {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubField(int subFieldIndex) {
+	public Subfield getSubField(int subFieldIndex) throws Exception {
+		
+		// If the subfield doesn't exist then add it.
 		if (subFieldIndex > subFields.size()) {
-			return null;
+			addSubField("", --subFieldIndex);
 		}
 		
 		return subFields.get(--subFieldIndex);
@@ -75,13 +77,9 @@ public class FieldRepetition implements Serializable  {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public String getSubFieldValue(int subFieldIndex) {
+	public String getSubFieldValue(int subFieldIndex) throws Exception {
 		Subfield subField = getSubField(subFieldIndex);
-		
-		if (subField == null) {
-			return "";
-		}
-		
+				
 		return subField.value();
 	}
 	
@@ -115,11 +113,7 @@ public class FieldRepetition implements Serializable  {
 	 */
 	public void clearSubField(int subFieldIndex) throws Exception {	
 		Subfield subField = getSubField(subFieldIndex);
-		
-		if (subField == null) {
-			return;
-		}
-		
+				
 		subField.clear();
 	}
 
@@ -184,16 +178,12 @@ public class FieldRepetition implements Serializable  {
 	public void setValue(String value, int subFieldIndex) throws Exception {
 		Subfield subField = getSubField(subFieldIndex);
 		
-		if (subField == null) {
-			addSubField(value, subFieldIndex);
-		} else {
-			subField.setValue(value);
-		}
+		subField.setValue(value);
 	}
 	
 	
 	/**
-	 * Adds a field at the specified index.  This adds a new sub field it does not update an existing one.
+	 * Adds a field at the specified index.  This adds a new sub field, it does not update an existing one.
 	 * 
 	 * @param value
 	 * @param index
@@ -226,26 +216,12 @@ public class FieldRepetition implements Serializable  {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public boolean isSubFieldEmpty(int subFieldIndex) {
+	public boolean isSubFieldEmpty(int subFieldIndex) throws Exception {
 		Subfield subField =  getSubField(subFieldIndex);
-		
-		if (subField == null) {
-			return true;
-		}
-		
+				
 		return subField.isEmpty();
 	}
 	
-	
-	/**
-	 * Checks to see if the sub field exists.
-	 * 
-	 * @param subFieldIndex
-	 * @return
-	 */
-	public boolean doesSubFieldExist(int subFieldIndex) {
-		return getSubField(subFieldIndex) != null;
-	}
 	
 	@Override
 	public int hashCode() {
@@ -256,5 +232,39 @@ public class FieldRepetition implements Serializable  {
 	@Override
 	public boolean equals(Object obj) {	
 		return Objects.equals(this.toString(), obj.toString());
+	}
+	
+	
+	/**
+	 * Clears all subFields from the supplied startingFieldIndex.
+	 * 
+	 * @param startingSubFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldsFrom(int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(startingSubFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex.
+	 * 
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+			
+		if (endingSubFieldIndex == -1) {
+			endingSubFieldIndex = getSubFields().size();
+		} 
+		
+		for (int i = startingSubFieldIndex; i <= endingSubFieldIndex; i++) {
+			Subfield subField = getSubField(i);
+			
+			if (subField != null) {
+				subField.clear();
+			}
+		}
 	}
 }

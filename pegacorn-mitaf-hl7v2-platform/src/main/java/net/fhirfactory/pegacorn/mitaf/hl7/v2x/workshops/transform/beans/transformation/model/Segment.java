@@ -86,9 +86,9 @@ public class Segment implements Serializable {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public Field getField(int fieldIndex) {
+	public Field getField(int fieldIndex) throws Exception {
 		if (fieldIndex >= fields.size()) {
-			return null;
+			addField("", fieldIndex);
 		}
 		
 		return fields.get(fieldIndex);
@@ -102,13 +102,9 @@ public class Segment implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public FieldRepetition getFieldRepetition(int fieldIndex, int repetition) {
+	public FieldRepetition getFieldRepetition(int fieldIndex, int repetition) throws Exception {
 		Field field = getField(fieldIndex);
-		
-		if (field == null) {
-			return null;
-		}
-		
+				
 		return field.getRepetition(repetition);
 	}
 
@@ -200,11 +196,7 @@ public class Segment implements Serializable {
 	 */
 	public void clearField(int fieldIndex, int repetition) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
-		if (field == null) {
-			return;
-		}
-		
+			
 		field.clear(repetition);
 	}
 	
@@ -217,11 +209,7 @@ public class Segment implements Serializable {
 	 */
 	public void clearAllFieldRepetitions(int fieldIndex) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
-		if (field == null) {
-			return;
-		}
-		
+				
 		field.clearAllRepetitions();
 	}
 
@@ -235,11 +223,7 @@ public class Segment implements Serializable {
 	 */
 	public void clearSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
-		if (field == null) {
-			return;
-		}
-		
+				
 		field.clearSubField(subFieldIndex, repetition);
 	}
 
@@ -265,11 +249,7 @@ public class Segment implements Serializable {
 	 */
 	public void clearSubFieldFromAllFieldRepetitions(int fieldIndex, int subFieldIndex) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
-		if (field == null) {
-			return;
-		}
-		
+				
 		field.clearSubFieldFromAllFieldRepetitions(subFieldIndex);		
 	}
 
@@ -282,7 +262,7 @@ public class Segment implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) {
+	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
 		FieldRepetition fieldRepetition = getFieldRepetition(subFieldIndex, repetition);
 		
 		if (fieldRepetition == null) {
@@ -301,7 +281,7 @@ public class Segment implements Serializable {
 	 * @param subFieldIndex
 	 * @return
 	 */
-	public Subfield getSubField(int fieldIndex, int subFieldIndex) {
+	public Subfield getSubField(int fieldIndex, int subFieldIndex) throws Exception {
 		return getSubField(fieldIndex, 0, subFieldIndex);
 	}
 
@@ -322,53 +302,10 @@ public class Segment implements Serializable {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public boolean isFieldEmpty(int fieldIndex) {
+	public boolean isFieldEmpty(int fieldIndex) throws Exception {
 		Field field =  getField(fieldIndex);
-		
-		if (field == null) {
-			return true;
-		}
-		
+						
 		return field.isEmpty();
-	}
-
-	
-	/**
-	 * Checks to see if the field is exists.
-	 * 
-	 * @param fieldIndex
-	 * @return
-	 */
-	public boolean doesFieldExist(int fieldIndex) {
-		return getField(fieldIndex) != null;
-	}
-
-	
-	/**
-	 * Checks to see if the sub field is exists in the supplied repetition of the field.
-	 * 
-	 * @param fieldIndex
-	 * @return
-	 */
-	public boolean doesSubFieldExist(int fieldIndex, int repetition, int subFieldIndex) {
-		Field field = getField(fieldIndex);
-		
-		if (field == null) {
-			return false;
-		}
-		
-		return field.doesSubFieldExist(repetition, subFieldIndex);	
-	}
-
-	
-	/**
-	 * Checks to see if the sub field exists in the 1st repetition of the field.
-	 * 
-	 * @param fieldIndex
-	 * @return
-	 */
-	public boolean doesSubFieldExist(int fieldIndex, int subFieldIndex) {
-		return doesSubFieldExist(fieldIndex, 0, subFieldIndex);
 	}
 
 	
@@ -402,13 +339,9 @@ public class Segment implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public String getFieldValue(int fieldIndex, int repetition) {
+	public String getFieldValue(int fieldIndex, int repetition) throws Exception {
 		Field field = getField(fieldIndex);
-		
-		if (field == null) {
-			return "";
-		}
-		
+				
 		FieldRepetition fieldRepetition = field.getRepetition(repetition);
 		
 		if (fieldRepetition == null) {
@@ -431,10 +364,6 @@ public class Segment implements Serializable {
 	public void combinedSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		if (field == null) {
-			return;
-		}		
-		
 		field.combinedSubFields(fieldRepetition, separator, allowSequentialSeparators);
 	}
 	
@@ -449,10 +378,6 @@ public class Segment implements Serializable {
 	public void combinedSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		if (field == null) {
-			return;
-		}		
-		
 		field.combinedSubFields(0, separator, allowSequentialSeparators);
 	}
 	
@@ -463,7 +388,7 @@ public class Segment implements Serializable {
 	 * @param fieldIndex
 	 * @return
 	 */
-	public String getFieldValue(int fieldIndex) {
+	public String getFieldValue(int fieldIndex) throws Exception {
 		return getFieldValue(fieldIndex, 0);
 	}
 
@@ -477,5 +402,37 @@ public class Segment implements Serializable {
 	@Override
 	public boolean equals(Object obj) {	
 		return Objects.equals(this.toString(), obj.toString());
+	}
+	
+	
+	/**
+	 * Clears all fields from this segment starting at the supplied startingFieldIndex.
+	 * 
+	 * @param startingFieldIndex
+	 */
+	public void clearFieldsFrom(int startingFieldIndex) throws Exception {
+		clearFieldRange(startingFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in this segment.
+	 * 
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 * @throws Exception
+	 */
+	public void clearFieldRange(int startingFieldIndex, int endingFieldIndex) throws Exception {
+		if (endingFieldIndex == -1) {
+			endingFieldIndex = getFields().size();
+		}			
+		
+		for (int i = startingFieldIndex; i < endingFieldIndex; i++) {
+			Field field = getField(i);
+			
+			if (field != null) {
+				field.clear();
+			}
+		}
 	}
 }
