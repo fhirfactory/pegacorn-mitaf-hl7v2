@@ -1,4 +1,4 @@
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.message;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.utils;
 
 import java.util.ArrayList;
 import java.util.List;
