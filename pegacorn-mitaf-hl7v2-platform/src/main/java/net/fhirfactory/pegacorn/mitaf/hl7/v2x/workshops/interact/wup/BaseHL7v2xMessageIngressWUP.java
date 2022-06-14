@@ -21,31 +21,40 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPServerAdapter;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAuditTrail;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPMessageIngresProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventIngresProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventValidationProcessor;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
-
 import org.apache.camel.ExchangePattern;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 
 public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagingGatewayWUP {
 	
-	private static String MLLP_CONFIGURATION_STRING="?acceptTimeout=45000&bindTimeout=20000&maxConcurrentConsumers=30";
+	private static Long DEFAULT_ACCEPT_TIMEOUT = 45000L;
+	private static Long DEFAULT_BIND_TIMEOUT=20000L;
+	private static int DEFAULT_CONCURRENT_CONSUMERS=30;
+	private boolean camelToDeliverStringPayload;
+	private boolean camelToValidatePayload;
+	private Long acceptTimeout;
+	private Long bindTimeout;
+	private int maxConcurrentConsumers;
+	private boolean parametersInitialised;
+	private String mllpServerConfiguration;
 
 	@Inject
 	private InteractWorkshop interactWorkshop;
@@ -64,11 +73,78 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 	abstract protected String specifyMessageDiscriminatorValue();
 
 	//
+	// Constructor(s)
+	//
+
+	public BaseHL7v2xMessageIngressWUP(){
+		setCamelToDeliverStringPayload(true);
+		setCamelToValidatePayload(false);
+		setAcceptTimeout(DEFAULT_ACCEPT_TIMEOUT);
+		setBindTimeout(DEFAULT_BIND_TIMEOUT);
+		setMaxConcurrentConsumers(DEFAULT_CONCURRENT_CONSUMERS);
+		setParametersInitialised(false);
+		setMllpServerConfiguration(null);
+	}
+
+	//
 	// Getters (and Setters)
 	//
 
-	public static String getMllpConfigurationString() {
-		return MLLP_CONFIGURATION_STRING;
+
+	public String getMllpServerConfiguration() {
+		return mllpServerConfiguration;
+	}
+
+	public void setMllpServerConfiguration(String mllpServerConfiguration) {
+		this.mllpServerConfiguration = mllpServerConfiguration;
+	}
+
+	public boolean isCamelToDeliverStringPayload() {
+		return camelToDeliverStringPayload;
+	}
+
+	public void setCamelToDeliverStringPayload(boolean camelToDeliverStringPayload) {
+		this.camelToDeliverStringPayload = camelToDeliverStringPayload;
+	}
+
+	public boolean isCamelToValidatePayload() {
+		return camelToValidatePayload;
+	}
+
+	public void setCamelToValidatePayload(boolean camelToValidatePayload) {
+		this.camelToValidatePayload = camelToValidatePayload;
+	}
+
+	public Long getAcceptTimeout() {
+		return acceptTimeout;
+	}
+
+	public void setAcceptTimeout(Long acceptTimeout) {
+		this.acceptTimeout = acceptTimeout;
+	}
+
+	public Long getBindTimeout() {
+		return bindTimeout;
+	}
+
+	public void setBindTimeout(Long bindTimeout) {
+		this.bindTimeout = bindTimeout;
+	}
+
+	public int getMaxConcurrentConsumers() {
+		return maxConcurrentConsumers;
+	}
+
+	public void setMaxConcurrentConsumers(int maxConcurrentConsumers) {
+		this.maxConcurrentConsumers = maxConcurrentConsumers;
+	}
+
+	public boolean isParametersInitialised() {
+		return parametersInitialised;
+	}
+
+	public void setParametersInitialised(boolean parametersInitialised) {
+		this.parametersInitialised = parametersInitialised;
 	}
 
 	//
@@ -125,8 +201,10 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
-                .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                .bean(MLLPMessageIngresProcessor.class, "captureMLLPMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+				.bean(HL7v2xTriggerEventValidationProcessor.class, "ensureMinimalCompliance(*, Exchange)")
+				.bean(HL7v2xTriggerEventIngresProcessor.class, "encapsulateTriggerEvent(*, Exchange)")
+				.bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
                 .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
                 .to(ExchangePattern.InOnly, egressFeed());
     }
@@ -136,14 +214,87 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
         MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
+		buildMLLPConfigurationString();
         getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
         int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getServicePortValue();
         String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();
-        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+ getMllpConfigurationString());
+        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+ getMllpServerConfiguration());
         endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
         getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);
         return (endpoint);
     }
+
+	protected void buildMLLPConfigurationString(){
+		if(!isParametersInitialised()) {
+			MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
+			MLLPServerAdapter mllpAdapter = serverTopologyEndpoint.getMLLPServerAdapter();
+			if (mllpAdapter != null) {
+				String mllpValidatePayload = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_VALIDATE_PAYLOAD_PARAMETER_NAME);
+				String mllpDeliveryStringPayload = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_STRING_PAYLOAD_PARAMETER_NAME);
+				String mllpBindTimeout = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_BIND_TIMEOUT_PARAMETER_NAME);
+				String mllpAcceptTimeout = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_ACCEPT_TIMEOUT_PARAMETER_NAME);
+				String mllpMaxConcurrentConsumers = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_MAXIMUM_CONSUMERS_PARAMETER_NAME);
+				if (StringUtils.isNotEmpty(mllpValidatePayload)) {
+					if (mllpValidatePayload.equalsIgnoreCase("True")) {
+						setCamelToValidatePayload(true);
+					}
+				}
+				if(StringUtils.isNotEmpty(mllpBindTimeout)){
+					try{
+						Long bindTimeout = Long.valueOf(mllpBindTimeout);
+						setBindTimeout(bindTimeout);
+					} catch(Exception ex){
+						getLogger().debug(".buildMLLPConfigurationString(): Cannot parse mllpBindTimeout, leaving at default value");
+					}
+				}
+				if(StringUtils.isNotEmpty(mllpAcceptTimeout)){
+					try{
+						long acceptTimeout = Long.valueOf(mllpAcceptTimeout);
+						setAcceptTimeout(acceptTimeout);
+					} catch(Exception ex){
+						getLogger().debug(".buildMLLPConfigurationString(): Cannot parse mllpAcceptTimeout, leaving at default value");
+					}
+				}
+				if(StringUtils.isNotEmpty(mllpMaxConcurrentConsumers)){
+					try{
+						int maxConcurrentSessions = Integer.valueOf(mllpMaxConcurrentConsumers);
+						setMaxConcurrentConsumers(maxConcurrentSessions);
+					} catch(Exception ex){
+						getLogger().debug(".buildMLLPConfigurationString(): Cannot parse maxConcurrentConsumers, leaving at default value");
+					}
+				}
+				if(StringUtils.isNotEmpty(mllpDeliveryStringPayload)){
+					if(mllpDeliveryStringPayload.equalsIgnoreCase("True")){
+						setCamelToDeliverStringPayload(true);
+					} else {
+						setCamelToDeliverStringPayload(false);
+					}
+				}
+			}
+			StringBuilder mllpConfig = new StringBuilder();
+			mllpConfig.append("?");
+			mllpConfig.append("maxConcurrentConsumers="+Integer.toString(getMaxConcurrentConsumers()));
+			mllpConfig.append("&");
+			mllpConfig.append("acceptTimeout="+getAcceptTimeout().toString());
+			mllpConfig.append("&");
+			mllpConfig.append("bindTimeout="+getBindTimeout().toString());
+			mllpConfig.append("&");
+			if(isCamelToDeliverStringPayload()){
+				mllpConfig.append("stringPayload=true");
+			} else {
+				mllpConfig.append("stringPayload=false");
+			}
+			mllpConfig.append("&");
+			if(isCamelToValidatePayload()){
+				mllpConfig.append("validatePayload=true");
+			} else {
+				mllpConfig.append("validatePayload=false");
+			}
+			String mllpConfigurationString = mllpConfig.toString();
+			setMllpServerConfiguration(mllpConfigurationString);
+			setParametersInitialised(true);
+		}
+	}
 
 }

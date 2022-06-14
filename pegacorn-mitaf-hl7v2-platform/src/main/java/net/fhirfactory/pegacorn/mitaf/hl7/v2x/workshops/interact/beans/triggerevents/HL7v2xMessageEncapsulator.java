@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -175,17 +175,33 @@ public class HL7v2xMessageEncapsulator  {
     //
 
 
-    public UoW encapsulateMessage(String hl7MessageString, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue,
-            String messageTriggerEvent, String messageEventType, String messageVersion, String messageTimestamp) {
+    public UoW encapsulateMessage(String hl7MessageString,
+                                  Exchange exchange,
+                                  String sourceSystem,
+                                  String intendedTargetSystem,
+                                  String parcelDiscriminatorType,
+                                  String parcelDiscriminatorValue,
+                                  String messageTriggerEvent,
+                                  String messageEventType,
+                                  String messageVersion,
+                                  String messageTimestamp) {
 
+        getLogger().debug(".encapsulateMessage(): Entry (10 Parameters, String in), hl7MessageString->{}", hl7MessageString);
         HL7v2xMessageInformationExtractor extractor = new HL7v2xMessageInformationExtractor();
         Message message = extractor.convertToHL7v2Message(hl7MessageString);
-
+        getLogger().debug(".encapsulateMessage(): Invoking generalised method!");
         return this.encapsulateMessage(message, exchange, sourceSystem, intendedTargetSystem, parcelDiscriminatorType, parcelDiscriminatorValue, messageTriggerEvent, messageEventType, messageVersion, messageTimestamp);
     }
 
-    public UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue) {
-        LOG.trace(".encapsulateMessage(): Extracting header details");
+
+
+    public UoW encapsulateMessage(Message message,
+                                  Exchange exchange,
+                                  String sourceSystem,
+                                  String intendedTargetSystem,
+                                  String parcelDiscriminatorType,
+                                  String parcelDiscriminatorValue) {
+        LOG.debug(".encapsulateMessage(): Extracting header details");
         String messageTriggerEvent = exchange.getMessage().getHeader("CamelMllpTriggerEvent", String.class);
         LOG.trace(".encapsulateMessage(): message::messageTriggerEvent --> {}", messageTriggerEvent);
         String messageEventType = exchange.getMessage().getHeader("CamelMllpEventType", String.class);
@@ -193,12 +209,20 @@ public class HL7v2xMessageEncapsulator  {
         String messageVersion = exchange.getMessage().getHeader("CamelMllpVersionId", String.class);
         LOG.trace(".encapsulateMessage(): message::MessageVersion --> {}", messageVersion);
         String messageTimeStamp = exchange.getMessage().getHeader("CamelMllpTimestamp", String.class);
-
+        getLogger().debug(".encapsulateMessage(): Invoking generalised method!");
         return this.encapsulateMessage(message, exchange, sourceSystem, intendedTargetSystem, parcelDiscriminatorType, parcelDiscriminatorValue, messageTriggerEvent, messageEventType, messageVersion, messageTimeStamp);
     }
 
-    private UoW encapsulateMessage(Message message, Exchange exchange, String sourceSystem, String intendedTargetSystem, String parcelDiscriminatorType, String parcelDiscriminatorValue,
-            String messageTriggerEvent, String messageEventType, String messageVersion, String messageTimestamp) {
+    private UoW encapsulateMessage(Message message,
+                                   Exchange exchange,
+                                   String sourceSystem,
+                                   String intendedTargetSystem,
+                                   String parcelDiscriminatorType,
+                                   String parcelDiscriminatorValue,
+                                   String messageTriggerEvent,
+                                   String messageEventType,
+                                   String messageVersion,
+                                   String messageTimestamp) {
 
         LOG.debug(".encapsulateMessage(): Entry, message->{}", message);
 
