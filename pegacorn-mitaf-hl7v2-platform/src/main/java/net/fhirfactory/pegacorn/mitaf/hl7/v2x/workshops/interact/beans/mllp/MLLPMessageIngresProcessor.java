@@ -175,7 +175,8 @@ public class MLLPMessageIngresProcessor {
                                                         String parcelDiscriminatorType,
                                                         String parcelDiscriminatorValue) {
 
-        LOG.debug(".captureMLLPMessage(): Entry, messageString->{}", messageString);
+        LOG.debug(".captureMLLPMessage(): Entry, messageString->{}, sourceSystem->{}, intendedTargetSystem->{}, parcelDiscriminatorType->{}, parcelDiscriminatorValue->{}",
+                messageString, sourceSystem, intendedTargetSystem,parcelDiscriminatorType, parcelDiscriminatorValue);
 
         // -------------------------------------------------
         LOG.warn("Incoming Message->{}", messageString);
@@ -242,17 +243,17 @@ public class MLLPMessageIngresProcessor {
         contentDescriptor.setDataParcelSubCategory("Consumer");
         contentDescriptor.setDataParcelResource("stringPayload");
         contentDescriptor.setVersion("3.17.x"); // TODO should derive this from library or such
-        // Build the manifest
-        DataParcelManifest manifest = new DataParcelManifest();
-        manifest.setContentDescriptor(contentDescriptor);
-        if(StringUtils.isNotEmpty(sourceSystem)){
-            manifest.setSourceSystem(sourceSystem);
-        }
         if(StringUtils.isNotEmpty(parcelDiscriminatorType)){
             contentDescriptor.setDataParcelDiscriminatorType(parcelDiscriminatorType);
         }
         if(StringUtils.isNotEmpty(parcelDiscriminatorValue)){
             contentDescriptor.setDataParcelDiscriminatorValue(parcelDiscriminatorValue);
+        }
+        // Build the manifest
+        DataParcelManifest manifest = new DataParcelManifest();
+        manifest.setContentDescriptor(contentDescriptor);
+        if(StringUtils.isNotEmpty(sourceSystem)){
+            manifest.setSourceSystem(sourceSystem);
         }
         manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
         manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
