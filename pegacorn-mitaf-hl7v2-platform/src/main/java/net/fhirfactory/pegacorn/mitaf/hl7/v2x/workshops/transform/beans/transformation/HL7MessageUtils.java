@@ -54,8 +54,22 @@ public class HL7MessageUtils {
             
             return inputMessage;
 		}
-	}
+	} 
+
 	
+	/**
+	 * Returns a pegacorn HL7 message object from message.
+	 * 
+	 * @param message
+	 * @return
+	 * @throws Exception
+	 */
+	public static HL7Message getHL7Message(Message message) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message;
+	}
+
 	
 	/**
 	 * 
