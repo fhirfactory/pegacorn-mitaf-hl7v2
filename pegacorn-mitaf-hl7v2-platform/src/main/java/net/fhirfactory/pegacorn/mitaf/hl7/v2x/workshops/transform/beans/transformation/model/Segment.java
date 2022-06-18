@@ -416,6 +416,22 @@ public class Segment implements Serializable {
 	
 	
 	/**
+	 * Moves a field value from one field to another
+	 * 
+	 * @param fromFieldIndex
+	 * @param toFieldIndex
+	 * @throws Exception
+	 */
+	public void moveField(int fromFieldIndex, int toFieldIndex) throws Exception {
+		Field fromField = this.getField(fromFieldIndex);
+		Field toField = this.getField(toFieldIndex);
+		
+		toField.setValue(fromField.value());
+		fromField.clear();
+	}
+	
+	
+	/**
 	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in this segment.
 	 * 
 	 * @param startingFieldIndex
