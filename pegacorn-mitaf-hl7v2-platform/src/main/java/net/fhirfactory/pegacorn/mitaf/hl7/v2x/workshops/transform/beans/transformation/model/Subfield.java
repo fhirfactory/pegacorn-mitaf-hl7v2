@@ -1,12 +1,15 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * A single subfield within a field.
+ * A sub sub field.  This is for sub fields which have multiple components.
  * 
  * @author Bendan_Douglas
  *
@@ -14,41 +17,71 @@ import org.apache.commons.lang3.StringUtils;
 public class Subfield implements Serializable {
 	private static final long serialVersionUID = -8174677055244513493L;
 
-	private String value;
+	private List<SubSubfield> subSubFields = new ArrayList<>();
 	
 	private FieldRepetition fieldRepetition = null;
 	
-	public Subfield(String value, FieldRepetition fieldRepetition) {
-		this.value = value;
+	public Subfield(String subField, boolean handleSeperators, FieldRepetition fieldRepetition) {
 		this.fieldRepetition = fieldRepetition;
+		
+		String[] splitSubSubFields = null;
+		
+		if (handleSeperators) {
+			splitSubSubFields = subField.split("\\&");
+		} else {
+			splitSubSubFields = new String[1];
+			splitSubSubFields[0] = subField;
+		}
+		
+		for (String value : splitSubSubFields) {
+			SubSubfield subSubField = new SubSubfield(value, this);
+			subSubFields.add(subSubField);
+		}		
 	}
 
 	public String value() {
-		return value;
+		return toString();
 	}
 
 	public void setValue(String value) throws Exception {
-		this.value = value;
+		subSubFields.clear();
+
+		String[] splitSubSubFields = null;
+		
+		splitSubSubFields = value.split("\\&");
+		
+		for (String subSubFieldValue : splitSubSubFields) {
+			SubSubfield subSubField = new SubSubfield(subSubFieldValue, this);
+			subSubFields.add(subSubField);
+		}
 		
 		this.fieldRepetition.getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
 	
+	
 	@Override
 	public String toString() {
-		return value;
+		return subSubFields.stream().map(SubSubfield::toString).collect(Collectors.joining("&"));
 	}
 	
 	
 	public void clear() throws Exception {
-		setValue("");
+		for (SubSubfield subSubField : subSubFields) {
+			subSubField.clear();
+		}
 	}
 	
 	
     public FieldRepetition geFieldRepetition() {
 		return fieldRepetition;
 	}
-	
-	
+    
+    
+    public SubSubfield getSubSubField(int subSubFieldIndex) {
+    	return subSubFields.get(--subSubFieldIndex);
+    }
+    
+    
 	/**
 	 * Is this subfield empty?
 	 * 

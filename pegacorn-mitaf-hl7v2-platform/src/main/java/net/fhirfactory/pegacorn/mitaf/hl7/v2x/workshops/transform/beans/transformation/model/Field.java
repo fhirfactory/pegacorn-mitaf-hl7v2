@@ -572,4 +572,41 @@ public class Field implements Serializable {
 			fieldRepetition.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
 		}
 	}
+
+	
+	/**
+	 * 
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public boolean doesFieldContainValue(String value) {
+		for (FieldRepetition fieldRepetition : this.repetitions) {
+			if (fieldRepetition.value().contains(value)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	
+	/**
+	 * 
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean doesSubFieldContainValue(int subFieldIndex, String value) throws Exception {
+		for (FieldRepetition fieldRepetition : this.repetitions) {
+			if (fieldRepetition.getSubField(subFieldIndex).value().contains(value)) {
+				return true;
+			}
+		}
+		
+		return false;		
+		
+	}
 }

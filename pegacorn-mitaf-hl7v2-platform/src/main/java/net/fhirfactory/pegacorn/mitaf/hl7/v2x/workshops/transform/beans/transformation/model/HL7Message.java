@@ -260,6 +260,24 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
+	 * Inserts a segment at the target index which has identical content to the source segment.
+	 * 
+	 * @param message
+	 * @param sourceIndex
+	 * @param targetIndex
+	 * @throws Exception
+	 */
+	public Segment insertSegment(Segment source, int targetIndex) throws Exception {
+		Segment segment = new Segment(source.toString(), this);
+		
+		getSegments().add(targetIndex, segment);
+		refreshSourceHL7Message();
+		
+		return segment;
+	}
+	
+	
+	/**
 	 * Moves a segment from one location to another.  If the newIndex is not in range then the segment is appended to the end.
 	 * 
 	 * @param message
@@ -457,5 +475,181 @@ public class HL7Message implements Serializable   {
 		for (Segment segment : getSegments(segmentName)) {
 			segment.clearFieldRange(startingFieldIndex, endingFieldIndex);
 		}
+	}
+
+	
+	/**
+	 * Returns the number of segment groups for the supplied segment.
+	 * 
+	 * @param segmentName
+	 * @return
+	 */
+	public Integer getNumberOfSegmentGroups(String segmentName) throws Exception {
+		return getStartIndexesOfSegmentGroups(segmentName).size();
+	}
+
+	
+	/**
+	 * Returns the start index of the segment group.
+	 * 
+	 * @param segmentName
+	 * @param groupNumber
+	 * @return
+	 */
+	public Integer getStartIndexOfSegmentGroup(String segmentName, int groupNumber) throws Exception {
+		List<Integer>groupStartIndexes = getStartIndexesOfSegmentGroups(segmentName);
+		
+		if (groupStartIndexes.size() >= groupNumber) {
+			return groupStartIndexes.get(groupNumber);
+		}
+		
+		return null;
+	}
+
+	
+	/**
+	 * Returns the end index of the segment group.
+	 * 
+	 * @param segmentName
+	 * @param groupNumber
+	 * @return
+	 */
+	public Integer getEndIndexOfSegmentGroup(String segmentName, int groupNumber) throws Exception {
+		List<Integer>groupStartIndexes = getStartIndexesOfSegmentGroups(segmentName);
+		
+		if (groupStartIndexes.size() >= groupNumber) {
+			int startIndex = groupStartIndexes.get(groupNumber);
+			
+			for (int i = startIndex; i < this.getSegments().size(); i++) {
+				Segment segment = this.getSegment(i);
+				
+				if (!segment.getName().equalsIgnoreCase(segmentName)) {
+					return --i;  // The group ended at the index before this one.
+				}
+			}
+		}
+		
+		return this.segments.size() - 1; // The segment ended with the last element in the list.		
+	}
+
+	
+	/**
+	 * Returns all the segments within a group
+	 * 
+	 * @param segmentName
+	 * @param groupNumber
+	 * @return
+	 */
+	public List<Segment> getSegmentsWithinGroup(String segmentName, int groupNumber) throws Exception {
+		List<Segment>segmentsWithingroup = new ArrayList<>();
+		
+		
+		Integer startIndex = getStartIndexOfSegmentGroup(segmentName, groupNumber);
+		
+		if (startIndex == null) {
+			return segmentsWithingroup;
+		}
+
+		Integer endIndex = getEndIndexOfSegmentGroup(segmentName, groupNumber);
+		
+		if (endIndex == null) {
+			return segmentsWithingroup;
+		}		
+
+		for (int i = startIndex; i <= endIndex; i++) {
+			Segment segment = this.getSegment(i);
+			segmentsWithingroup.add(segment);
+		}
+
+		return segmentsWithingroup;
+	}
+
+	
+	/**
+	 * Returns an array of indexes which are the start indexes of each segment group.
+	 * 
+	 * @param segmentName
+	 * @return
+	 */
+	public List<Integer> getStartIndexesOfSegmentGroups(String segmentName) throws Exception {	
+		List<Integer> startGroupIndexes = new ArrayList<>();
+	
+		boolean groupFound = false;
+		
+		for (int i = 0; i < this.getSegments().size(); i++) {
+			Segment segment = this.getSegment(i);
+						
+			if (segmentName.equals(segment.getName())) {
+				if (!groupFound) {
+					groupFound = true;
+					startGroupIndexes.add(i);
+				}
+			} else {
+				groupFound = false;
+			}
+		}
+	
+		return startGroupIndexes;
+	}
+	
+	
+	/**
+	 * Appends a new segment to a group.
+	 * 
+	 * @param segmentName
+	 * @param groupNumber
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment appendSegmentToGroup(String segmentName, int groupNumber) throws Exception {
+		if (groupNumber >= getNumberOfSegmentGroups(segmentName)) {
+			return null; // Just ignore
+		}
+		
+		int endIndexOfgroup = getEndIndexOfSegmentGroup(segmentName, groupNumber);
+		
+		Segment endGroupSegment = getSegment(endIndexOfgroup);
+		int currentId = Integer.valueOf(endGroupSegment.getField(1).value()).intValue();
+		
+		return insertSegment(segmentName, ++endIndexOfgroup, ++currentId);
+	}
+	
+	
+	/**
+	 * Does the supplied value appear in the specified field of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param value
+	 * @return
+	 */
+	public boolean doesFieldContainValue(String segmentName, int fieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {
+			if (segment.doesFieldContainValue(fieldIndex, value)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	
+	/**
+	 * Does the supplied value appear in the specified subField of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public boolean doesSubFieldContainValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {
+			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }
