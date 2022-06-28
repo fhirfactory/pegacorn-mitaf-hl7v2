@@ -1065,6 +1065,22 @@ public class HL7MessageUtils {
 	
 	
 	/**
+	 * Inserts a segment at the target index which has identical content to the source segment.
+	 * 
+	 * @param message
+	 * @param sourceIndex
+	 * @param targetIndex
+	 * @throws Exception
+	 */
+	public static Segment insertSegment(Message message, Segment source, int targetIndex) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message.insertSegment(source, targetIndex);
+	}
+	
+	
+	
+	/**
 	 * Moves a segment from one position to another.
 	 * 
 	 * @param message
@@ -1203,5 +1219,122 @@ public class HL7MessageUtils {
 	public static void setSubFieldInAllSegments(Message message, String segment, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
 		hl7Message.setSubFieldInAllSegments(segment, fieldIndex, subFieldIndex, value);			
+	}
+
+	
+	/**
+	 * Returns the number of segment groups for the supplied segment
+	 * 
+	 * @param message
+	 * @param segment
+	 * @return
+	 */
+	public static Integer getNumberOfSegmentGroups(Message message, String segment) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message.getNumberOfSegmentGroups(segment);
+	}
+
+	
+	/**
+	 * Returns the start index of the segment group.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param groupNumber
+	 * @return
+	 */
+	public static Integer getStartIndexOfSegmentGroup(Message message, String segment, int groupNumber) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);	
+		
+		return hl7Message.getStartIndexOfSegmentGroup(segment, groupNumber);
+	}
+
+	
+	/**
+	 * Returns the end index of the segment group.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param groupNumber
+	 * @return
+	 */
+	public static Integer getEndIndexOfSegmentGroup(Message message, String segment, int groupNumber) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);	
+		
+		return hl7Message.getEndIndexOfSegmentGroup(segment, groupNumber);
+	}
+
+	
+	/**
+	 * Returns all the segments within a group.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param groupNumber
+	 * @return
+	 */
+	public static List<Segment> getSegmentsWithinGroup(Message message, String segment, int groupNumber) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);	
+		
+		return hl7Message.getSegmentsWithinGroup(segment, groupNumber);
+	}
+
+	
+	/**
+	 * Returns an array of indexes which are the start indexes of each segment group.
+	 * 
+	 * @param segmentName
+	 * @return
+	 */
+	public static List<Integer> getStartIndexesOfSegmentGroups(Message message, String segment) throws Exception {	
+		HL7Message hl7Message = new HL7Message(message);	
+		
+		return hl7Message.getStartIndexesOfSegmentGroups(segment);		
+	}
+	
+	
+	/**
+	 * Appends a segment to the end of a group
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param groupNumber
+	 */
+	public static Segment appendSegmentToGroup(Message message, String segment, int groupNumber) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);	
+		
+		return hl7Message.appendSegmentToGroup(segment, groupNumber);		
+	}
+
+	
+	/**
+	 * Does the supplied value appear in the specified field of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param value
+	 * @return
+	 */
+	public static boolean doesFieldContainValue(Message message, String segment, int fieldIndex, String value) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message.doesFieldContainValue(segment, fieldIndex, value);
+	}
+
+	
+	/**
+	 * Does the supplied value appear in the specified subField of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param message
+	 * @param segment
+	 * @param fieldIndex
+	 * @param value
+	 * @return
+	 */
+	public static boolean doesSubFieldContainValue(Message message, String segment, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		return hl7Message.doesSubFieldContainValue(segment, fieldIndex, subFieldIndex, value);
 	}
 }

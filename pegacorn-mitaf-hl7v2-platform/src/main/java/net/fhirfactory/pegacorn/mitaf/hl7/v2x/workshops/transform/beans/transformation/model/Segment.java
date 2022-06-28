@@ -451,4 +451,49 @@ public class Segment implements Serializable {
 			}
 		}
 	}
+
+	
+	/**
+	 * Does any repetition of the field in this segment contain the supplied value.
+	 * 
+	 * @param fieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean doesFieldContainValue(int fieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.doesFieldContainValue(value);
+	}
+
+	
+	public boolean doesSubFieldContainValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.doesSubFieldContainValue(subFieldIndex, value);
+	}
+	
+	
+	/**
+	 * Sets a segment value.
+	 * 
+	 * @param value
+	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
+	 * @throws Exception
+	 */
+	public void setValue(String value) throws Exception {
+		fields.clear();
+
+		String[] splitFields = null;
+		
+		splitFields = value.split("\\|");
+		
+		for (String fieldValue : splitFields) {
+			Field field = new Field(fieldValue, true, this);
+			fields.add(field);
+		}
+		
+		this.getMessage().refreshSourceHL7Message();
+	}
 }

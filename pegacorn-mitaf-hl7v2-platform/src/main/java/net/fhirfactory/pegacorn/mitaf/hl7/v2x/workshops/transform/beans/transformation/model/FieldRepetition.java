@@ -33,7 +33,7 @@ public class FieldRepetition implements Serializable  {
 		}
 				
 		for (String value : splitSubFieldRepetitions) {
-			Subfield subField = new Subfield(value, this);
+			Subfield subField = new Subfield(value, true, this);
 			subFields.add(subField);
 		}				
 	}
@@ -136,7 +136,7 @@ public class FieldRepetition implements Serializable  {
 			int sizeDifference = index - getSubFields().size();
 			
 			for (int i = 0; i < sizeDifference; i++) {
-				getSubFields().add(new Subfield("", this));
+				getSubFields().add(new Subfield("", true, this));
 			}
 		}
 		
@@ -160,7 +160,7 @@ public class FieldRepetition implements Serializable  {
 		splitSubFieldRepetitions = value.split("\\^");
 			
 		for (String fieldRepetitonValue : splitSubFieldRepetitions) {
-			Subfield subField = new Subfield(fieldRepetitonValue, this);
+			Subfield subField = new Subfield(fieldRepetitonValue, true, this);
 			subFields.add(subField);
 		}	
 		
@@ -190,7 +190,7 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void addSubField(String value, int index) throws Exception {
-		addSubField(new Subfield(value, this),index);
+		addSubField(new Subfield(value, true, this),index);
 	}
 	
 	
