@@ -443,7 +443,7 @@ public class Segment implements Serializable {
 			endingFieldIndex = getFields().size();
 		}			
 		
-		for (int i = startingFieldIndex; i < endingFieldIndex; i++) {
+		for (int i = startingFieldIndex; i <= endingFieldIndex; i++) {
 			Field field = getField(i);
 			
 			if (field != null) {
