@@ -64,7 +64,7 @@ public class FieldRepetition implements Serializable  {
 		
 		// If the subfield doesn't exist then add it.
 		if (subFieldIndex > subFields.size()) {
-			addSubField("", --subFieldIndex);
+			addSubField("", subFieldIndex);
 		}
 		
 		return subFields.get(--subFieldIndex);
