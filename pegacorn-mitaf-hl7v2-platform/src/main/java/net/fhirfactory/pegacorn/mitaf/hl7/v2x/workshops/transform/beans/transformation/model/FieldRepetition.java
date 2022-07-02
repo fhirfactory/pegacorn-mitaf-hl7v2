@@ -126,7 +126,7 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void addSubField(Subfield subField, int index) throws Exception {
-		if (index <= getSubFields().size()) {
+		if (index < getSubFields().size()) {
 			throw new HL7Exception("This method adds a subField to the end of the field so the index supplied must not be the index of an existing subField");
 		}
 		
