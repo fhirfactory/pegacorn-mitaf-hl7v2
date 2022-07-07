@@ -2,6 +2,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public class Field implements Serializable {
 	}
 	
 	
-	public String toString() {	
+	public String toString() {		
 		return repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
 	}
 
@@ -102,12 +103,30 @@ public class Field implements Serializable {
 	
 	
 	/**
+	 * Removes a repetition of the field.
+	 * 
+	 * @param repetition
+	 */
+	public void removeRepetition(FieldRepetition repetition) throws Exception {		
+		repetitions.remove(repetition);
+		
+		this.segment.getMessage().refreshSourceHL7Message();
+	}
+
+	
+	/**
 	 * Adds a repetition to this field.
 	 * 
 	 * @param fieldRepetition
 	 */
 	public void addRepetition(FieldRepetition fieldRepetition) throws Exception {
-		getRepetitions().add(fieldRepetition);
+		
+		// if the 1st repetition is empty then replace, otherwise add a new repetition to the end.
+		if (!this.value().isEmpty() ) {
+			getRepetitions().add(fieldRepetition);
+		} else {
+			getRepetitions().add(0, fieldRepetition);
+		}
 		
 		this.segment.getMessage().refreshSourceHL7Message();
 	}
@@ -607,6 +626,23 @@ public class Field implements Serializable {
 		}
 		
 		return false;		
+	}
+
+	
+	/**
+	 * Removes empty repetitions from this field.
+	 */
+	public void removeEmptyRepetitions() throws Exception {
+
+		Iterator<FieldRepetition> i = repetitions.iterator();
+		while (i.hasNext()) {
+			FieldRepetition repetition = i.next();
+			
+			if (repetition.value().isEmpty()) {
+				i.remove();
+			}
+		}
 		
+		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 }
