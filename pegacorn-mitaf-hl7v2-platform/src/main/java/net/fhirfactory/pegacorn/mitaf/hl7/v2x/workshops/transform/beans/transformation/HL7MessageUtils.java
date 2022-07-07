@@ -1337,4 +1337,34 @@ public class HL7MessageUtils {
 		
 		return hl7Message.doesSubFieldContainValue(segment, fieldIndex, subFieldIndex, value);
 	}
+	
+	
+	/**
+	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
+	 * @param message
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 */
+	public static void removeMatchingFieldRepetitions(Message message, String segment, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		hl7Message.removeMatchingFieldRepetitions(segment, fieldIndex, subFieldIndex, matchValue);		
+	}
+	
+	
+	/**
+	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * 
+	 * @param message
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 */
+	public static void removeNotMatchingFieldRepetitions(Message message, String segment, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		HL7Message hl7Message = new HL7Message(message);
+		
+		hl7Message.removeNotMatchingFieldRepetitions(segment, fieldIndex, subFieldIndex, matchValue);	
+	}
 }

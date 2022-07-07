@@ -652,4 +652,34 @@ public class HL7Message implements Serializable   {
 		
 		return false;
 	}
+
+	
+	/**
+	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @return
+	 */
+	public void removeMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {
+			segment.removeMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
+		}
+	}
+
+	
+	/**
+	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @return
+	 */
+	public void removeNotMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {
+			segment.removeNotMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
+		}
+	}
 }
