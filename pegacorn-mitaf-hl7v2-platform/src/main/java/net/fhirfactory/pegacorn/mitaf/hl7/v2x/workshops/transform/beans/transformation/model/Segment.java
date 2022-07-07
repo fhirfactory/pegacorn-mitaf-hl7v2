@@ -2,6 +2,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -495,5 +496,34 @@ public class Segment implements Serializable {
 		}
 		
 		this.getMessage().refreshSourceHL7Message();
+	}
+
+
+	/**
+	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @throws Exception
+	 */
+	public void removeMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		Field field = this.getField(fieldIndex);
+		
+		field.removeMatchingFieldRepetitions(subFieldIndex, matchValue);	
+	}
+
+
+	/**
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @throws Exception
+	 */
+	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+		Field field = this.getField(fieldIndex);
+		
+		field.removeNotMatchingFieldRepetitions(subFieldIndex, matchValue);
+		
 	}
 }

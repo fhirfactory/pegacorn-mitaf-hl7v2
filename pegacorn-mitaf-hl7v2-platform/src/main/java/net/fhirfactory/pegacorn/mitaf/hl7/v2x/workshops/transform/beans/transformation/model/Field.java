@@ -627,19 +627,44 @@ public class Field implements Serializable {
 		
 		return false;		
 	}
-
+	
 	
 	/**
-	 * Removes empty repetitions from this field.
+	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
+	 * @param subFieldIndex
+	 * @param matchValue
 	 */
-	public void removeEmptyRepetitions() throws Exception {
-
-		Iterator<FieldRepetition> i = repetitions.iterator();
-		while (i.hasNext()) {
-			FieldRepetition repetition = i.next();
+	public void removeMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
+		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
+		
+		while (repetitionIterator.hasNext()) {
+			FieldRepetition repetition = repetitionIterator.next();
 			
-			if (repetition.value().isEmpty()) {
-				i.remove();
+			if (repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
+				repetitionIterator.remove();
+			}
+		}
+		
+		this.getSegment().getMessage().refreshSourceHL7Message();
+	}
+
+
+	/**
+	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * 
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @throws Exception
+	 */
+	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
+		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
+		
+		while (repetitionIterator.hasNext()) {
+			FieldRepetition repetition = repetitionIterator.next();
+			
+			if (!repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
+				repetitionIterator.remove();
 			}
 		}
 		
