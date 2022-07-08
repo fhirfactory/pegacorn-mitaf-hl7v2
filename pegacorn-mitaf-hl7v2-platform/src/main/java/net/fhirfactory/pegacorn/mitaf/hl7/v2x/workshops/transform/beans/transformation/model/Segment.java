@@ -264,7 +264,7 @@ public class Segment implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
-		FieldRepetition fieldRepetition = getFieldRepetition(subFieldIndex, repetition);
+		FieldRepetition fieldRepetition = getFieldRepetition(fieldIndex, repetition);
 		
 		if (fieldRepetition == null) {
 			return null;
