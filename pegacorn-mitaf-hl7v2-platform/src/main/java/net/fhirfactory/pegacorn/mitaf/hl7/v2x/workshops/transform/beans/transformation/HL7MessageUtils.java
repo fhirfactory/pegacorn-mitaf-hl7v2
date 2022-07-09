@@ -3,11 +3,11 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,12 +21,12 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.util.Terser;
 import net.fhirfactory.pegacorn.csv.core.CSV;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Field;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.FieldRepetition;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.HL7Message;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Segment;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Subfield;
 
 /**
- * Utility methods to transform a messages and to get date from a message.
+ * Utility methods to transform a messages.
  * 
  * @author Brendan Douglas
  *
@@ -102,7 +102,20 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static void removePatientIdentifierField(Message message, String identifier) throws Exception  {
-		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, "PID");
+		HL7Message hl7Message = new HL7Message(message);	
+		Segment pidSegment = hl7Message.getPIDSegment();
+		
+		Iterator<FieldRepetition>fieldRepetitionIterator = pidSegment.getField(3).getRepetitions().iterator();
+		
+		while (fieldRepetitionIterator.hasNext()) {
+			FieldRepetition fieldRepetition = fieldRepetitionIterator.next();
+			
+			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
+				fieldRepetitionIterator.remove();
+			}
+		}
+		
+		hl7Message.refreshSourceHL7Message();
 	}
 	
 	
@@ -114,7 +127,16 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static String getPatientIdentifierValue(Message message, String identifier) throws Exception  {
-		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, "PID");
+		HL7Message hl7Message = new HL7Message(message);	
+		Segment pidSegment = hl7Message.getPIDSegment();
+		
+		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
+			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
+				return fieldRepetition.getSubField(1).value();
+			}
+		}
+		
+		return "";
 	}
 	
 	
@@ -125,6 +147,7 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static void removePatientIdentifierField(Message message, String identifier, String pidSegmentPath) throws Exception  {
 		HL7TerserBasedUtils.removePatientIdentifierField(message, identifier, pidSegmentPath);
 	}
@@ -137,6 +160,7 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static String getPatientIdentifierValue(Message message, String identifier, String pidSegmentPath) throws Exception  {
 		return HL7TerserBasedUtils.getPatientIdentifierValue(message, identifier, pidSegmentPath);
 	}
@@ -150,9 +174,19 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static List<String> getPatientIdentifierCodes(Message message) throws Exception {
-		return HL7TerserBasedUtils.getPatientIdentifierCodes(message, "PID");
+		HL7Message hl7Message = new HL7Message(message);	
+		Segment pidSegment = hl7Message.getPIDSegment();
+		
+		List<String>identifiers = new ArrayList<>();
+		
+		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
+			identifiers.add(fieldRepetition.getSubField(5).value());
+		}
+		
+		
+		return identifiers;
 	}
-
+	
 	
 	/**
 	 * Removes patient identifiers which do not match the identifier to keep.
@@ -161,8 +195,14 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
-	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep) throws Exception  {
-		HL7TerserBasedUtils.removeOtherPatientIdentifierFields(message, identifierToKeep, "PID");
+	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep) throws Exception  {		
+		List<String>patientIdentifierCodes = getPatientIdentifierCodes(message);
+		
+		for (String patientIdentifierCode : patientIdentifierCodes) {
+			if (!patientIdentifierCode.equals(identifierToKeep)) {
+				removePatientIdentifierField(message, patientIdentifierCode);
+			}
+		}
 	}
 
 	
@@ -173,6 +213,7 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static void removeOtherPatientIdentifierFields(Message message, String identifierToKeep, String pidSegmentPath) throws Exception  {
 		HL7TerserBasedUtils.removeOtherPatientIdentifierFields(message, identifierToKeep, pidSegmentPath);
 	}
@@ -186,6 +227,7 @@ public class HL7MessageUtils {
 	 * @return
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static List<String> getPatientIdentifierCodes(Message message, String pidSegmentPath) throws Exception {
 		return HL7TerserBasedUtils.getPatientIdentifierCodes(message, pidSegmentPath);
 	}
@@ -198,6 +240,7 @@ public class HL7MessageUtils {
 	 * @param identifier
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static void removePatientIdentifierTypeCode(Message message, String identifier, String pidSegmentPath) throws Exception  {
 		HL7TerserBasedUtils.removePatientIdentifierTypeCode(message, identifier, pidSegmentPath);
 	}
@@ -210,8 +253,24 @@ public class HL7MessageUtils {
 	 * @return
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static boolean isType(Message message, String messageType) throws Exception {
-		return HL7TerserBasedUtils.isType(message, messageType);
+		HL7Message hl7Message = new HL7Message(message);
+		
+		Field messageTypeField = hl7Message.getMessageTypeField();
+		
+		String type = null;
+		
+		if (messageTypeField != null) {
+			type = messageTypeField.getSubField(1).value() + "_" + messageTypeField.getSubFieldValue(2);
+		}
+		
+		
+		if (messageType.endsWith("_*")) {	
+			return type.substring(0, 3).equals(messageType.substring(0, 3));
+		}
+		
+		return type.equals(messageType);
 	}
 
 	
@@ -223,6 +282,7 @@ public class HL7MessageUtils {
 	 * @param value
 	 * @throws HL7Exception
 	 */
+	@Deprecated
 	public static void set(Message message, String targetPathSpec, String value) throws Exception {	
 		HL7TerserBasedUtils.set(message, targetPathSpec, value);
 	}
@@ -236,6 +296,7 @@ public class HL7MessageUtils {
 	 * @param sourcePathSpec
 	 * @throws HL7Exception
 	 */
+	@Deprecated
 	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, boolean copyIfSourceIsBlank, boolean copyIfTargetIsBlank) throws Exception {	
 		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, copyIfSourceIsBlank, copyIfTargetIsBlank);
 	}
@@ -249,6 +310,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static void copy(Message message, String targetPathSpec, String sourcePathSpec) throws Exception {	
 		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, true, true);
 	}
@@ -262,6 +324,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @param defaultIfSourceIsNull
 	 */
+	@Deprecated
 	public static void copy(Message message, String targetPathSpec, String sourcePathSpec, String defaultSourcepathSpec) throws Exception {
 		HL7TerserBasedUtils.copy(message, targetPathSpec, sourcePathSpec, defaultSourcepathSpec);
 	}
@@ -275,6 +338,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @param seperator
 	 */
+	@Deprecated
 	public static void copySubstringBefore(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
 		HL7TerserBasedUtils.copySubstringBefore(message, targetPathSpec, sourcePathSpec, seperator);			
 	}
@@ -288,203 +352,11 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @param seperator
 	 */
+	@Deprecated
 	public static void copySubstringAfter(Message message, String targetPathSpec, String sourcePathSpec, String seperator) throws Exception {
 		HL7TerserBasedUtils.copySubstringAfter(message, targetPathSpec, sourcePathSpec, seperator);
 	}
 	
-
-    /**
-     * Copies the contents, including all repetitions and subfields (if any).  Throws a
-     * NonExistentHL7ElementException if the source does not exist or is empty or if the target segment
-     * does not exist.  Will copy to target field that does not exist as long as an existing segment exists.
-     * If multiple source or target segments then the first one will be used for each.
-     * 
-     * @param message
-     * @param targetSegmentName  Segment name to copy to.  Must exist or a NonExistentHL7ElementException
-     *                           will be thrown
-     * @param targetFieldIndex   Field index to copy to.  Will be created if it does not exist
-     * @param sourceSegmentName  Segment name to copy from.  Must exist and not be blank or a
-     *                           NonExistentHL7ElementException will be thrown.
-     * @param sourceFieldIndex   Field index to copy from.  Must exist and not be blank or a
-     *                           NonExistentHL7ElementException will be thrown.
-     * @throws Exception
-     */
-    public static void copyFullField(Message message, String targetSegmentName, int targetFieldIndex, String sourceSegmentName, int sourceFieldIndex) throws Exception {
-        String copyMessageDisplay = sourceSegmentName + "-" + sourceFieldIndex + "->" + targetSegmentName + "-" + targetFieldIndex;
-        // sanity check on segment names
-        if (!StringUtils.isAlphanumeric(targetSegmentName) || !StringUtils.isAlphanumeric(sourceSegmentName)) {
-            throw new IllegalArgumentException("Segment names must be alphanumeric: Copy: " + copyMessageDisplay);
-        }
-        
-        // get source segment
-        HL7Message hl7Message = new HL7Message(message);
-        List<Segment> segments = hl7Message.getSegments(sourceSegmentName);
-        if (segments.size() == 0) {
-            throw new NonExistentHL7ElementException("Source Segment does not exist: Copy: " + copyMessageDisplay);
-        }
-        Segment sourceSegment = segments.get(0);
-        
-        // get the source field
-        Field sourceField = sourceSegment.getField(sourceFieldIndex);
-        if (sourceField == null || sourceField.isEmpty()) {
-            throw new NonExistentHL7ElementException("Source Field does not exist: Copy: " + copyMessageDisplay);
-        }
-        
-        // get target segment
-        segments = hl7Message.getSegments(targetSegmentName);
-        if (segments.size() == 0) {
-            throw new NonExistentHL7ElementException("Target Segment does not exist: Copy: " + copyMessageDisplay);
-        }
-        Segment targetSegment = segments.get(0);
-        
-        // get the target field and copy
-        Field targetField = targetSegment.getField(targetFieldIndex);
-        if (targetField == null) {
-            targetSegment.addField(sourceField.value(), targetFieldIndex);
-        } else {
-            targetField.setValue(sourceField.value());
-        }
-        
-        // reload message
-        hl7Message.refreshSourceHL7Message();
-        LOG.debug(".copyFullField(): Copied " + copyMessageDisplay);
-    }
-    
-    
-    /**
-     * Copies the contents, including all repetitions and subfields (if any).  If the source does not exist
-     * or is empty then the default source will be used instead.  Throws a NonExistentHL7ElementException
-     * if the default source does not exist or is empty or if the target segment does not exist.  Will copy
-     * to target field that does not exist as long as an existing segment exists.  If multiple source or
-     * target segments then the first one will be used for each.
-     * 
-     * @param message
-     * @param targetSegmentName  Segment name to copy to.  Must exist or a NonExistentHL7ElementException
-     *                           will be thrown
-     * @param targetFieldIndex
-     * @param sourceSegmentName
-     * @param sourceFieldIndex
-     * @param defaultSourceSegmentName
-     * @param defaultSourceFieldIndex
-     * @throws Exception
-     */
-    public static void copyFullField(Message message, String targetSegmentName, int targetFieldIndex, String sourceSegmentName, int sourceFieldIndex, String defaultSourceSegmentName, int defaultSourceFieldIndex) throws Exception {
-        try {
-            copyFullField(message, targetSegmentName, targetFieldIndex, sourceSegmentName, sourceFieldIndex);
-        } catch (NonExistentHL7ElementException e) {
-            // use our default
-            copyFullField(message, targetSegmentName, targetFieldIndex, defaultSourceSegmentName, defaultSourceFieldIndex);
-        }
-    }
-    
-    
-    /**
-     * Copies the contents, including all repetitions.  Throws a NonExistentHL7ElementException if the
-     * source does not exist or is empty or if the target segment does not exist.  Will copy to target
-     * subfield that does not exist as long as an existing segment exists.  If multiple source or target
-     * segments then the first one will be used for each.
-     * 
-     * @param message
-     * @param targetSegmentName    Segment name to copy to.  Must exist or a NonExistentHL7ElementException
-     *                             will be thrown
-     * @param targetFieldIndex     Field index to copy to.  Will be created if it does not exist
-     * @param targetSubfieldIndex  Subfield index to copy to.  Will be created if it does not exist
-     * @param sourceSegmentName    Segment name to copy from.  Must exist and not be blank or a
-     *                             NonExistentHL7ElementException will be thrown.
-     * @param sourceFieldIndex     Field index to copy from.  Must exist and not be blank or a
-     *                             NonExistentHL7ElementException will be thrown.
-     * @param sourceSubfieldIndex  Subfield index to copy from.  Must exist and not be blank or a
-     *                             NonExistentHL7ElementException will be thrown.
-     * @throws Exception
-     */
-    public static void copyFullField(Message message, String targetSegmentName, int targetFieldIndex, int targetSubfieldIndex, String sourceSegmentName, int sourceFieldIndex, int sourceSubfieldIndex) throws Exception {
-        String copyMessageDisplay = sourceSegmentName + "-" + sourceFieldIndex + "-" + sourceSubfieldIndex +  "->" + targetSegmentName + "-" + targetFieldIndex + "-" + sourceSubfieldIndex;
-        // sanity check on segment names
-        if (!StringUtils.isAlphanumeric(targetSegmentName) || !StringUtils.isAlphanumeric(sourceSegmentName)) {
-            throw new IllegalArgumentException("Segment names must be alphanumeric: Copy: " + copyMessageDisplay);
-        }
-        
-        // get source segment
-        HL7Message hl7Message = new HL7Message(message);
-        List<Segment> segments = hl7Message.getSegments(sourceSegmentName);
-        if (segments.size() == 0) {
-            throw new NonExistentHL7ElementException("Source Segment does not exist: Copy: " + copyMessageDisplay);
-        }
-        Segment sourceSegment = segments.get(0);
-        
-        // get the source field
-        Field sourceField = sourceSegment.getField(sourceFieldIndex);
-        if (sourceField == null || sourceField.isEmpty()) {
-            throw new NonExistentHL7ElementException("Source Field does not exist: Copy: " + copyMessageDisplay);
-        }
-        
-        // get the source subfield
-        Subfield sourceSubField = sourceField.getSubField(sourceSubfieldIndex);
-        if (sourceSubField == null || sourceSubField.isEmpty()) {
-            throw new NonExistentHL7ElementException("Source Subfield does not exist: Copy: " + copyMessageDisplay);
-        }
-        
-        // get target segment
-        segments = hl7Message.getSegments(targetSegmentName);
-        if (segments.size() == 0) {
-            throw new NonExistentHL7ElementException("Target Segment does not exist: Copy: " + copyMessageDisplay);
-        }
-        Segment targetSegment = segments.get(0);
-        
-        // get the target field
-        Field targetField = targetSegment.getField(targetFieldIndex);
-        if (targetField == null) {
-            // add the target field
-            targetSegment.addField("", targetFieldIndex);
-            targetField = targetSegment.getField(targetFieldIndex);
-        }
-        
-        // get the target subfield and copy
-        Subfield targetSubField = targetField.getSubField(targetSubfieldIndex);
-        if (targetSubField == null) {
-            targetField.addSubField(sourceSubField.value(), 0, targetSubfieldIndex);
-        } else {
-            targetSubField.setValue(sourceSubField.value());
-        }
-        
-        // reload message
-        hl7Message.refreshSourceHL7Message();
-        LOG.debug(".copyFullField(): Copied " + copyMessageDisplay);
-    }
-    
-    
-    /**
-     * Copies the contents, including all repetitions.  Copies with the default source if the source does not
-     * exist or is empty.  Throws a NonExistentHL7ElementException if the default source does not exist or is
-     * empty or if the target segment does not exist.  Will copy to target subfield that does not exist as long
-     * as an existing segment exists.  If multiple source or target segments then the first one will be used for
-     * each.
-     * 
-     * @param message
-     * @param targetSegmentName
-     * @param targetFieldIndex
-     * @param targetSubfieldIndex
-     * @param sourceSegmentName
-     * @param sourceFieldIndex
-     * @param sourceSubfieldIndex
-     * @param defaultSourceSegmentName
-     * @param defaultSourceFieldIndex
-     * @param defaultSourceSubfieldIndex
-     * @throws Exception
-     */
-    public static void copyFullField(
-            Message message, String targetSegmentName, int targetFieldIndex, int targetSubfieldIndex,
-            String sourceSegmentName, int sourceFieldIndex, int sourceSubfieldIndex,
-            String defaultSourceSegmentName, int defaultSourceFieldIndex, int defaultSourceSubfieldIndex) throws Exception
-    {
-        try {
-            copyFullField(message, targetSegmentName, targetFieldIndex, targetSubfieldIndex, sourceSegmentName, sourceFieldIndex, sourceSubfieldIndex);
-        } catch (NonExistentHL7ElementException e) {
-            // use our default
-            copyFullField(message, targetSegmentName, targetFieldIndex, targetSubfieldIndex, defaultSourceSegmentName, defaultSourceFieldIndex, defaultSourceSubfieldIndex);
-        }
-    }
-
 	
 	/**
 	 * Concatenates the content of the source fields with the specified seperator.
@@ -494,6 +366,7 @@ public class HL7MessageUtils {
 	 * @param seperator
 	 * @param sourcePathSpecs
 	 */
+    @Deprecated
 	public static void concatenate(Message message, String targetPathSpec, String seperator, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.concatenate(message, targetPathSpec, seperator, sourcePathSpecs);
 	}
@@ -508,6 +381,7 @@ public class HL7MessageUtils {
 	 * @param sourcePathSpecs
 	 * @throws Exception
 	 */
+    @Deprecated
 	public static void concatenate(Message message, String targetPathSpec, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.concatenate(message, targetPathSpec, "", sourcePathSpecs);
 	}
@@ -520,6 +394,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @param textToAppend
 	 */
+    @Deprecated
 	public static void append(Message message, String targetPathSpec, String textToAppend) throws Exception {
 		HL7TerserBasedUtils.append(message, targetPathSpec, textToAppend);
 	}
@@ -532,6 +407,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @param textToPrepend
 	 */
+    @Deprecated
 	public static void prepend(Message message, String targetPathSpec, String textToPrepend) throws Exception {
 		HL7TerserBasedUtils.prepend(message, targetPathSpec, textToPrepend);		
 	}
@@ -544,6 +420,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpec
 	 * @throws HL7Exception
 	 */
+    @Deprecated
 	public static void clear(Message message, String targetPathSpec) throws Exception {
 		HL7TerserBasedUtils.clear(message, targetPathSpec);
 	}
@@ -556,6 +433,7 @@ public class HL7MessageUtils {
 	 * @param targetPathSpecs
 	 * @throws Exception
 	 */
+    @Deprecated
 	public static void clear(Message message, String ... targetPathSpecs) throws Exception {
 		
 		for (String targetPathSpec : targetPathSpecs) {
@@ -855,8 +733,11 @@ public class HL7MessageUtils {
 	public static Segment getSegment(Message message, String segmentName, int occurence) throws Exception {
 		Integer index = getSegmentIndex(message, segmentName, occurence);
 		
+		// If the index is null which means the segment does not exist then create and empty segment and return it to prevent NPE's.  The segment is not added to the message.
 		if (index == null) {
-			return null;
+			HL7Message hl7Message = new HL7Message(message);
+			return new Segment("",hl7Message);
+			
 		}
 		
 		return getSegment(message, index);
@@ -885,6 +766,7 @@ public class HL7MessageUtils {
 	 * @param sourcePathSpecs
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static void copyReplaceParam(Message message, String targetPathSpec, String sourcePathSpec, String ... sourcePathSpecs) throws Exception {
 		HL7TerserBasedUtils.copyReplaceParam(message, targetPathSpec, sourcePathSpec, sourcePathSpecs);
 	}
@@ -898,7 +780,8 @@ public class HL7MessageUtils {
 	 * @throws Exception
 	 */
 	public static void changeMessageVersion(Message message, String newVersion) throws Exception {
-		HL7TerserBasedUtils.set(message, "MSH-12", newVersion);
+		HL7Message hL7Message = new HL7Message(message);
+		hL7Message.getMSHSegment().getField(12).setValue(newVersion);
 	}
 
 	
@@ -911,6 +794,7 @@ public class HL7MessageUtils {
 	 * @return
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static int getNumberOfRepetitions(Message message, String segmentPathSpec, int fieldIndex) throws Exception {
 		return HL7TerserBasedUtils.getNumberOfRepetitions(message, segmentPathSpec, fieldIndex);
 	}
@@ -1102,6 +986,7 @@ public class HL7MessageUtils {
 	 * @return
 	 * @throws Exception
 	 */
+	@Deprecated
 	public static List<ca.uhn.hl7v2.model.Segment>getAllSegments(Message message, String segmentName) throws Exception {
 		return HL7TerserBasedUtils.getAllSegments(message, segmentName);
 	}
@@ -1216,9 +1101,9 @@ public class HL7MessageUtils {
 	/**
 	 * Sets a sub field value in all matching segments.  All repetitions.
 	 */ 
-	public static void setSubFieldInAllSegments(Message message, String segment, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public static void setSubFieldInAllFieldRepetitionsAllSegments(Message message, String segment, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		HL7Message hl7Message = new HL7Message(message);
-		hl7Message.setSubFieldInAllSegments(segment, fieldIndex, subFieldIndex, value);			
+		hl7Message.setSubFieldInAllFieldRepetitionsAllSegments(segment, fieldIndex, subFieldIndex, value);			
 	}
 
 	

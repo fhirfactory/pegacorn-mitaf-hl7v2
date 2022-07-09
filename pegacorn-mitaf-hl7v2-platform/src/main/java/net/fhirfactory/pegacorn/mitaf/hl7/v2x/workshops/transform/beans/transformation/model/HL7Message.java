@@ -34,6 +34,55 @@ public class HL7Message implements Serializable   {
 			segments.add(segment);
 		}
 	}
+	
+	/**
+	 * Returns the type of the message. MSH-9.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public Field getMessageTypeField() throws Exception {
+		
+		for (Segment segment : this.segments) {
+			if (segment.getName().equals("MSH")) {
+				return segment.getField(9);
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Returns the MSH segment.
+	 * 
+	 * @return
+	 */
+	public Segment getMSHSegment() {
+		for (Segment segment : this.segments) {
+			if (segment.getName().equals("MSH")) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
+	
+
+	/**
+	 * Returns the PID segment.
+	 * 
+	 * @return
+	 */
+	public Segment getPIDSegment() {
+		for (Segment segment : this.segments) {
+			if (segment.getName().equals("PID")) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
 
 	
 	/**
@@ -435,19 +484,9 @@ public class HL7Message implements Serializable   {
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 */
-	public void setSubFieldInAllSegments(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public void setSubFieldInAllFieldRepetitionsAllSegments(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : getSegments(segmentName)) {
-			Field field = segment.getField(fieldIndex);
-			
-			if (field != null) {
-				for (FieldRepetition repetition : field.getRepetitions()) {
-					Subfield subField = repetition.getSubField(subFieldIndex);
-					
-					if (subField != null) {
-						subField.setValue(value);
-					}
-				}
-			}
+			segment.setSubFieldInAllFieldRepetitions(fieldIndex, subFieldIndex, value);
 		}
 	}
 

@@ -670,4 +670,22 @@ public class Field implements Serializable {
 		
 		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
+
+
+	/**
+	 * Sets a subField value in all repetitions.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void setSubFieldInAllRepetitions(int subFieldIndex, String value) throws Exception {
+
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (subField != null) {
+				subField.setValue(value);
+			}
+		}
+	}
 }

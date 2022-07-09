@@ -2,7 +2,6 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -525,5 +524,19 @@ public class Segment implements Serializable {
 		
 		field.removeNotMatchingFieldRepetitions(subFieldIndex, matchValue);
 		
+	}
+
+
+	/**
+	 * Sets the same value in all subFields
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @throws Exception
+	 */
+	public void setSubFieldInAllFieldRepetitions(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		field.setSubFieldInAllRepetitions(subFieldIndex, value);
 	}
 }
