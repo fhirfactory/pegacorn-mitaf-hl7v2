@@ -54,6 +54,19 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
+	 * Does the supplied segment exist?
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean doesSegmentExist(String segment) throws Exception {
+		return getSegmentCount(segment) > 0;
+		
+	}
+	
+	
+	/**
 	 * Returns the MSH segment.
 	 * 
 	 * @return
@@ -127,7 +140,6 @@ public class HL7Message implements Serializable   {
 			if (segment.getName().equals(name)) {
 				if (currentOccurrence == occurrence) {
 					iter.remove();
-					refreshSourceHL7Message();
 					return;
 				}
 				
@@ -148,8 +160,6 @@ public class HL7Message implements Serializable   {
 		}
 		
 		this.segments.remove(rowIndex);
-		
-		refreshSourceHL7Message();
 	}
 	
 	
@@ -161,26 +171,16 @@ public class HL7Message implements Serializable   {
 	 */
 	public void removeSegment(Segment segment) throws Exception {	
 		this.segments.remove(segment);
-		
-		refreshSourceHL7Message();
 	}
 	
 	
 	/**
-	 * Removes all segments of the supplied name.
+	 * Removes the 1st occurrence of a segment.
 	 * 
 	 * @param name
 	 */
-	public void removeAllMatchingSegments(String name) throws Exception {
-		for (Iterator<Segment> iter = getSegments().iterator(); iter.hasNext(); ) {
-			Segment segment = iter.next();
-			
-			if (segment.getName().equals(name)) {
-				iter.remove();
-			}
-		}
-		
-		refreshSourceHL7Message();
+	public void removeSegment(String name) throws Exception {
+		removeSegment(name, 0);
 	}
 	
 	
@@ -204,8 +204,10 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @return
 	 */
-	public void refreshSourceHL7Message() throws Exception {
+	public Message getSourceMessage() throws Exception {
 		sourceHL7Message.parse(this.toString());
+		
+		return sourceHL7Message;
 	}
 
 	
@@ -234,7 +236,7 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @param message
 	 * @param segmentName
-	 * @param occurence
+	 * @param occurrence
 	 * @return
 	 * @throws Exception
 	 */
@@ -303,8 +305,6 @@ public class HL7Message implements Serializable   {
 		Segment sourceSegment = getSegments().get(sourceIndex);
 	
 		getSegments().set(targetIndex, SerializationUtils.clone(sourceSegment));
-		
-		refreshSourceHL7Message();
 	}
 	
 	
@@ -320,7 +320,6 @@ public class HL7Message implements Serializable   {
 		Segment segment = new Segment(source.toString(), this);
 		
 		getSegments().add(targetIndex, segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}
@@ -354,8 +353,6 @@ public class HL7Message implements Serializable   {
 		}
 			
 		getSegments().remove(sourceSegment);
-		
-		refreshSourceHL7Message();
 	}
 	
 	
@@ -372,7 +369,6 @@ public class HL7Message implements Serializable   {
 		Segment segment = new Segment(newSegmentName + "|" + id, this);
 		
 		getSegments().add(segmentIndex, segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}
@@ -390,7 +386,6 @@ public class HL7Message implements Serializable   {
 		Segment segment = new Segment(newSegmentName + "|" + id, this);
 		
 		getSegments().add(segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}	
@@ -721,4 +716,234 @@ public class HL7Message implements Serializable   {
 			segment.removeNotMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
 		}
 	}
+	
+	/**
+	 * Returns a segment.
+	 * 
+	 * @param segmentName
+	 * @param occurrence
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment getSegment(String segmentName, int occurrence) throws Exception {
+		Integer index = getSegmentIndex(segmentName, occurrence);
+		
+		// If the index is null which means the segment does not exist then create and empty segment and return it to prevent NPE's.  The segment is not added to the message.
+		if (index == null) {
+			return new Segment("",this);
+		}
+		
+		return getSegment(index);
+	}
+	
+	
+	/**
+	 * Returns the 1st occurrence of a segment.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment getSegment(String segmentName) throws Exception {		
+		return getSegment(segmentName, 0);
+	}
+	
+	
+	/**
+	 * Returns the message row index of the last occurrence of the supplied segment name.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Integer getLastSegmentIndex(String segmentName) throws Exception {
+		List<Integer> segmentIndexes = getSegmentIndexes(segmentName);
+		
+		if (segmentIndexes.isEmpty()) {
+			return null;
+		}
+		
+		return segmentIndexes.get(segmentIndexes.size()-1);		
+	}
+	
+	
+	/**
+	 * Is the message of the supplied type.
+	 * 
+	 * @param messageType
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean isType( String messageType) throws Exception {	
+		Field messageTypeField = getMessageTypeField();
+		
+		String type = null;
+		
+		if (messageTypeField != null) {
+			type = messageTypeField.getSubField(1).value() + "_" + messageTypeField.getSubFieldValue(2);
+		}
+		
+		
+		if (messageType.endsWith("_*")) {	
+			return type.substring(0, 3).equals(messageType.substring(0, 3));
+		}
+		
+		return type.equals(messageType);
+	}
+	
+	
+	/**
+	 * Changes the version of this message.
+	 * 
+	 * @param newVersion
+	 * @throws Exception
+	 */
+	public void changeMessageVersion(String newVersion) throws Exception {
+		getMSHSegment().getField(12).setValue(newVersion);
+	}
+	
+
+	/**
+	 * Removes a patient identifier from the PID segment.
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public void removePatientIdentifierField(String identifier) throws Exception  {
+		Segment pidSegment = getPIDSegment();
+		
+		Iterator<FieldRepetition>fieldRepetitionIterator = pidSegment.getField(3).getRepetitions().iterator();
+		
+		while (fieldRepetitionIterator.hasNext()) {
+			FieldRepetition fieldRepetition = fieldRepetitionIterator.next();
+			
+			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
+				fieldRepetitionIterator.remove();
+			}
+		}
+	}
+
+	
+	/**
+	 * Gets a patient identifier value from the PID segment
+	 * 
+	 * @param identifier
+	 * @return
+	 * @throws Exception
+	 */
+	public String getPatientIdentifierValue(String identifier) throws Exception  {	
+		Segment pidSegment = getPIDSegment();
+		
+		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
+			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
+				return fieldRepetition.getSubField(1).value();
+			}
+		}
+		
+		return "";
+	}
+	
+	
+	/**
+	 * Returns a list of patient identifiers in the PID segment.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public List<String> getPatientIdentifierCodes() throws Exception {	
+		Segment pidSegment = getPIDSegment();
+		
+		List<String>identifiers = new ArrayList<>();
+		
+		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
+			identifiers.add(fieldRepetition.getSubField(5).value());
+		}
+		
+		
+		return identifiers;
+	}
+	
+	
+	/**
+	 * Removes patient identifiers which do not match the identifier to keep.
+	 * 
+	 * @param identifierToKeep
+	 * @throws Exception
+	 */
+	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {		
+		List<String>patientIdentifierCodes = getPatientIdentifierCodes();
+		
+		for (String patientIdentifierCode : patientIdentifierCodes) {
+			if (!patientIdentifierCode.equals(identifierToKeep)) {
+				removePatientIdentifierField( patientIdentifierCode);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Sets the segments which must not be removed from this message.
+	 * 
+	 * @param segmentsToKeep
+	 * @throws Exception
+	 */
+	public void setSegmentsToKeep(String ... segmentsToKeep) throws Exception {	
+	
+		List<String>segmentsToRemove = new ArrayList<>();
+		
+		for (Segment segment : getSegments()) {
+			if(!doesContainSegment(segment.getName(), segmentsToKeep)) {
+				segmentsToRemove.add(segment.getName());
+			}
+		}
+		
+		for (String segmentToRemove : segmentsToRemove) {
+			removeAllSegments(segmentToRemove);
+		}
+	}
+	
+	
+	/**
+	 * @param segmentName
+	 * @param requiredSegments
+	 * @return
+	 */
+	private boolean doesContainSegment(String segmentName, String[] requiredSegments) {
+		for (String requiredSegment : requiredSegments) {
+			if (segmentName.equals(requiredSegment)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	
+	/**
+	 * Removes all segments matching the segment name no matter where they appear in the message.
+	 * 
+	 * @param segmentName
+	 * @throws Exception
+	 */
+	public void removeAllSegments(String segmentName) throws Exception {	
+		for (Iterator<Segment> iter = getSegments().iterator(); iter.hasNext(); ) {
+			Segment segment = iter.next();
+			
+			if (segment.getName().equals(segmentName)) {
+				iter.remove();
+			}
+		}
+	}
+	
+	
+	/**
+	 * Returns the total number of segments in this message.
+	 * 
+	 * @return
+	 */
+	public int getTotalSegmentCount() {
+		return getSegments().size();
+	}
+	
 }

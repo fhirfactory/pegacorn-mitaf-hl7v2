@@ -29,8 +29,6 @@ public class SubSubfield implements Serializable {
 
 	public void setValue(String value) throws Exception {
 		this.value = value;
-		
-		this.subField.geFieldRepetition().getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
 	
 	@Override

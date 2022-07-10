@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.model.Message;
 
 /**
  * A single HL7 message segment.
@@ -62,8 +63,6 @@ public class Segment implements Serializable {
 	 */
 	public void setFields(List<Field> fields) throws Exception {
 		this.fields = fields;
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -130,8 +129,6 @@ public class Segment implements Serializable {
 	 */
 	public void addField(Field field) throws Exception {
 		this.fields.add(field);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -155,8 +152,6 @@ public class Segment implements Serializable {
 		}
 		
 		this.getFields().add(index, field);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -200,19 +195,6 @@ public class Segment implements Serializable {
 		field.clear(repetition);
 	}
 	
-	
-	/**
-	 * Clears all repetitions of a field.
-	 * 
-	 * @param fieldIndex
-	 * @throws Exception
-	 */
-	public void clearAllFieldRepetitions(int fieldIndex) throws Exception {
-		Field field = this.getField(fieldIndex);
-				
-		field.clearAllRepetitions();
-	}
-
 	
 	/**
 	 * Clears a sub field from the supplied repetition of a field.
@@ -317,8 +299,6 @@ public class Segment implements Serializable {
 	 */
 	public void changeName(String newName) throws Exception {
 		this.getField(0).setValue(newName);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -493,8 +473,6 @@ public class Segment implements Serializable {
 			Field field = new Field(fieldValue, true, this);
 			fields.add(field);
 		}
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 
 

@@ -21,7 +21,7 @@ import ca.uhn.hl7v2.util.Terser;
  * @author Brendan Douglas
  *
  */
-@Deprecated
+@Deprecated()
 class HL7TerserBasedUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HL7MessageUtils.class);
 
