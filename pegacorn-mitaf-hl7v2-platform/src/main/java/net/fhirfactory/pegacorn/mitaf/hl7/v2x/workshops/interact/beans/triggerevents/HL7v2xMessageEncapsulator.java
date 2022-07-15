@@ -64,6 +64,8 @@ import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetr
 public class HL7v2xMessageEncapsulator  {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageEncapsulator.class);
 
+    private static final Integer SYNAPSE_PAYLOAD_SIZE = 32000;
+
     private HapiContext context;
     private DateTimeFormatter timeFormatter;
     private boolean initialised;
@@ -92,7 +94,7 @@ public class HL7v2xMessageEncapsulator  {
     public HL7v2xMessageEncapsulator() {
         context = new DefaultHapiContext();
         timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
-        maxHL7MessageSize = 64000;
+        maxHL7MessageSize = SYNAPSE_PAYLOAD_SIZE;
         includeFullHL7MessageInLog = false;
         initialised = false;
     }
