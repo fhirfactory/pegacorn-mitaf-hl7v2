@@ -24,6 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
+import net.fhirfactory.pegacorn.core.model.component.SoftwareComponent;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
@@ -119,6 +120,9 @@ public class HL7v2xOutboundMessageTransformationExceptionHandler extends Transfo
             getLogger().error(".processException(): Cannot retrieve PetasosFulfillmentTaskSharedInstance from Exchange!");
         }
         //
+        // Extract the WorkUnitProcessor detail
+        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        //
         // Log Exception
         sendExceptionNotification(exceptionMessage, camelExchange);
 
@@ -147,7 +151,10 @@ public class HL7v2xOutboundMessageTransformationExceptionHandler extends Transfo
 
         if(isAllowingSoftFailures()){
             getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
-            UoWPayload continuationMessage = SerializationUtils.clone(uow.getIngresContent());
+            String participantName = fulfillerWorkUnitProcessor.getParticipantName();
+            String updatedPayload = addZDESegment(uow.getIngresContent().getPayload(), exceptionMessage, participantName);
+            UoWPayload continuationMessage =  SerializationUtils.clone(uow.getIngresContent());
+            continuationMessage.setPayload(updatedPayload);
             continuationMessage.getPayloadManifest().setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             continuationMessage.getPayloadManifest().setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
             uow.getEgressContent().addPayloadElement(continuationMessage);
