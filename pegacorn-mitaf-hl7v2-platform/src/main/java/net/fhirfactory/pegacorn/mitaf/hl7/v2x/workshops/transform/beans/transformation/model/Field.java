@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * A single field within a segment.
  * 
@@ -50,7 +52,25 @@ public class Field implements Serializable {
 	
 	
 	public String toString() {		
-		return repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
+		String originalValue = repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
+		
+		if (originalValue.isEmpty()) {
+			return originalValue;
+		}
+		
+		try {
+			String value = StringUtils.replace(originalValue, "^", "");
+			value = StringUtils.replace(value, "~", "");
+			value = StringUtils.replace(value, "&", "");
+			
+			if (value.isEmpty()) {
+				clear();
+			}
+		} catch(Exception e) {
+			return "";
+		}
+		
+		return originalValue;
 	}
 
 	
@@ -97,8 +117,6 @@ public class Field implements Serializable {
 		}
 		
 		repetitions.remove(repetition);
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -109,8 +127,6 @@ public class Field implements Serializable {
 	 */
 	public void removeRepetition(FieldRepetition repetition) throws Exception {		
 		repetitions.remove(repetition);
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -127,8 +143,6 @@ public class Field implements Serializable {
 		} else {
 			getRepetitions().add(0, fieldRepetition);
 		}
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -162,8 +176,6 @@ public class Field implements Serializable {
 			FieldRepetition repetition = new FieldRepetition(fieldValue, true, this);
 			repetitions.add(repetition);
 		}
-		
-		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -249,11 +261,10 @@ public class Field implements Serializable {
 	 * Clears the entire field, including all repetitions.
 	 */
 	public void clear() throws Exception {
-		for (FieldRepetition repetition : repetitions) {
-			repetition.clear();
-		}
+		setValue("");
 	}
-
+	
+	
 	/**
 	 * Clears a single repetition of the field
 	 * 
@@ -645,8 +656,6 @@ public class Field implements Serializable {
 				repetitionIterator.remove();
 			}
 		}
-		
-		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 
@@ -667,7 +676,23 @@ public class Field implements Serializable {
 				repetitionIterator.remove();
 			}
 		}
-		
-		this.getSegment().getMessage().refreshSourceHL7Message();
+	}
+
+
+	/**
+	 * Sets a subField value in all repetitions.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void setSubFieldInAllRepetitions(int subFieldIndex, String value) throws Exception {
+
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (subField != null) {
+				subField.setValue(value);
+			}
+		}
 	}
 }

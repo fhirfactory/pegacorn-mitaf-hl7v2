@@ -54,8 +54,6 @@ public class Subfield implements Serializable {
 			SubSubfield subSubField = new SubSubfield(subSubFieldValue, this);
 			subSubFields.add(subSubField);
 		}
-		
-		this.fieldRepetition.getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -66,9 +64,7 @@ public class Subfield implements Serializable {
 	
 	
 	public void clear() throws Exception {
-		for (SubSubfield subSubField : subSubFields) {
-			subSubField.clear();
-		}
+		setValue("");
 	}
 	
 	

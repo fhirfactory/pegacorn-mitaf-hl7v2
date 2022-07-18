@@ -90,9 +90,7 @@ public class FieldRepetition implements Serializable  {
 	 * @throws Exception
 	 */
 	public void clear() throws Exception {
-		for (Subfield subField : subFields) {
-			subField.clear();
-		}
+		setValue("");
 	}
 	
 	public Field getField() {
@@ -141,8 +139,6 @@ public class FieldRepetition implements Serializable  {
 		}
 		
 		this.getSubFields().add(index, subField);
-		
-		this.field.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -163,8 +159,6 @@ public class FieldRepetition implements Serializable  {
 			Subfield subField = new Subfield(fieldRepetitonValue, true, this);
 			subFields.add(subField);
 		}	
-		
-		this.getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	/**
