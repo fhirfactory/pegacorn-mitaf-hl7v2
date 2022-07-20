@@ -8,9 +8,9 @@ import java.nio.file.Path;
 
 import org.hl7.fhir.r4.model.Media;
 import org.hl7.fhir.r4.model.Reference;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.wildfly.common.Assert;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
@@ -25,9 +25,9 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.resources.media.factories.Medi
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 
-public class HL7v2SnippetToFHIRMediaTest {
+public class HL7v2xMessageToFHIRMediaTest {
 	
-	private HL7v2SnippetToFHIRMedia converter;	
+	private HL7v2xMessageToFHIRMedia converter;	
 	private HL7v2xInformationExtractionInterface messageExtractor;		
 	private PegacornReferenceProperties systemWideProperties;
 	private PegacornIdentifierFactory identifierFactory;
@@ -42,7 +42,7 @@ public class HL7v2SnippetToFHIRMediaTest {
         pipeParser.getParserConfiguration().setValidating(false);
         pipeParser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
 
-		converter = new HL7v2SnippetToFHIRMedia();
+		converter = new HL7v2xMessageToFHIRMedia();
 		messageExtractor = new HL7v2xMessageInformationExtractor();
 		converter.setMessageInformationExtractionInterface(messageExtractor );
 		mediaFactory = new MediaFactory();
@@ -85,15 +85,51 @@ public class HL7v2SnippetToFHIRMediaTest {
 		try {
 			Message resource = loadORUResource();
 			Media media = converter.extractMediaResource(resource, null);
-			Assert.assertNotNull(media);
-			Assert.assertNotNull(media.getIdentifierFirstRep());
-			Assert.assertNotNull(media.getContent().getData());
+			Assertions.assertNotNull(media);
+			Assertions.assertNotNull(media.getIdentifierFirstRep());
+			Assertions.assertNotNull(media.getContent().getData());
 		} catch (IOException e) {
 			fail(e);
 		}
 	}
+	
+	
+	@Test
+	void testEncodedMediaResource() throws HL7Exception {
+		try {
+			Message resource = loadORUResource();
+			Media media = converter.extractMediaResource(resource.encode(), null);
+			Assertions.assertNotNull(media);
+			Assertions.assertNotNull(media.getIdentifierFirstRep());
+			Assertions.assertNotNull(media.getContent().getData());
+		} catch (IOException e) {
+			fail(e);
+		}
+	}
+	
+	@Test
+	void testNonMediaResource() {
+		try {
+		Message resource = loadADTResource();
+		Media media = converter.extractMediaResource(resource, null);
+		Assertions.assertNull(media);
+		} catch (IOException e) {
+			fail(e);
+		}
+	}
+	
 	private Message loadORUResource() throws IOException {
 		Path filePath = Path.of("./src/test/resources/oru_r01_wth_attachment.txt");
+		return loadResource(filePath);
+	}
+	
+	
+	private Message loadADTResource() throws IOException {
+		Path filePath = Path.of("./src/test/resources/adt_a01.txt");
+		return loadResource(filePath);
+	}
+	
+	private Message loadResource(Path filePath) throws IOException {
 
 		String content = Files.readString(filePath);
 		Message hl7Msg;
@@ -103,7 +139,6 @@ public class HL7v2SnippetToFHIRMediaTest {
 		} catch (HL7Exception e) {
 			e.printStackTrace();
 		}
-        
 		return null;
 	}
 }

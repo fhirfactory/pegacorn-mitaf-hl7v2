@@ -45,8 +45,8 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.resources.media.factories.Medi
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 
 @ApplicationScoped
-public class HL7v2SnippetToFHIRMedia {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2SnippetToFHIRMedia.class);
+public class HL7v2xMessageToFHIRMedia {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageToFHIRMedia.class);
 
     @Inject
     private MediaFactory mediaFactory;
@@ -56,6 +56,19 @@ public class HL7v2SnippetToFHIRMedia {
 
     @PostConstruct
     public void initialise(){
+    }
+    
+    public Media extractMediaResource(String message, Exchange camelExchange){
+        LOG.debug(".extractMediaResource(): Entry, message->{}", message);
+        Message encapsulatedMessage = new ORU_R01();
+        try {
+			encapsulatedMessage.parse(message);
+		} catch (HL7Exception e) {
+			LOG.warn(".extractMediaResource(): Message unable to be converted to ORU message->{}, exception->{}", message);
+		}
+        Media media = extractMediaResource(encapsulatedMessage, camelExchange);
+        LOG.debug(".extractMediaResource(): Exit, media->{}", media);
+        return(media);
     }
 
     public Media extractMediaResource(Message message, Exchange camelExchange){
