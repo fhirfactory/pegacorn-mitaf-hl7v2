@@ -83,8 +83,8 @@ public class HL7v2xMessageToFHIRMediaTest {
 	@Test
 	void testExtractMediaResource() {
 		try {
-			Message resource = loadORUResource();
-			Media media = converter.extractMediaResource(resource, null);
+			Message resource = loadORUAttachmentResource();
+			Media media = converter.extractMediaResource(resource);
 			Assertions.assertNotNull(media);
 			Assertions.assertNotNull(media.getIdentifierFirstRep());
 			Assertions.assertNotNull(media.getContent().getData());
@@ -95,10 +95,22 @@ public class HL7v2xMessageToFHIRMediaTest {
 	
 	
 	@Test
+	void testExtractMediaResourceNoBase64() {
+		try {
+			Message resource = loadORUInlineResource();
+			Media media = converter.extractMediaResource(resource);
+			Assertions.assertNull(media);
+		} catch (IOException e) {
+			fail(e);
+		}
+	}
+	
+	
+	@Test
 	void testEncodedMediaResource() throws HL7Exception {
 		try {
-			Message resource = loadORUResource();
-			Media media = converter.extractMediaResource(resource.encode(), null);
+			Message resource = loadORUAttachmentResource();
+			Media media = converter.extractMediaResource(resource.encode());
 			Assertions.assertNotNull(media);
 			Assertions.assertNotNull(media.getIdentifierFirstRep());
 			Assertions.assertNotNull(media.getContent().getData());
@@ -111,18 +123,22 @@ public class HL7v2xMessageToFHIRMediaTest {
 	void testNonMediaResource() {
 		try {
 		Message resource = loadADTResource();
-		Media media = converter.extractMediaResource(resource, null);
+		Media media = converter.extractMediaResource(resource);
 		Assertions.assertNull(media);
 		} catch (IOException e) {
 			fail(e);
 		}
 	}
 	
-	private Message loadORUResource() throws IOException {
-		Path filePath = Path.of("./src/test/resources/oru_r01_wth_attachment.txt");
+	private Message loadORUAttachmentResource() throws IOException {
+		Path filePath = Path.of("./src/test/resources/oru_r01_with_attachment.txt");
 		return loadResource(filePath);
 	}
 	
+	private Message loadORUInlineResource() throws IOException {
+		Path filePath = Path.of("./src/test/resources/oru_r01_with_inline.txt");
+		return loadResource(filePath);
+	}	
 	
 	private Message loadADTResource() throws IOException {
 		Path filePath = Path.of("./src/test/resources/adt_a01.txt");

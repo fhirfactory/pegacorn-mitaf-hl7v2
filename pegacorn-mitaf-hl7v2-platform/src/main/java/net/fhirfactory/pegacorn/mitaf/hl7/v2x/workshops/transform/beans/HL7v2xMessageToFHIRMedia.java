@@ -58,7 +58,7 @@ public class HL7v2xMessageToFHIRMedia {
     public void initialise(){
     }
     
-    public Media extractMediaResource(String message, Exchange camelExchange){
+    public Media extractMediaResource(String message){
         LOG.debug(".extractMediaResource(): Entry, message->{}", message);
         Message encapsulatedMessage = new ORU_R01();
         try {
@@ -66,12 +66,12 @@ public class HL7v2xMessageToFHIRMedia {
 		} catch (HL7Exception e) {
 			LOG.warn(".extractMediaResource(): Message unable to be converted to ORU message->{}, exception->{}", message);
 		}
-        Media media = extractMediaResource(encapsulatedMessage, camelExchange);
+        Media media = extractMediaResource(encapsulatedMessage);
         LOG.debug(".extractMediaResource(): Exit, media->{}", media);
         return(media);
     }
 
-    public Media extractMediaResource(Message message, Exchange camelExchange){
+    public Media extractMediaResource(Message message){
         LOG.debug(".extractMediaResource(): Entry, message->{}", message);
         Media media = parseResource(message);
         LOG.debug(".extractMediaResource(): Exit, media->{}", media);

@@ -21,9 +21,23 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.r4.model.Media;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.interfaces.media.PetasosMediaServiceAgentInterface;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
@@ -35,24 +49,19 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaExtractor;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
+import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.datatypes.MLLPMessageActivityParcel;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageToFHIRMedia;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 @ApplicationScoped
 public class HL7v2xTriggerEventIngresProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTriggerEventIngresProcessor.class);
+    private static final String BASE64_PATTERN = "^Base64^";
+
+	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTriggerEventIngresProcessor.class);
 
     private HapiContext context;
     private DateTimeFormatter timeFormatter;
@@ -74,6 +83,15 @@ public class HL7v2xTriggerEventIngresProcessor {
 
     @Inject
     private UltraDefensivePipeParser defensivePipeParser;
+    
+    @Inject 
+    private HL7v2xMessageToFHIRMedia mediaConverter;
+    
+    @Inject
+    private MediaExtractor mediaExtractor;
+    
+    @Inject 
+    private PetasosMediaServiceAgentInterface mediaAgent;
 
     //
     // Constructor(s)
@@ -224,6 +242,8 @@ public class HL7v2xTriggerEventIngresProcessor {
                 newPayload.setPayload(incomingMessageActivity.getUow().getIngresContent().getPayload());
                 newPayload.setPayloadManifest(messageManifest);
                 LOG.trace(".encapsulateTriggerEvent(): newPayload created->{}", newPayload);
+                
+                
 
                 //
                 // Create the UoW
@@ -234,6 +254,31 @@ public class HL7v2xTriggerEventIngresProcessor {
                 newUoW.setFailureDescription(outcomeDescription);
 
                 //
+                // Strip out any Media from the payload.
+//                	String obxSegment = .extractOBXSegment(newPayload.getPayload());
+//                	Media media = mediaExtractor.populateMedia(obxSegment);
+                	
+                //Has BASE64 inside OBX, it needs to be extracted
+                	if(defensivePipeParser.hasMatchingPatternInSegmentType(newPayload.getPayload(), BASE64_PATTERN, HL7v2SegmentTypeEnum.OBX)) {
+                		String message = newPayload.getPayload();
+                		Media media;
+						//1. keep searching for media objects
+                		do {
+                			media = mediaConverter.extractMediaResource(newPayload.getPayload());
+                			//2. Save the media to the IM
+                			if(mediaAgent.captureMedia(media, true)) {
+                				//3. remove the byte[] from the UoW payload
+                				mediaExtractor.replaceAttachmentSegment(message, media.getContent().getUrl());
+                			} else {
+                				LOG.warn("failed to save Media object. media->{}", media);
+                			}
+                		} while (media != null);
+                		//Update the payload to not have the attachments
+                		newPayload.setPayload(message);
+                	}
+                	
+                
+                	//
                 // All Done!
                 LOG.debug(".encapsulateTriggerEvent(): Exit, newUoW created ->{}", newUoW);
                 return (newUoW);
