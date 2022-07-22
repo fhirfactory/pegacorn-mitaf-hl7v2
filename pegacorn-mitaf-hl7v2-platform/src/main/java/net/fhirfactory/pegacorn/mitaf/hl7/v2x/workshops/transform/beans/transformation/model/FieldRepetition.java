@@ -14,7 +14,7 @@ import ca.uhn.hl7v2.HL7Exception;
  * @author Brendan_Douglas
  *
  */
-public class FieldRepetition implements Serializable  {
+public class FieldRepetition extends MessageComponent implements Serializable  {
 	private static final long serialVersionUID = -861537957069177073L;
 	
 	private List<Subfield>subFields = new ArrayList<>();

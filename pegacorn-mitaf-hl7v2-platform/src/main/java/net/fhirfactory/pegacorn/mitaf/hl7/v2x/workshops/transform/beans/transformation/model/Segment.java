@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
 
 /**
  * A single HL7 message segment.
@@ -15,7 +14,7 @@ import ca.uhn.hl7v2.model.Message;
  * @author Brendan Douglas
  *
  */
-public class Segment implements Serializable {
+public class Segment extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = -8797054428191615724L;
 	
     private List<Field>fields = new ArrayList<Field>();
@@ -516,5 +515,45 @@ public class Segment implements Serializable {
 	public void setSubFieldInAllFieldRepetitions(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		field.setSubFieldInAllRepetitions(subFieldIndex, value);
+	}
+
+
+	/**
+	 * Gets a Field repetition which contains the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetitionContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.getRepetitionContainingValue(subFieldIndex, value);
+	}
+
+
+	/**
+	 * Gets a field containing the specified value at the supplied sub field index.  All repetitions are searched.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Field getFieldContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field.doesSubFieldContainValue(subFieldIndex, value)) {
+			return field;
+		}
+		
+		return null;
+	}
+
+
+	@Override
+	public String value() throws Exception {
+		return this.toString();
 	}
 }
