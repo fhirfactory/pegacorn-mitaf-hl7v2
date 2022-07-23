@@ -51,6 +51,7 @@ public class Field extends MessageComponent implements Serializable {
 	}
 	
 	
+	@Override
 	public String toString() {		
 		String originalValue = repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
 		
@@ -141,7 +142,7 @@ public class Field extends MessageComponent implements Serializable {
 		if (!this.value().isEmpty() ) {
 			getRepetitions().add(fieldRepetition);
 		} else {
-			getRepetitions().add(0, fieldRepetition);
+			getRepetitions().set(0, fieldRepetition);
 		}
 	}
 
@@ -179,6 +180,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		repetitions.clear();
 
@@ -266,6 +268,7 @@ public class Field extends MessageComponent implements Serializable {
 	}
 	
 	
+	@Override
 	public String value() {
 		return toString();
 	}
@@ -274,6 +277,7 @@ public class Field extends MessageComponent implements Serializable {
 	/**
 	 * Clears the entire field, including all repetitions.
 	 */
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}
