@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Bendan_Douglas
  *
  */
-public class Subfield implements Serializable {
+public class Subfield extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = -8174677055244513493L;
 
 	private List<SubSubfield> subSubFields = new ArrayList<>();

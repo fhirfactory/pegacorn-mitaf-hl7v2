@@ -30,7 +30,9 @@ public class HL7Message implements Serializable   {
 		String[] splitMessageSegments = sourceHL7Message.toString().split("\r");
 		
 		for (String value : splitMessageSegments) {
-			Segment segment = new Segment(value, this);
+			Segment segment = createSegment(value);
+			
+		
 			segments.add(segment);
 		}
 	}
@@ -42,14 +44,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Field getMessageTypeField() throws Exception {
-		
-		for (Segment segment : this.segments) {
-			if (segment.getName().equals("MSH")) {
-				return segment.getField(9);
-			}
-		}
-		
-		return null;
+		return getMSHSegment().getMessageTypeField();
 	}
 	
 	
@@ -71,14 +66,14 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @return
 	 */
-	public Segment getMSHSegment() {
+	public MSHSegment getMSHSegment() {
 		for (Segment segment : this.segments) {
 			if (segment.getName().equals("MSH")) {
-				return segment;
+				return (MSHSegment)segment;
 			}
 		}
 		
-		return null;
+		return (MSHSegment)createSegment("MSH");
 	}
 	
 
@@ -87,14 +82,14 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @return
 	 */
-	public Segment getPIDSegment() {
+	public PIDSegment getPIDSegment() {
 		for (Segment segment : this.segments) {
 			if (segment.getName().equals("PID")) {
-				return segment;
+				return (PIDSegment)segment;
 			}
 		}
 		
-		return null;
+		return (PIDSegment)createSegment("PID");
 	}
 
 	
@@ -171,6 +166,14 @@ public class HL7Message implements Serializable   {
 	 */
 	public void removeSegment(Segment segment) throws Exception {	
 		this.segments.remove(segment);
+	}
+	
+	
+	public void removeSegments(Segment[] segments) throws Exception {	
+		
+		for (Segment segment : segments) {
+			removeSegment(segment);
+		}
 	}
 	
 	
@@ -317,7 +320,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment insertSegment(Segment source, int targetIndex) throws Exception {
-		Segment segment = new Segment(source.toString(), this);
+		Segment segment = createSegment(source.toString());
 		
 		getSegments().add(targetIndex, segment);
 		
@@ -366,7 +369,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment insertSegment(String newSegmentName, int segmentIndex, int id) throws Exception {	
-		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		Segment segment = createSegment(newSegmentName + "|" + id);
 		
 		getSegments().add(segmentIndex, segment);
 		
@@ -383,7 +386,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment appendSegment(String newSegmentName, int id) throws Exception {	
-		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		Segment segment = createSegment(newSegmentName + "|" + id);
 		
 		getSegments().add(segment);
 		
@@ -689,6 +692,71 @@ public class HL7Message implements Serializable   {
 
 	
 	/**
+	 * Gets a Field repetition containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetitionContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			FieldRepetition fieldRepetition =  segment.getFieldRepetitionContainingValue(fieldIndex, subFieldIndex, value);
+			
+			if (fieldRepetition != null) {
+				return fieldRepetition;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	
+	/**
+	 * Gets a Field repetition containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Field getFieldContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			Field field =  segment.getFieldContainingValue(fieldIndex, subFieldIndex, value);
+			
+			if (field != null) {
+				return field;
+			}
+		}
+		
+		return null;
+	}
+
+	
+	/**
+	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
+
+	
+	/**
 	 * Removes a field repetition where the matchValue matches the subField value.
 	 * 
 	 * @param fieldIndex
@@ -730,7 +798,7 @@ public class HL7Message implements Serializable   {
 		
 		// If the index is null which means the segment does not exist then create and empty segment and return it to prevent NPE's.  The segment is not added to the message.
 		if (index == null) {
-			return new Segment("",this);
+			return createSegment("");
 		}
 		
 		return getSegment(index);
@@ -785,7 +853,8 @@ public class HL7Message implements Serializable   {
 		
 		
 		if (messageType.endsWith("_*")) {	
-			return type.substring(0, 3).equals(messageType.substring(0, 3));
+			boolean val =  type.substring(0, 3).equals(messageType.substring(0, 3));
+			return val;
 		}
 		
 		return type.equals(messageType);
@@ -799,7 +868,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public void changeMessageVersion(String newVersion) throws Exception {
-		getMSHSegment().getField(12).setValue(newVersion);
+		getMSHSegment().changeMessageVersion(newVersion);
 	}
 	
 
@@ -811,17 +880,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public void removePatientIdentifierField(String identifier) throws Exception  {
-		Segment pidSegment = getPIDSegment();
-		
-		Iterator<FieldRepetition>fieldRepetitionIterator = pidSegment.getField(3).getRepetitions().iterator();
-		
-		while (fieldRepetitionIterator.hasNext()) {
-			FieldRepetition fieldRepetition = fieldRepetitionIterator.next();
-			
-			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
-				fieldRepetitionIterator.remove();
-			}
-		}
+		getPIDSegment().removePatientIdentifierField(identifier);
 	}
 
 	
@@ -833,15 +892,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public String getPatientIdentifierValue(String identifier) throws Exception  {	
-		Segment pidSegment = getPIDSegment();
-		
-		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
-			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
-				return fieldRepetition.getSubField(1).value();
-			}
-		}
-		
-		return "";
+		return getPIDSegment().getPatientIdentifierValue(identifier);
 	}
 	
 	
@@ -852,16 +903,7 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public List<String> getPatientIdentifierCodes() throws Exception {	
-		Segment pidSegment = getPIDSegment();
-		
-		List<String>identifiers = new ArrayList<>();
-		
-		for (FieldRepetition fieldRepetition : pidSegment.getField(3).getRepetitions()) {
-			identifiers.add(fieldRepetition.getSubField(5).value());
-		}
-		
-		
-		return identifiers;
+		return getPIDSegment().getPatientIdentifierCodes();
 	}
 	
 	
@@ -871,14 +913,8 @@ public class HL7Message implements Serializable   {
 	 * @param identifierToKeep
 	 * @throws Exception
 	 */
-	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {		
-		List<String>patientIdentifierCodes = getPatientIdentifierCodes();
-		
-		for (String patientIdentifierCode : patientIdentifierCodes) {
-			if (!patientIdentifierCode.equals(identifierToKeep)) {
-				removePatientIdentifierField( patientIdentifierCode);
-			}
-		}
+	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {	
+		getPIDSegment().removeOtherPatientIdentifierFields(identifierToKeep);
 	}
 	
 	
@@ -946,4 +982,18 @@ public class HL7Message implements Serializable   {
 		return getSegments().size();
 	}
 	
+	
+	private Segment createSegment(String value) {
+		Segment segment = null;
+		
+		if (value.startsWith("MSH") ) {
+			segment = new MSHSegment(value, this);
+		} else if (value.startsWith("PID")) {
+			segment = new PIDSegment(value, this);
+		} else {
+			segment = new Segment(value, this);
+		}
+		
+		return segment;
+	}
 }

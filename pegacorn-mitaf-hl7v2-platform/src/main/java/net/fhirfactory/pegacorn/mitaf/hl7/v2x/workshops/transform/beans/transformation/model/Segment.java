@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
 
 /**
  * A single HL7 message segment.
@@ -15,11 +14,13 @@ import ca.uhn.hl7v2.model.Message;
  * @author Brendan Douglas
  *
  */
-public class Segment implements Serializable {
+public class Segment extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = -8797054428191615724L;
 	
-    private List<Field>fields = new ArrayList<Field>();
-	private HL7Message message = null;
+    protected List<Field>fields = new ArrayList<Field>();
+	protected HL7Message message = null;
+	
+	protected Segment() {};
 	
 	public Segment(String segment, HL7Message message) {
 		this.message = message;
@@ -29,15 +30,7 @@ public class Segment implements Serializable {
 		fields.add(new Field(splitSegmentFields[0], true, this));
 		
 		int startIndex = 1;
-			
-		// For the MSH segment the MSH-1 field value is the separator character (|) and we split based on this so create an empty field then add the seperator character to the field.
-		if (segment.startsWith("MSH")) {
-			startIndex = 2;
-			fields.add(new Field("|", false, this));
-			fields.add(new Field(splitSegmentFields[1],false, this));
-        }
-
-		
+					
 		for (int i = startIndex; i < splitSegmentFields.length; i++) {
 			String value = splitSegmentFields[i];
 			Field field = new Field(value, true, this);
@@ -66,15 +59,8 @@ public class Segment implements Serializable {
 	}
 
 	
+	@Override
 	public String toString() {	
-	
-		// Hack for MSH segment.
-		if (this.getName().equals("MSH") ) {
-			String segment = fields.stream().skip(3).map(Field::toString).collect(Collectors.joining("|"));
-			
-			return "MSH|^~\\&|"+segment;
-		}
-		
 		return fields.stream().map(Field::toString).collect(Collectors.joining("|"));
 	}
 
@@ -305,6 +291,7 @@ public class Segment implements Serializable {
 	/**
 	 * Clears the segment
 	 */
+	@Override
 	public void clear() throws Exception {
 		for (Field field : getFields()) {
 			field.clear();
@@ -462,6 +449,7 @@ public class Segment implements Serializable {
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		fields.clear();
 
@@ -516,5 +504,45 @@ public class Segment implements Serializable {
 	public void setSubFieldInAllFieldRepetitions(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		field.setSubFieldInAllRepetitions(subFieldIndex, value);
+	}
+
+
+	/**
+	 * Gets a Field repetition which contains the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetitionContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.getRepetitionContainingValue(subFieldIndex, value);
+	}
+
+
+	/**
+	 * Gets a field containing the specified value at the supplied sub field index.  All repetitions are searched.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Field getFieldContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		if (field.doesSubFieldContainValue(subFieldIndex, value)) {
+			return field;
+		}
+		
+		return null;
+	}
+
+
+	@Override
+	public String value() throws Exception {
+		return this.toString();
 	}
 }

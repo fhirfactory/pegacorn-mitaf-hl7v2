@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Brendan Douglas
  *
  */
-public class Field implements Serializable {
+public class Field extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = 3815655672813186758L;
 
 	private List<FieldRepetition> repetitions = new ArrayList<>();
@@ -51,6 +51,7 @@ public class Field implements Serializable {
 	}
 	
 	
+	@Override
 	public String toString() {		
 		String originalValue = repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
 		
@@ -141,10 +142,10 @@ public class Field implements Serializable {
 		if (!this.value().isEmpty() ) {
 			getRepetitions().add(fieldRepetition);
 		} else {
-			getRepetitions().add(0, fieldRepetition);
+			getRepetitions().set(0, fieldRepetition);
 		}
 	}
-	
+
 	
 	/**
 	 * Adds a repetition to this field.
@@ -152,9 +153,23 @@ public class Field implements Serializable {
 	 * @param value
 	 * @throws Exception
 	 */
-	public void addRepetition(String value) throws Exception {
+	public FieldRepetition addRepetition(String value) throws Exception {
 		FieldRepetition fieldRepetition = new FieldRepetition(value, false, this);
 		this.addRepetition(fieldRepetition);
+		
+		return fieldRepetition;
+	}
+
+	
+	/**
+	 * Adds an empty repetition.
+	 * 
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition addEmptyRepetition() throws Exception {
+		return addRepetition("");
 	}
 
 	
@@ -165,6 +180,7 @@ public class Field implements Serializable {
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		repetitions.clear();
 
@@ -252,6 +268,7 @@ public class Field implements Serializable {
 	}
 	
 	
+	@Override
 	public String value() {
 		return toString();
 	}
@@ -260,6 +277,7 @@ public class Field implements Serializable {
 	/**
 	 * Clears the entire field, including all repetitions.
 	 */
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}
@@ -695,4 +713,26 @@ public class Field implements Serializable {
 			}
 		}
 	}
+
+
+	/**
+	 * Returns a repetition of this field containing the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition getRepetitionContainingValue(int subFieldIndex, String value) throws Exception {
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (subField.value().equals(value)) {
+				return repetition;
+			}
+		}
+		
+		return null;
+	}
+
 }
