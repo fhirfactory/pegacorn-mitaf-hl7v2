@@ -22,19 +22,29 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
+import org.hl7.fhir.r4.model.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
+import net.fhirfactory.pegacorn.core.interfaces.media.PetasosMediaServiceAgentInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaPipeParser;
+import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
 
 @Dependent
 public class HL7v2xMessageExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
+	@Inject
+	private MediaPipeParser mediaParser;
 
-
+	@Inject
+	private PetasosMediaServiceAgentInterface mediaAgent;
 
 	//
 	// Constructor(s)
@@ -61,12 +71,27 @@ public class HL7v2xMessageExtractor {
 		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 
 		String messageAsString = incomingUoW.getIngresContent().getPayload();
-
+		messageAsString = checkForAndReinsertMediaObjects(messageAsString);
 		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
 		getLogger().info("OutgoingMessage->{}", messageAsString);
 		getLogger().info("OutgoingMessage-----------------------------------------------------------------");
 
-		getLogger().debug(".convertToMessage(): Entry, messageAsString->{}", messageAsString);
+		getLogger().debug(".convertToMessage(): Exit, messageAsString->{}", messageAsString);
+		return (messageAsString);
+	}
+
+	@VisibleForTesting
+	String checkForAndReinsertMediaObjects(String messageAsString) {
+		//If media objects have been loaded into our system
+		if(mediaParser.hasMatchingPatternInSegmentType(messageAsString, 
+				"<fhir-resource>", HL7v2SegmentTypeEnum.OBX)) {
+			
+			//Put the media objects back into the message
+			String segment = mediaParser.extractNextAlteredSegment(messageAsString);
+			String mediaId = mediaParser.extractIdFromAlteredSegment(segment);
+			Media media = mediaAgent.loadMedia(mediaId);
+//			mediaParser.media.getContent()
+		}
 		return (messageAsString);
 	}
 }

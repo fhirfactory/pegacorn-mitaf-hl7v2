@@ -110,7 +110,7 @@ public class HL7v2xMessageToFHIRMediaTest {
 	void testEncodedMediaResource() throws HL7Exception {
 		try {
 			Message resource = loadORUAttachmentResource();
-			Media media = converter.extractMediaResource(resource.encode());
+			Media media = converter.extractNextMediaResource(resource.encode());
 			Assertions.assertNotNull(media);
 			Assertions.assertNotNull(media.getIdentifierFirstRep());
 			Assertions.assertNotNull(media.getContent().getData());

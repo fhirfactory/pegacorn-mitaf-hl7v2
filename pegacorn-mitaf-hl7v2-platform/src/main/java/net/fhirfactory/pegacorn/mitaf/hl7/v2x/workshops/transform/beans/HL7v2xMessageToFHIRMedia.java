@@ -58,7 +58,7 @@ public class HL7v2xMessageToFHIRMedia {
     public void initialise(){
     }
     
-    public Media extractMediaResource(String message){
+    public Media extractNextMediaResource(String message){
         LOG.debug(".extractMediaResource(): Entry, message->{}", message);
         Message encapsulatedMessage = new ORU_R01();
         try {

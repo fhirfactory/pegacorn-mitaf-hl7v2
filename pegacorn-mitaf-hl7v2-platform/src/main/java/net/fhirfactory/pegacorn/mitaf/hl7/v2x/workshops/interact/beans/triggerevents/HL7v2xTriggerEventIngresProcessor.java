@@ -49,7 +49,8 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaExtractor;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.identifier.PegacornIdentifierFactory;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaPipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.datatypes.MLLPMessageActivityParcel;
@@ -88,10 +89,13 @@ public class HL7v2xTriggerEventIngresProcessor {
     private HL7v2xMessageToFHIRMedia mediaConverter;
     
     @Inject
-    private MediaExtractor mediaExtractor;
+    private MediaPipeParser mediaParser;
     
     @Inject 
     private PetasosMediaServiceAgentInterface mediaAgent;
+    
+    @Inject
+    private PegacornIdentifierFactory identifierFactory;
 
     //
     // Constructor(s)
@@ -264,11 +268,11 @@ public class HL7v2xTriggerEventIngresProcessor {
                 		Media media;
 						//1. keep searching for media objects
                 		do {
-                			media = mediaConverter.extractMediaResource(newPayload.getPayload());
+                			media = mediaConverter.extractNextMediaResource(newPayload.getPayload());
                 			//2. Save the media to the IM
                 			if(mediaAgent.captureMedia(media, true)) {
                 				//3. remove the byte[] from the UoW payload
-                				mediaExtractor.replaceAttachmentSegment(message, media.getContent().getUrl());
+                				mediaParser.replaceAttachmentSegment(message, media.getId());
                 			} else {
                 				LOG.warn("failed to save Media object. media->{}", media);
                 			}
