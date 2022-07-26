@@ -231,11 +231,9 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
-		FieldRepetition fieldRepetition = getFieldRepetition(fieldIndex, repetition);
+		Field field = getField(fieldIndex);
 		
-		if (fieldRepetition == null) {
-			return null;
-		}
+		FieldRepetition fieldRepetition = field.getRepetition(repetition);
 		
 		return fieldRepetition.getSubField(subFieldIndex);
 	}
@@ -520,27 +518,23 @@ public class Segment extends MessageComponent implements Serializable {
 		
 		return field.getRepetitionContainingValue(subFieldIndex, value);
 	}
-
+	
 
 	/**
-	 * Gets a field containing the specified value at the supplied sub field index.  All repetitions are searched.
+	 * Gets a list of Field repetitions which do not contain the supplied value at the supplied sub field index.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 */
-	public Field getFieldContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public List<FieldRepetition> getFieldRepetitionsNotContainingValue(int fieldIndex, int subFieldIndex, String ... values) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		if (field.doesSubFieldContainValue(subFieldIndex, value)) {
-			return field;
-		}
-		
-		return null;
+		return field.getRepetitionsNotContainingValue(subFieldIndex, values);
 	}
-
-
+	
+	
 	@Override
 	public String value() throws Exception {
 		return this.toString();

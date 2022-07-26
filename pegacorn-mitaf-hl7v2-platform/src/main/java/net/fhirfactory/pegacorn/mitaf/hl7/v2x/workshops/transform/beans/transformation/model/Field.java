@@ -81,9 +81,9 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public FieldRepetition getRepetition(int repetition) {
-		if (repetition > repetitions.size()) {
-			return null;
+	public FieldRepetition getRepetition(int repetition) throws Exception {
+		if (repetition >= repetitions.size()) {
+			return addRepetition("");
 		}
 		
 		return repetitions.get(repetition);
@@ -96,7 +96,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public String getRepetitionValue(int repetition) {
+	public String getRepetitionValue(int repetition) throws Exception{
 		FieldRepetition fieldRepetition = getRepetition(repetition);
 		
 		if (fieldRepetition == null) {
@@ -129,7 +129,17 @@ public class Field extends MessageComponent implements Serializable {
 	public void removeRepetition(FieldRepetition repetition) throws Exception {		
 		repetitions.remove(repetition);
 	}
-
+	
+	
+	/**
+	 * Removes a list of repetitions from the field.
+	 * 
+	 * @param repetition
+	 */
+	public void removeRepetitions(List<FieldRepetition> repetitionsToRemove) throws Exception {		
+		repetitions.removeAll(repetitionsToRemove);
+	}
+	
 	
 	/**
 	 * Adds a repetition to this field.
@@ -141,8 +151,10 @@ public class Field extends MessageComponent implements Serializable {
 		// if the 1st repetition is empty then replace, otherwise add a new repetition to the end.
 		if (!this.value().isEmpty() ) {
 			getRepetitions().add(fieldRepetition);
-		} else {
+		} else if (!repetitions.isEmpty()) {
 			getRepetitions().set(0, fieldRepetition);
+		} else {
+			getRepetitions().add(fieldRepetition);
 		}
 	}
 
@@ -734,5 +746,33 @@ public class Field extends MessageComponent implements Serializable {
 		
 		return null;
 	}
-
+	
+	
+	/**
+	 * Returns a list of Field repetitions of this field not containing the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsNotContainingValue(int subFieldIndex, String ... values) throws Exception {
+		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
+		
+		List<String>valuesToCompare = new ArrayList<>();
+		for (String value : values) {
+			valuesToCompare.add(value);
+		}
+		
+		
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (!valuesToCompare.contains(subField.value())) {
+				fieldRepetitions.add(repetition);
+			}
+		}
+		
+		return fieldRepetitions;
+	}
 }

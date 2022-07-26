@@ -689,52 +689,7 @@ public class HL7Message implements Serializable   {
 		
 		return false;
 	}
-
 	
-	/**
-	 * Gets a Field repetition containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
-	 * 
-	 * @param segmentName
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 */
-	public FieldRepetition getFieldRepetitionContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
-		for (Segment segment : this.getSegments(segmentName)) {			
-			FieldRepetition fieldRepetition =  segment.getFieldRepetitionContainingValue(fieldIndex, subFieldIndex, value);
-			
-			if (fieldRepetition != null) {
-				return fieldRepetition;
-			}
-		}
-		
-		return null;
-	}
-	
-	
-	
-	/**
-	 * Gets a Field repetition containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
-	 * 
-	 * @param segmentName
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 */
-	public Field getFieldContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
-		for (Segment segment : this.getSegments(segmentName)) {			
-			Field field =  segment.getFieldContainingValue(fieldIndex, subFieldIndex, value);
-			
-			if (field != null) {
-				return field;
-			}
-		}
-		
-		return null;
-	}
-
 	
 	/**
 	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
@@ -748,6 +703,26 @@ public class HL7Message implements Serializable   {
 	public Segment getSegmentContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {			
 			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.doesFieldContainValue(fieldIndex, value)) {
 				return segment;
 			}
 		}
