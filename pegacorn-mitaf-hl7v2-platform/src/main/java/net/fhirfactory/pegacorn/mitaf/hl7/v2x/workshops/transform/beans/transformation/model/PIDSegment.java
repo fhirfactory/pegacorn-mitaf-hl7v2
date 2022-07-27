@@ -2,7 +2,6 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,15 +27,7 @@ public class PIDSegment extends Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public void removePatientIdentifierField(String identifier) throws Exception  {	
-		Iterator<FieldRepetition>fieldRepetitionIterator = getField(3).getRepetitions().iterator();
-		
-		while (fieldRepetitionIterator.hasNext()) {
-			FieldRepetition fieldRepetition = fieldRepetitionIterator.next();
-			
-			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
-				fieldRepetitionIterator.remove();
-			}
-		}
+		removeMatchingFieldRepetitions(3, 5, identifier);
 	}
 
 	
@@ -48,11 +39,10 @@ public class PIDSegment extends Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public String getPatientIdentifierValue(String identifier) throws Exception  {	
+		FieldRepetition fieldRepetition = this.getFieldRepetitionContainingValue(3, 5, identifier);
 		
-		for (FieldRepetition fieldRepetition : getField(3).getRepetitions()) {
-			if (fieldRepetition.getSubField(5).value().equals(identifier)) {
-				return fieldRepetition.getSubField(1).value();
-			}
+		if (fieldRepetition != null) {
+			return fieldRepetition.getSubField(1).value();
 		}
 		
 		return "";
@@ -84,13 +74,7 @@ public class PIDSegment extends Segment implements Serializable {
 	 * @param identifierToKeep
 	 * @throws Exception
 	 */
-	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {		
-		List<String>patientIdentifierCodes = getPatientIdentifierCodes();
-		
-		for (String patientIdentifierCode : patientIdentifierCodes) {
-			if (!patientIdentifierCode.equals(identifierToKeep)) {
-				removePatientIdentifierField( patientIdentifierCode);
-			}
-		}
+	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {	
+		removeNotMatchingFieldRepetitions(3,5, identifierToKeep);
 	}
 }

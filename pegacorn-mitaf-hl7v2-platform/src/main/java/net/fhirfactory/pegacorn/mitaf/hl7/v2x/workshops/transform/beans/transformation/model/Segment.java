@@ -231,11 +231,9 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
-		FieldRepetition fieldRepetition = getFieldRepetition(fieldIndex, repetition);
+		Field field = getField(fieldIndex);
 		
-		if (fieldRepetition == null) {
-			return null;
-		}
+		FieldRepetition fieldRepetition = field.getRepetition(repetition);
 		
 		return fieldRepetition.getSubField(subFieldIndex);
 	}
@@ -328,10 +326,10 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @param allowSequentialSeparators
 	 * @throws Exception
 	 */
-	public void combinedSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		field.combinedSubFields(fieldRepetition, separator, allowSequentialSeparators);
+		field.combineSubFields(fieldRepetition, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -342,10 +340,10 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @param separator
 	 * @throws Exception
 	 */
-	public void combinedSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		field.combinedSubFields(0, separator, allowSequentialSeparators);
+		field.combineSubFields(0, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -480,16 +478,16 @@ public class Segment extends MessageComponent implements Serializable {
 
 
 	/**
+	 * Removes field repetitions which do not match one of the supplied values.
+	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String ... matchValue) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
 		field.removeNotMatchingFieldRepetitions(subFieldIndex, matchValue);
-		
 	}
 
 
@@ -520,27 +518,38 @@ public class Segment extends MessageComponent implements Serializable {
 		
 		return field.getRepetitionContainingValue(subFieldIndex, value);
 	}
-
-
+	
+	
 	/**
-	 * Gets a field containing the specified value at the supplied sub field index.  All repetitions are searched.
+	 * Gets a Field repetition which contains the supplied value at the supplied sub field index.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 */
-	public Field getFieldContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public List<FieldRepetition> getFieldRepetitionsContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		if (field.doesSubFieldContainValue(subFieldIndex, value)) {
-			return field;
-		}
-		
-		return null;
+		return field.getRepetitionsContainingValue(subFieldIndex, value);
 	}
 
-
+	
+	/**
+	 * Gets a list of Field repetitions which do not contain the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<FieldRepetition> getFieldRepetitionsNotContainingValue(int fieldIndex, int subFieldIndex, String ... values) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.getRepetitionsNotContainingValue(subFieldIndex, values);
+	}
+	
+	
 	@Override
 	public String value() throws Exception {
 		return this.toString();
