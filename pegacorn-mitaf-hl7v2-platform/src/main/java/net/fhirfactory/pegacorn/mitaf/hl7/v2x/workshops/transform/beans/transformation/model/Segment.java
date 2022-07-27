@@ -478,16 +478,16 @@ public class Segment extends MessageComponent implements Serializable {
 
 
 	/**
+	 * Removes field repetitions which do not match one of the supplied values.
+	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String ... matchValue) throws Exception {
 		Field field = this.getField(fieldIndex);
-		
 		field.removeNotMatchingFieldRepetitions(subFieldIndex, matchValue);
-		
 	}
 
 

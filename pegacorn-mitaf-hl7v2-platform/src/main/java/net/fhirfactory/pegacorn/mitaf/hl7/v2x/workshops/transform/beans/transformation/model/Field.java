@@ -690,19 +690,24 @@ public class Field extends MessageComponent implements Serializable {
 
 
 	/**
-	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * Removes field repetitions where the matchValue does not match the subField value.
 	 * 
 	 * @param subFieldIndex
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
+	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValue) throws Exception {
 		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
 		
+		List<String>valuesToCompare = new ArrayList<>();
+		for (String value : matchValue) {
+			valuesToCompare.add(value);
+		}
+				
 		while (repetitionIterator.hasNext()) {
 			FieldRepetition repetition = repetitionIterator.next();
 			
-			if (!repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
+			if (!valuesToCompare.contains(repetition.getSubField(subFieldIndex).value())) {
 				repetitionIterator.remove();
 			}
 		}
