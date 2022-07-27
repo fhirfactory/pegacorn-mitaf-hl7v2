@@ -159,7 +159,7 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
-	 * Removes the supplied segment from the list of segments.
+	 * Removes the supplied segment from the array of segments.
 	 * 
 	 * @param segment
 	 * @throws Exception
@@ -170,6 +170,20 @@ public class HL7Message implements Serializable   {
 	
 	
 	public void removeSegments(Segment[] segments) throws Exception {	
+		
+		for (Segment segment : segments) {
+			removeSegment(segment);
+		}
+	}
+	
+	
+	/**
+	 *  Removes the supplied segment from the array of segments.
+	 * 
+	 * @param segments
+	 * @throws Exception
+	 */
+	public void removeSegments(List<Segment> segments) throws Exception {	
 		
 		for (Segment segment : segments) {
 			removeSegment(segment);
@@ -709,7 +723,29 @@ public class HL7Message implements Serializable   {
 		
 		return null;
 	}
+
 	
+	/**
+	 * Gets a list of  segments containing the specified value.  All matching segments are searched.  All field repetitions are searched
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		List<Segment>segments = new ArrayList<>();
+		
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+				segments.add(segment);
+			}
+		}
+		
+		return segments;
+	}
+
 	
 	/**
 	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
@@ -728,6 +764,55 @@ public class HL7Message implements Serializable   {
 		}
 		
 		return null;
+	}
+	
+	
+	/**
+	 * Gets a list of segments containing the specified value.  All matching segments are searched.  All field repetitions are searched.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
+		List<Segment>segments = new ArrayList<>();
+		
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.doesFieldContainValue(fieldIndex, value)) {
+				segments.add(segment);
+			}
+		}
+		
+		return segments;
+	}
+	
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
+		List<Segment>segments = this.getSegmentsContainingValue(segmentName, fieldIndex, value);
+		removeSegments(segments);
+	}
+
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		List<Segment>segments = this.getSegmentsContainingValue(segmentName, fieldIndex, subFieldIndex, value);
+		removeSegments(segments);		
 	}
 
 	

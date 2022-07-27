@@ -2,7 +2,6 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -496,7 +495,7 @@ public class Field extends MessageComponent implements Serializable {
 	/**
 	 * Combine all subField values into a single field with the supplied separator between the subfields.
 	 */
-	public void combinedSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
 		StringBuilder sb = new StringBuilder();
 		
 		for (Subfield subField : getSubFields(fieldRepetition)) {
@@ -521,8 +520,8 @@ public class Field extends MessageComponent implements Serializable {
 	/**
 	 * Combine all subField values into a single field with the supplied separator between the subfields.
 	 */
-	public void combinedSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
-		combinedSubFields(0, separator, allowSequentialSeparators);
+	public void combineSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
+		combineSubFields(0, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -671,24 +670,17 @@ public class Field extends MessageComponent implements Serializable {
 	
 	
 	/**
-	 * Removes a field repetition where the matchValue matches the subField value.
+	 * Removes field repetitions where the matchValue matches the subField value. 
 	 * 
 	 * @param subFieldIndex
 	 * @param matchValue
 	 */
 	public void removeMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
-		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
-		
-		while (repetitionIterator.hasNext()) {
-			FieldRepetition repetition = repetitionIterator.next();
-			
-			if (repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
-				repetitionIterator.remove();
-			}
-		}
+		List<FieldRepetition> fieldRepetitions = this.getRepetitionsContainingValue(subFieldIndex, matchValue);
+		this.repetitions.removeAll(fieldRepetitions);
 	}
 
-
+	
 	/**
 	 * Removes field repetitions where the matchValue does not match the subField value.
 	 * 
@@ -696,21 +688,9 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValue) throws Exception {
-		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
-		
-		List<String>valuesToCompare = new ArrayList<>();
-		for (String value : matchValue) {
-			valuesToCompare.add(value);
-		}
-				
-		while (repetitionIterator.hasNext()) {
-			FieldRepetition repetition = repetitionIterator.next();
-			
-			if (!valuesToCompare.contains(repetition.getSubField(subFieldIndex).value())) {
-				repetitionIterator.remove();
-			}
-		}
+	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValue) throws Exception {	
+		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotContainingValue(subFieldIndex, matchValue);
+		this.repetitions.removeAll(fieldRepetitions);
 	}
 
 
@@ -733,7 +713,7 @@ public class Field extends MessageComponent implements Serializable {
 
 
 	/**
-	 * Returns a repetition of this field containing the supplied value at the supplied sub field index.
+	 * Returns a repetition of this field containing the supplied value at the supplied sub field index.  The first match is returned.
 	 * 
 	 * @param subFieldIndex
 	 * @param value
@@ -750,6 +730,29 @@ public class Field extends MessageComponent implements Serializable {
 		}
 		
 		return null;
+	}
+	
+	
+	/**
+	 * Returns a list of repetitions of this field containing the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsContainingValue(int subFieldIndex, String value) throws Exception {
+		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
+		
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (subField.value().equals(value)) {
+				fieldRepetitions.add(repetition);
+			}
+		}
+		
+		return fieldRepetitions;
 	}
 	
 	
