@@ -197,28 +197,16 @@ public class Segment extends MessageComponent implements Serializable {
 
 	
 	/**
-	 * Clears a sub field from the 1st repetition of a field.
-	 * 
-	 * @param fieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void clearSubField(int fieldIndex, int subFieldIndex) throws Exception {
-		clearSubField(fieldIndex, 0, subFieldIndex);
-	}
-	
-	
-	/**
 	 * Clears a subField from all repetitions of a field.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldFromAllFieldRepetitions(int fieldIndex, int subFieldIndex) throws Exception {
+	public void clearSubField(int fieldIndex, int subFieldIndex) throws Exception {
 		Field field = this.getField(fieldIndex);
 				
-		field.clearSubFieldFromAllFieldRepetitions(subFieldIndex);		
+		field.clearSubField(subFieldIndex);		
 	}
 
 	
@@ -375,8 +363,18 @@ public class Segment extends MessageComponent implements Serializable {
 	 * 
 	 * @param startingFieldIndex
 	 */
-	public void clearFieldsFrom(int startingFieldIndex) throws Exception {
+	public void clearFieldsStartingFrom(int startingFieldIndex) throws Exception {
 		clearFieldRange(startingFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all fields from this segment starting at the supplied startingFieldIndex.
+	 * 
+	 * @param startingFieldIndex
+	 */
+	public void clearSubFieldsStartingFrom(int fieldIndex, int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(fieldIndex, startingSubFieldIndex, -1);
 	}
 	
 	
@@ -415,6 +413,20 @@ public class Segment extends MessageComponent implements Serializable {
 				field.clear();
 			}
 		}
+	}
+	
+	
+	/**
+	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in this segment.
+	 * 
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRange(int fieldIndex, int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		field.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
 	}
 
 	
@@ -499,9 +511,9 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @param value
 	 * @throws Exception
 	 */
-	public void setSubFieldInAllFieldRepetitions(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public void setSubField(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
-		field.setSubFieldInAllRepetitions(subFieldIndex, value);
+		field.setSubField(subFieldIndex, value);
 	}
 
 
