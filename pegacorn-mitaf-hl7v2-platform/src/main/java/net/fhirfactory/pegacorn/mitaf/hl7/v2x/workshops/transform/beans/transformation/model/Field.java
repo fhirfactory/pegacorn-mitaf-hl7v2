@@ -317,7 +317,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldFromAllFieldRepetitions(int subFieldIndex) throws Exception {
+	public void clearSubField(int subFieldIndex) throws Exception {
 		for (FieldRepetition repetition : this.getRepetitions()) {
 			repetition.clearSubField(subFieldIndex);
 		}
@@ -352,18 +352,6 @@ public class Field extends MessageComponent implements Serializable {
 		}
 		
 		fieldRepetition.clearSubField(subFieldIndex);
-	}
-
-	
-	/**
-	 * Clears a subfield in the 1st field repetition.
-	 * 
-	 * @param subFieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void clearSubField(int subFieldIndex) throws Exception {
-		clearSubField(subFieldIndex, 0);
 	}
 
 	
@@ -560,19 +548,8 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param startingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldsFrom(int fieldRepetition, int startingSubFieldIndex) throws Exception {
+	public void clearSubFieldsStartingFrom(int fieldRepetition, int startingSubFieldIndex) throws Exception {
 		clearSubFieldRange(fieldRepetition, startingSubFieldIndex, -1);
-	}
-	
-	
-	/**
-	 * Clears all subFields from the startingSubFieldIndex in the 1st field repetition.
-	 * 
-	 * @param startingSubFieldIndex
-	 * @throws Exception
-	 */
-	public void clearSubFieldsFrom(int startingSubFieldIndex) throws Exception {
-		clearSubFieldRange(0, startingSubFieldIndex, -1);
 	}
 
 	
@@ -582,7 +559,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param startingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldsFromAllRepetitions(int startingSubFieldIndex) throws Exception {
+	public void clearSubFieldsStartingFrom(int startingSubFieldIndex) throws Exception {
 		for (FieldRepetition repetition : this.repetitions) {
 			repetition.clearSubFieldsFrom(startingSubFieldIndex);
 		}
@@ -608,25 +585,13 @@ public class Field extends MessageComponent implements Serializable {
 
 	
 	/**
-	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in the 1st field repetition.
-	 * 
-	 * @param startingSubFieldIndex
-	 * @param endingSubFieldIndex
-	 * @throws Exception
-	 */
-	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
-		clearSubFieldRange(0, startingSubFieldIndex, endingSubFieldIndex);
-	}
-
-	
-	/**
 	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in all field repetitions.
 	 * 
 	 * @param startingSubFieldIndex
 	 * @param endingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldRangeAllRepetitions(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
 			fieldRepetition.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
 		}
@@ -700,7 +665,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param subFieldIndex
 	 * @param value
 	 */
-	public void setSubFieldInAllRepetitions(int subFieldIndex, String value) throws Exception {
+	public void setSubField(int subFieldIndex, String value) throws Exception {
 
 		for (FieldRepetition repetition : getRepetitions()) {
 			Subfield subField = repetition.getSubField(subFieldIndex);

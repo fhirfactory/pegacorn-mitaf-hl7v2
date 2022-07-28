@@ -465,8 +465,8 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param fieldIndex
 	 */
-	public void clearFieldFromAllSegments(String segmentName, int fieldIndex) throws Exception {
-		setFieldInAllSegments(segmentName, fieldIndex, "");
+	public void clearField(String segmentName, int fieldIndex) throws Exception {
+		setField(segmentName, fieldIndex, "");
 	}
 
 	
@@ -476,7 +476,7 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param fieldIndex
 	 */
-	public void setFieldInAllSegments(String segmentName, int fieldIndex, String value) throws Exception {
+	public void setField(String segmentName, int fieldIndex, String value) throws Exception {
 		for (Segment segment : getSegments(segmentName)) {
 			Field field = segment.getField(fieldIndex);
 			
@@ -496,9 +496,9 @@ public class HL7Message implements Serializable   {
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 */
-	public void setSubFieldInAllFieldRepetitionsAllSegments(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public void setSubField(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : getSegments(segmentName)) {
-			segment.setSubFieldInAllFieldRepetitions(fieldIndex, subFieldIndex, value);
+			segment.setSubField(fieldIndex, subFieldIndex, value);
 		}
 	}
 
@@ -509,7 +509,7 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param startingFieldIndex
 	 */
-	public void clearFieldsFrom(String segmentName, int startingFieldIndex) throws Exception {
+	public void clearFieldsStartingFrom(String segmentName, int startingFieldIndex) throws Exception {
 		clearFieldRange(segmentName, startingFieldIndex, -1);
 	}
 
@@ -525,6 +525,33 @@ public class HL7Message implements Serializable   {
 
 		for (Segment segment : getSegments(segmentName)) {
 			segment.clearFieldRange(startingFieldIndex, endingFieldIndex);
+		}
+	}
+	
+	
+	/**
+	 * Clears all sub fields from a segment starting at the supplied startingSubFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param fieldIndex The field to clear the sub fields from
+	 * @param startingSubFieldIndex
+	 */
+	public void clearSubFieldsStartingFrom(String segmentName, int fieldIndex, int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(segmentName, fieldIndex, startingSubFieldIndex, -1);
+	}
+
+	
+	/**
+	 * Clears all sub fields from the supplied startingSubFieldIndex to the endingSubFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 */
+	public void clearSubFieldRange(String segmentName, int fieldIndex, int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+
+		for (Segment segment : getSegments(segmentName)) {
+			segment.clearSubFieldRange(fieldIndex, startingSubFieldIndex, endingSubFieldIndex);
 		}
 	}
 
