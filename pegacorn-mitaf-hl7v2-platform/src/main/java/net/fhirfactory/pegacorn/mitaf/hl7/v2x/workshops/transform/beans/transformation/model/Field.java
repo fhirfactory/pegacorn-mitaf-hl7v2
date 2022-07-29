@@ -604,9 +604,9 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldContainValue(String value) {
+	public boolean doesFieldMatchValue(String value) {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.value().contains(value)) {
+			if (fieldRepetition.value().equals(value)) {
 				return true;
 			}
 		}
@@ -623,9 +623,9 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesSubFieldContainValue(int subFieldIndex, String value) throws Exception {
+	public boolean doesSubFieldMatchValue(int subFieldIndex, String value) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.getSubField(subFieldIndex).value().contains(value)) {
+			if (fieldRepetition.getSubField(subFieldIndex).value().equals(value)) {
 				return true;
 			}
 		}
@@ -641,7 +641,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param matchValue
 	 */
 	public void removeMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
-		List<FieldRepetition> fieldRepetitions = this.getRepetitionsContainingValue(subFieldIndex, matchValue);
+		List<FieldRepetition> fieldRepetitions = this.getRepetitionsMatchingValue(subFieldIndex, matchValue);
 		this.repetitions.removeAll(fieldRepetitions);
 	}
 
@@ -654,7 +654,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @throws Exception
 	 */
 	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValue) throws Exception {	
-		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotContainingValue(subFieldIndex, matchValue);
+		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotMatchingValue(subFieldIndex, matchValue);
 		this.repetitions.removeAll(fieldRepetitions);
 	}
 
@@ -678,14 +678,14 @@ public class Field extends MessageComponent implements Serializable {
 
 
 	/**
-	 * Returns a repetition of this field containing the supplied value at the supplied sub field index.  The first match is returned.
+	 * Returns a repetition of this field Matching the supplied value at the supplied sub field index.  The first match is returned.
 	 * 
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public FieldRepetition getRepetitionContainingValue(int subFieldIndex, String value) throws Exception {
+	public FieldRepetition getRepetitionMatchingValue(int subFieldIndex, String value) throws Exception {
 		for (FieldRepetition repetition : getRepetitions()) {
 			Subfield subField = repetition.getSubField(subFieldIndex);
 			
@@ -699,14 +699,14 @@ public class Field extends MessageComponent implements Serializable {
 	
 	
 	/**
-	 * Returns a list of repetitions of this field containing the supplied value at the supplied sub field index.
+	 * Returns a list of repetitions of this field Matching the supplied value at the supplied sub field index.
 	 * 
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public List<FieldRepetition> getRepetitionsContainingValue(int subFieldIndex, String value) throws Exception {
+	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String value) throws Exception {
 		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
 		
 		for (FieldRepetition repetition : getRepetitions()) {
@@ -722,14 +722,14 @@ public class Field extends MessageComponent implements Serializable {
 	
 	
 	/**
-	 * Returns a list of Field repetitions of this field not containing the supplied value at the supplied sub field index.
+	 * Returns a list of Field repetitions of this field not Matching the supplied value at the supplied sub field index.
 	 * 
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public List<FieldRepetition> getRepetitionsNotContainingValue(int subFieldIndex, String ... values) throws Exception {
+	public List<FieldRepetition> getRepetitionsNotMatchingValue(int subFieldIndex, String ... values) throws Exception {
 		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
 		
 		List<String>valuesToCompare = new ArrayList<>();

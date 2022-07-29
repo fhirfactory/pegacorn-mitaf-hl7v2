@@ -701,9 +701,9 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldContainValue(String segmentName, int fieldIndex, String value) throws Exception {
+	public boolean doesFieldMatchValue(String segmentName, int fieldIndex, String value) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesFieldContainValue(fieldIndex, value)) {
+			if (segment.doesFieldMatchValue(fieldIndex, value)) {
 				return true;
 			}
 		}
@@ -721,9 +721,9 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesSubFieldContainValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public boolean doesSubFieldMatchValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+			if (segment.doesSubFieldMatchValue(fieldIndex, subFieldIndex, value)) {
 				return true;
 			}
 		}
@@ -733,7 +733,7 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
-	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
 	 * 
 	 * @param segmentName
 	 * @param fieldIndex
@@ -741,9 +741,9 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public Segment getSegmentContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public Segment getSegmentMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+			if (segment.doesSubFieldMatchValue(fieldIndex, subFieldIndex, value)) {
 				return segment;
 			}
 		}
@@ -753,7 +753,7 @@ public class HL7Message implements Serializable   {
 
 	
 	/**
-	 * Gets a list of  segments containing the specified value.  All matching segments are searched.  All field repetitions are searched
+	 * Gets a list of  segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched
 	 * 
 	 * @param segmentName
 	 * @param fieldIndex
@@ -761,11 +761,11 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public List<Segment> getSegmentsContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public List<Segment> getSegmentsMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		List<Segment>segments = new ArrayList<>();
 		
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+			if (segment.doesSubFieldMatchValue(fieldIndex, subFieldIndex, value)) {
 				segments.add(segment);
 			}
 		}
@@ -775,7 +775,7 @@ public class HL7Message implements Serializable   {
 
 	
 	/**
-	 * Gets a Segment containing the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
 	 * 
 	 * @param segmentName
 	 * @param fieldIndex
@@ -783,9 +783,9 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public Segment getSegmentContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
+	public Segment getSegmentMatchingValue(String segmentName, int fieldIndex, String value) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesFieldContainValue(fieldIndex, value)) {
+			if (segment.doesFieldMatchValue(fieldIndex, value)) {
 				return segment;
 			}
 		}
@@ -795,7 +795,7 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
-	 * Gets a list of segments containing the specified value.  All matching segments are searched.  All field repetitions are searched.
+	 * Gets a list of segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched.
 	 * 
 	 * @param segmentName
 	 * @param fieldIndex
@@ -803,11 +803,11 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public List<Segment> getSegmentsContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
+	public List<Segment> getSegmentsMatchingValue(String segmentName, int fieldIndex, String value) throws Exception {
 		List<Segment>segments = new ArrayList<>();
 		
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesFieldContainValue(fieldIndex, value)) {
+			if (segment.doesFieldMatchValue(fieldIndex, value)) {
 				segments.add(segment);
 			}
 		}
@@ -823,8 +823,8 @@ public class HL7Message implements Serializable   {
 	 * @param fieldIndex
 	 * @param value
 	 */
-	public void removeSegmentsContainingValue(String segmentName, int fieldIndex, String value) throws Exception {
-		List<Segment>segments = this.getSegmentsContainingValue(segmentName, fieldIndex, value);
+	public void removeSegmentsMatchingValue(String segmentName, int fieldIndex, String value) throws Exception {
+		List<Segment>segments = this.getSegmentsMatchingValue(segmentName, fieldIndex, value);
 		removeSegments(segments);
 	}
 
@@ -837,8 +837,8 @@ public class HL7Message implements Serializable   {
 	 * @param subFieldIndex
 	 * @param value
 	 */
-	public void removeSegmentsContainingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
-		List<Segment>segments = this.getSegmentsContainingValue(segmentName, fieldIndex, subFieldIndex, value);
+	public void removeSegmentsMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+		List<Segment>segments = this.getSegmentsMatchingValue(segmentName, fieldIndex, subFieldIndex, value);
 		removeSegments(segments);		
 	}
 
@@ -871,6 +871,16 @@ public class HL7Message implements Serializable   {
 			segment.removeNotMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
 		}
 	}
+	
+	
+	
+	public void removeNotMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String matchValue, String matchType) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {
+			segment.removeNotMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchType, matchValue);
+		}
+	}
+		
+	
 	
 	/**
 	 * Returns a segment.

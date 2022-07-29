@@ -431,24 +431,24 @@ public class Segment extends MessageComponent implements Serializable {
 
 	
 	/**
-	 * Does any repetition of the field in this segment contain the supplied value.
+	 * Does any repetition of the field in this segment match the supplied value.
 	 * 
 	 * @param fieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesFieldContainValue(int fieldIndex, String value) throws Exception {
+	public boolean doesFieldMatchValue(int fieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesFieldContainValue(value);
+		return field.doesFieldMatchValue(value);
 	}
 
 	
-	public boolean doesSubFieldContainValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public boolean doesSubFieldMatchValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesSubFieldContainValue(subFieldIndex, value);
+		return field.doesSubFieldMatchValue(subFieldIndex, value);
 	}
 	
 	
@@ -518,47 +518,47 @@ public class Segment extends MessageComponent implements Serializable {
 
 
 	/**
-	 * Gets a Field repetition which contains the supplied value at the supplied sub field index.
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 */
-	public FieldRepetition getFieldRepetitionContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public FieldRepetition getFieldRepetitionMatchingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.getRepetitionContainingValue(subFieldIndex, value);
+		return field.getRepetitionMatchingValue(subFieldIndex, value);
 	}
 	
 	
 	/**
-	 * Gets a Field repetition which contains the supplied value at the supplied sub field index.
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 */
-	public List<FieldRepetition> getFieldRepetitionsContainingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public List<FieldRepetition> getFieldRepetitionsMatchingValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.getRepetitionsContainingValue(subFieldIndex, value);
+		return field.getRepetitionsMatchingValue(subFieldIndex, value);
 	}
 
 	
 	/**
-	 * Gets a list of Field repetitions which do not contain the supplied value at the supplied sub field index.
+	 * Gets a list of Field repetitions which do not match the supplied value at the supplied sub field index.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 */
-	public List<FieldRepetition> getFieldRepetitionsNotContainingValue(int fieldIndex, int subFieldIndex, String ... values) throws Exception {
+	public List<FieldRepetition> getFieldRepetitionsNotMatchingValue(int fieldIndex, int subFieldIndex, String ... values) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.getRepetitionsNotContainingValue(subFieldIndex, values);
+		return field.getRepetitionsNotMatchingValue(subFieldIndex, values);
 	}
 	
 	
