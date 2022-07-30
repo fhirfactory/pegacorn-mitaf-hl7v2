@@ -605,8 +605,19 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 */
 	public boolean doesFieldMatchValue(String value) {
+		return doesFieldMatchValue("equals", value);
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public boolean doesFieldMatchValue(String matchType, String ... matchValues) {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.value().equals(value)) {
+			if (compare(matchType, fieldRepetition.value(), matchValues)) {
 				return true;
 			}
 		}
@@ -623,9 +634,9 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesSubFieldMatchValue(int subFieldIndex, String value) throws Exception {
+	public boolean doesSubFieldMatchValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.getSubField(subFieldIndex).value().equals(value)) {
+			if (compare(matchType, fieldRepetition.getSubField(subFieldIndex).value(), matchValues)) {
 				return true;
 			}
 		}
@@ -635,13 +646,37 @@ public class Field extends MessageComponent implements Serializable {
 	
 	
 	/**
+	 * 
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean doesSubFieldMatchValue(int subFieldIndex, String value) throws Exception {
+		return doesSubFieldMatchValue("equals", subFieldIndex, value);
+	}
+	
+	
+	/**
 	 * Removes field repetitions where the matchValue matches the subField value. 
 	 * 
 	 * @param subFieldIndex
 	 * @param matchValue
 	 */
-	public void removeMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
-		List<FieldRepetition> fieldRepetitions = this.getRepetitionsMatchingValue(subFieldIndex, matchValue);
+	public void removeMatchingFieldRepetitions(int subFieldIndex, String ... matchValues) throws Exception {
+		removeMatchingFieldRepetitions("equals", subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Removes field repetitions where the matchValue matches the subField value. 
+	 * 
+	 * @param subFieldIndex
+	 * @param matchValue
+	 */
+	public void removeMatchingFieldRepetitions(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
+		List<FieldRepetition> fieldRepetitions = this.getRepetitionsMatchingValue(matchType, subFieldIndex, matchValues);
 		this.repetitions.removeAll(fieldRepetitions);
 	}
 
@@ -653,8 +688,20 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValue) throws Exception {	
-		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotMatchingValue(subFieldIndex, matchValue);
+	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValues) throws Exception {	
+		removeNotMatchingFieldRepetitions("equals", subFieldIndex, matchValues);
+	}
+	
+
+	/**
+	 * Removes field repetitions where the matchValue does not match the subField value.
+	 * 
+	 * @param subFieldIndex
+	 * @param matchValue
+	 * @throws Exception
+	 */
+	public void removeNotMatchingFieldRepetitions(String matchType, int subFieldIndex, String ... matchValues) throws Exception {	
+		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotMatchingValue(matchType, subFieldIndex, matchValues);
 		this.repetitions.removeAll(fieldRepetitions);
 	}
 
@@ -685,16 +732,29 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public FieldRepetition getRepetitionMatchingValue(int subFieldIndex, String value) throws Exception {
+	public FieldRepetition getRepetitionMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		for (FieldRepetition repetition : getRepetitions()) {
 			Subfield subField = repetition.getSubField(subFieldIndex);
 			
-			if (subField.value().equals(value)) {
+			if (compare(matchType, subField.value(), matchValues)) {
 				return repetition;
 			}
 		}
 		
 		return null;
+	}
+	
+	
+	/**
+	 * Returns a repetition of this field Matching the supplied value at the supplied sub field index.  The first match is returned.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition getRepetitionMatchingValue(int subFieldIndex, String ...matchValues) throws Exception {
+		return getRepetitionMatchingValue("equals", subFieldIndex, matchValues);
 	}
 	
 	
@@ -706,13 +766,13 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String value) throws Exception {
+	public List<FieldRepetition> getRepetitionsMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
 		
 		for (FieldRepetition repetition : getRepetitions()) {
 			Subfield subField = repetition.getSubField(subFieldIndex);
 			
-			if (subField.value().equals(value)) {
+			if (compare(matchType, subField.value(), matchValues)) {
 				fieldRepetitions.add(repetition);
 			}
 		}
@@ -722,30 +782,96 @@ public class Field extends MessageComponent implements Serializable {
 	
 	
 	/**
-	 * Returns a list of Field repetitions of this field not Matching the supplied value at the supplied sub field index.
+	 * Returns a list of repetitions of this field Matching the supplied value at the supplied sub field index.
 	 * 
 	 * @param subFieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public List<FieldRepetition> getRepetitionsNotMatchingValue(int subFieldIndex, String ... values) throws Exception {
+	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
+		return getRepetitionsMatchingValue("equals", subFieldIndex, matchValues);
+	}
+
+	
+	/**
+	 * Returns a list of Field repetitions of this field not Matching one of the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsNotMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
 		
-		List<String>valuesToCompare = new ArrayList<>();
-		for (String value : values) {
-			valuesToCompare.add(value);
-		}
-		
-		
+	
 		for (FieldRepetition repetition : getRepetitions()) {
 			Subfield subField = repetition.getSubField(subFieldIndex);
-			
-			if (!valuesToCompare.contains(subField.value())) {
+
+			if (!compare(matchType, subField.value(), matchValues)) {
 				fieldRepetitions.add(repetition);
 			}
 		}
 		
 		return fieldRepetitions;
+	}
+	
+	
+	/**
+	 * Returns a list of Field repetitions of this field not Matching one of the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsNotMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
+		return getRepetitionsNotMatchingValue("equals", subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Does one of the supplied match values match the text using the supplied match type.
+	 * 
+	 * @param matchType
+	 * @param text
+	 * @param compareValue
+	 * @return
+	 */
+	private boolean compare(String matchType, String text, String ... matchValues) {
+		MatchTypeEnum type = MatchTypeEnum.get(matchType);
+		
+		
+		for (String matchValue : matchValues) {
+		
+			switch (type) {
+				case EQUALS:
+					if  (text.equals(matchValue)) {
+						return true;
+					}
+					break;
+				case CONTAINS:
+					if (text.contains(matchValue)) {
+						return true;
+					}
+				case ENDS_WITH:
+					if (text.endsWith(matchValue)) {
+						return true;
+					}
+					break;
+				case STARTS_WITH:
+					if (text.startsWith(matchValue)) {
+						return true;
+					}
+					break;
+				default:
+					if (text.equals(matchValue)) {
+						return true;
+					}
+			}
+		}
+		
+		return false;
 	}
 }
