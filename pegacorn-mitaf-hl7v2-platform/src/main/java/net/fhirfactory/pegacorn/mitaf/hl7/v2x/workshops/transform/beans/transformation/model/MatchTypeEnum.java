@@ -9,8 +9,8 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 public enum MatchTypeEnum {
 	EQUALS("equals"),
 	CONTAINS("contains"),
-	STARTS_WITH("starts"),
-	ENDS_WITH("end");
+	STARTS_WITH("starts-with"),
+	ENDS_WITH("ends-with");
 	
 	private String type;
 	
