@@ -702,7 +702,7 @@ public class HL7Message implements Serializable   {
 	 * @return
 	 */
 	public boolean hasFieldMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
-		return haaFieldMatchingValue("equals", segmentName, fieldIndex, matchValues);
+		return hasFieldMatchingValue("equals", segmentName, fieldIndex, matchValues);
 	}
 	
 	
@@ -716,7 +716,7 @@ public class HL7Message implements Serializable   {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean haaFieldMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+	public boolean hasFieldMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
 			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
 				return true;
