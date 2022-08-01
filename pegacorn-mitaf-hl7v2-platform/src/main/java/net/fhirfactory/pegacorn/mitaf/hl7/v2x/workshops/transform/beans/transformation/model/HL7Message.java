@@ -701,8 +701,8 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldMatchValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
-		return doesFieldMatchValue("equals", segmentName, fieldIndex, matchValues);
+	public boolean hasFieldMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		return haaFieldMatchingValue("equals", segmentName, fieldIndex, matchValues);
 	}
 	
 	
@@ -716,9 +716,9 @@ public class HL7Message implements Serializable   {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesFieldMatchValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+	public boolean haaFieldMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesFieldMatchValue(matchType, fieldIndex, matchValues)) {
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
 				return true;
 			}
 		}
@@ -736,8 +736,8 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesSubFieldMatchValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		return doesSubFieldMatchValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
+	public boolean hasSubFieldMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return hasSubFieldMatchingValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
 	}
 	
 	
@@ -750,9 +750,9 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesSubFieldMatchValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+	public boolean hasSubFieldMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesSubFieldMatchValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
 				return true;
 			}
 		}
@@ -786,7 +786,7 @@ public class HL7Message implements Serializable   {
 	 */
 	public Segment getSegmentMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesSubFieldMatchValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
 				return segment;
 			}
 		}
@@ -822,7 +822,7 @@ public class HL7Message implements Serializable   {
 		List<Segment>segments = new ArrayList<>();
 		
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesSubFieldMatchValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
 				segments.add(segment);
 			}
 		}
@@ -856,7 +856,7 @@ public class HL7Message implements Serializable   {
 	 */
 	public Segment getSegmentMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesFieldMatchValue(matchType, fieldIndex, matchValues)) {
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
 				return segment;
 			}
 		}
@@ -890,7 +890,7 @@ public class HL7Message implements Serializable   {
 		List<Segment>segments = new ArrayList<>();
 		
 		for (Segment segment : this.getSegments(segmentName)) {			
-			if (segment.doesFieldMatchValue(matchType, fieldIndex, matchValues)) {
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
 				segments.add(segment);
 			}
 		}

@@ -438,8 +438,8 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesFieldMatchValue(int fieldIndex, String value) throws Exception {
-		return doesFieldMatchValue("equals", fieldIndex, value);
+	public boolean hasFieldMatchingValue(int fieldIndex, String ... matchValues) throws Exception {
+		return hasFieldMatchingValue("equals", fieldIndex, matchValues);
 	}
 	
 	
@@ -452,22 +452,22 @@ public class Segment extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesFieldMatchValue(String matchType, int fieldIndex, String ... matchValues) throws Exception {
+	public boolean hasFieldMatchingValue(String matchType, int fieldIndex, String ... matchValues) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesFieldMatchValue(matchType, matchValues);
+		return field.hasFieldMatchingValue(matchType, matchValues);
 	}
 
 	
-	public boolean doesSubFieldMatchValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		return doesSubFieldMatchValue("equals", fieldIndex, subFieldIndex, matchValues);
+	public boolean hasSubFieldMatchingValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return hasSubFieldMatchingValue("equals", fieldIndex, subFieldIndex, matchValues);
 	}
 	
 	
-	public boolean doesSubFieldMatchValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+	public boolean hasSubFieldMatchingValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesSubFieldMatchValue(matchType, subFieldIndex, matchValues);
+		return field.hasSubFieldMatchingValue(matchType, subFieldIndex, matchValues);
 	}
 	
 	

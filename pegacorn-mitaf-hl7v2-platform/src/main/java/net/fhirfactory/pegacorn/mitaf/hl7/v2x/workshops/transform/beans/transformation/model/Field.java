@@ -604,8 +604,8 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldMatchValue(String value) {
-		return doesFieldMatchValue("equals", value);
+	public boolean hasFieldMatchingValue(String value) {
+		return hasFieldMatchingValue("equals", value);
 	}
 	
 	
@@ -615,7 +615,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldMatchValue(String matchType, String ... matchValues) {
+	public boolean hasFieldMatchingValue(String matchType, String ... matchValues) {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
 			if (compare(matchType, fieldRepetition.value(), matchValues)) {
 				return true;
@@ -634,7 +634,7 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesSubFieldMatchValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
+	public boolean hasSubFieldMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
 			if (compare(matchType, fieldRepetition.getSubField(subFieldIndex).value(), matchValues)) {
 				return true;
@@ -653,8 +653,8 @@ public class Field extends MessageComponent implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesSubFieldMatchValue(int subFieldIndex, String value) throws Exception {
-		return doesSubFieldMatchValue("equals", subFieldIndex, value);
+	public boolean hasSubFieldMatchingValue(int subFieldIndex, String value) throws Exception {
+		return hasSubFieldMatchingValue("equals", subFieldIndex, value);
 	}
 	
 	
