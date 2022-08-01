@@ -39,7 +39,7 @@ public class PIDSegment extends Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public String getPatientIdentifierValue(String identifier) throws Exception  {	
-		FieldRepetition fieldRepetition = this.getFieldRepetitionContainingValue(3, 5, identifier);
+		FieldRepetition fieldRepetition = this.getFieldRepetitionMatchingValue(3, 5, identifier);
 		
 		if (fieldRepetition != null) {
 			return fieldRepetition.getSubField(1).value();
