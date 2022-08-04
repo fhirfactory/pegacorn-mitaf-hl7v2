@@ -20,6 +20,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcemen
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.HL7MessageWithAttributes;
 
 /**
  * Base class for all classes which need to duplicate a message.  The duplication rules are provided by the sub classes.
@@ -69,13 +70,16 @@ public abstract class BaseMessageDuplication {
 		}
 
 		uow.getEgressContent().getPayloadElements().clear();
+		
 
 		// Add a entry as a unit of work payload.
-		for (Message message : messages) {
+		for (int i = 0; i < messages.size(); i++) {				
+			HL7MessageWithAttributes messageAttributes = addDuplicationAttributes(messages, i);
+			
 			UoWPayload contentPayload = new UoWPayload();
 
 			contentPayload.setPayloadManifest(manifest);
-			contentPayload.setPayload(message.toString());
+			contentPayload.setPayload(messageAttributes.toString());
 
 			newUoW.getEgressContent().getPayloadElements().add(contentPayload);
 		}
@@ -96,4 +100,15 @@ public abstract class BaseMessageDuplication {
 	public abstract List<Message>createMessages(Message orginalMessage) throws Exception;
 	
 	public abstract Logger getLogger();
+	
+	/**
+	 * Add duplication message attributes.  The default implementation adds 
+	 * 
+	 * @param messages
+	 * @param currentMessageIndex
+	 * @return
+	 */
+	public HL7MessageWithAttributes addDuplicationAttributes(List<Message> messages, int currentMessageIndex) {
+		return new HL7MessageWithAttributes(messages.get(currentMessageIndex).toString());
+	}
 }
