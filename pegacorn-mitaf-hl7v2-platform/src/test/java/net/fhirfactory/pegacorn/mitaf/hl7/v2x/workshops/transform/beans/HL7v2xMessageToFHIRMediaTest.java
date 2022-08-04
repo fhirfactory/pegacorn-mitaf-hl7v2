@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.Parser;
 import net.fhirfactory.pegacorn.core.constants.systemwide.DeploymentSystemSiteIdentificationInterface;
 import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
@@ -23,6 +22,8 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.internal.systems.DeploymentIns
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.identifier.PegacornIdentifierFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.media.factories.MediaFactory;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaPipeParser;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 
 public class HL7v2xMessageToFHIRMediaTest {
@@ -34,6 +35,8 @@ public class HL7v2xMessageToFHIRMediaTest {
 	private PegacornIdentifierCodeSystemFactory pegacornIdentifierCodeSystemFactory;	
 	private MediaFactory mediaFactory;
     private Parser pipeParser;
+    private MediaPipeParser mediaParser;
+    private UltraDefensivePipeParser udpp;
 	
 	@SuppressWarnings("resource")
 	@BeforeEach
@@ -78,13 +81,17 @@ public class HL7v2xMessageToFHIRMediaTest {
 			public Reference getDeploymentInstanceOrganization() {return null;}
 		};
 		identifierFactory.setDeploymentInstanceDetailInterface(deploymentDetails );
+		mediaParser = new MediaPipeParser();
+		udpp = new UltraDefensivePipeParser();
+		mediaParser.setPipeParser(udpp);
+		converter.setMediaParser(mediaParser);
 	}
 	
 	@Test
 	void testExtractMediaResource() {
 		try {
-			Message resource = loadORUAttachmentResource();
-			Media media = converter.extractMediaResource(resource);
+			String resource = loadORUAttachmentResource();
+			Media media = converter.extractNextMediaResource(resource);
 			Assertions.assertNotNull(media);
 			Assertions.assertNotNull(media.getIdentifierFirstRep());
 			Assertions.assertNotNull(media.getContent().getData());
@@ -97,8 +104,8 @@ public class HL7v2xMessageToFHIRMediaTest {
 	@Test
 	void testExtractMediaResourceNoBase64() {
 		try {
-			Message resource = loadORUInlineResource();
-			Media media = converter.extractMediaResource(resource);
+			String resource = loadORUInlineResource();
+			Media media = converter.extractNextMediaResource(resource);
 			Assertions.assertNull(media);
 		} catch (IOException e) {
 			fail(e);
@@ -107,54 +114,48 @@ public class HL7v2xMessageToFHIRMediaTest {
 	
 	
 	@Test
-	void testEncodedMediaResource() throws HL7Exception {
+	void testEncodedMediaResource() {
 		try {
-			Message resource = loadORUAttachmentResource();
-			Media media = converter.extractNextMediaResource(resource.encode());
+			String resource = loadORUAttachmentResource();
+			Media media = converter.extractNextMediaResource(resource);
 			Assertions.assertNotNull(media);
 			Assertions.assertNotNull(media.getIdentifierFirstRep());
 			Assertions.assertNotNull(media.getContent().getData());
+			Assertions.assertNotEquals(0, media.getContent().getData().length);
+			Assertions.assertEquals("application/pdf", media.getContent().getContentType());
 		} catch (IOException e) {
 			fail(e);
 		}
 	}
 	
 	@Test
-	void testNonMediaResource() {
+	void testNonMediaResource() throws HL7Exception {
 		try {
-		Message resource = loadADTResource();
-		Media media = converter.extractMediaResource(resource);
+		String resource = loadADTResource();
+		Media media = converter.extractNextMediaResource(resource);
 		Assertions.assertNull(media);
 		} catch (IOException e) {
 			fail(e);
 		}
 	}
 	
-	private Message loadORUAttachmentResource() throws IOException {
+	private String loadORUAttachmentResource() throws IOException {
 		Path filePath = Path.of("./src/test/resources/oru_r01_with_attachment.txt");
 		return loadResource(filePath);
 	}
 	
-	private Message loadORUInlineResource() throws IOException {
+	private String loadORUInlineResource() throws IOException {
 		Path filePath = Path.of("./src/test/resources/oru_r01_with_inline.txt");
 		return loadResource(filePath);
 	}	
 	
-	private Message loadADTResource() throws IOException {
+	private String loadADTResource() throws IOException {
 		Path filePath = Path.of("./src/test/resources/adt_a01.txt");
 		return loadResource(filePath);
 	}
 	
-	private Message loadResource(Path filePath) throws IOException {
+	private String loadResource(Path filePath) throws IOException {
 
-		String content = Files.readString(filePath);
-		Message hl7Msg;
-		try {
-			hl7Msg = pipeParser.parse(content);
-			return hl7Msg;
-		} catch (HL7Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+		return Files.readString(filePath);
 	}
 }

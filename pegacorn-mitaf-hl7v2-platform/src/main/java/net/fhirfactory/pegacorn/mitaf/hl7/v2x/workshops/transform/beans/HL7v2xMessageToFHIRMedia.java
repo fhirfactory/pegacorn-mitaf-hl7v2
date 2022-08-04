@@ -27,7 +27,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +36,9 @@ import com.google.common.annotations.VisibleForTesting;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.group.ORU_R01_OBSERVATION;
-import ca.uhn.hl7v2.model.v24.group.ORU_R01_ORDER_OBSERVATION;
-import ca.uhn.hl7v2.model.v24.group.ORU_R01_PATIENT_RESULT;
 import ca.uhn.hl7v2.model.v24.message.ORU_R01;
-import ca.uhn.hl7v2.model.v24.segment.OBX;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.media.factories.MediaFactory;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaPipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 
 @ApplicationScoped
@@ -50,6 +47,9 @@ public class HL7v2xMessageToFHIRMedia {
 
     @Inject
     private MediaFactory mediaFactory;
+    
+    @Inject
+    private MediaPipeParser mediaParser;
 
     @Inject
     private HL7v2xInformationExtractionInterface messageInformationExtractionInterface;
@@ -66,54 +66,51 @@ public class HL7v2xMessageToFHIRMedia {
 		} catch (HL7Exception e) {
 			LOG.warn(".extractMediaResource(): Message unable to be converted to ORU message->{}, exception->{}", message);
 		}
-        Media media = extractMediaResource(encapsulatedMessage);
+        Media media = parseMessage(message);
         LOG.debug(".extractMediaResource(): Exit, media->{}", media);
         return(media);
     }
 
-    public Media extractMediaResource(Message message){
-        LOG.debug(".extractMediaResource(): Entry, message->{}", message);
-        Media media = parseResource(message);
-        LOG.debug(".extractMediaResource(): Exit, media->{}", media);
-        return(media);
-    }
 
-	private Media parseResource(Message message) {
+	private Media parseMessage(String message) {
         String messageID = messageInformationExtractionInterface.extractMessageID(message);
         Date messageDate = messageInformationExtractionInterface.extractMessageDate(message);
 
 		Media media = mediaFactory.newMediaResource(messageID, messageDate);
 		byte[] data = extractMediaFromORU(message);
-		if(data == null) {
+		if(data == null || data.length == 0) {
 			return null;
 		}
 		media.getContent().setData(data);
+		String type = extractContentTypeFromORU(message);
+		media.getContent().setContentType(type );
 		return media;
 	}
 
-	private byte[] extractMediaFromORU(Message message) {
-		try {
-			ORU_R01 oru = (ORU_R01) message;
-			ORU_R01_PATIENT_RESULT patientResult = oru.getPATIENT_RESULT();
-			ORU_R01_ORDER_OBSERVATION observationOrder = patientResult.getORDER_OBSERVATION();
-			ORU_R01_OBSERVATION observation = observationOrder.getOBSERVATION();
-			OBX obx = observation.getOBX();
-			LOG.trace("OBX: ->{}", obx.encode());
-			StringBuilder sb = new StringBuilder();
-			for(int i = 0; i < obx.getObservationValueReps(); i++) {
-				sb.append(obx.getObservationValue(i).encode());
-			}
-			LOG.trace("OBX output: ->{}", sb.substring(0));
-			return sb.substring(0).getBytes();
-		
-		} catch (ClassCastException e) {
-			LOG.warn("Not of the right type!");
-		} catch (HL7Exception e) {
-			LOG.warn("HL7 could not encode message ->{}", e.getMessage());
+	private String extractContentTypeFromORU(String message) {
+		String obxSegment = mediaParser.extractNextAttachmentSegment(message);
+		if(StringUtils.isEmpty(obxSegment)) {
+			return null; //No media to extract
 		}
-		return null;
+		String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
+		String obx5 = segments[5];
+		String prefix = obx5.split("\\^Base64\\^")[0];
+		prefix = mediaParser.hl7ToContentType(prefix);
+		return prefix;
 	}
-    
+	
+	private byte[] extractMediaFromORU(String message) {	
+			String obxSegment = mediaParser.extractNextAttachmentSegment(message);
+			if(StringUtils.isEmpty(obxSegment)) {
+				return null; //No media to extract
+			}
+			String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
+			String obx5 = segments[5];
+			String suffix = obx5.split("\\^Base64\\^")[1];
+			return suffix.getBytes();
+		
+	}
+
     @VisibleForTesting
     void setMessageInformationExtractionInterface(HL7v2xInformationExtractionInterface messageInformationExtractionInterface) {
     	this.messageInformationExtractionInterface = messageInformationExtractionInterface;
@@ -123,5 +120,10 @@ public class HL7v2xMessageToFHIRMedia {
     void setMediaFactory(MediaFactory mediaFactory) {
     	this.mediaFactory = mediaFactory;
     }
+
+    @VisibleForTesting
+	void setMediaParser(MediaPipeParser mediaParser) {
+		this.mediaParser = mediaParser;
+	}
 
 }

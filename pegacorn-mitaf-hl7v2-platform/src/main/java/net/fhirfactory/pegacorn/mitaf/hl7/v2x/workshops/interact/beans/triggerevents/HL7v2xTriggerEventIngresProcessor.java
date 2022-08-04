@@ -259,16 +259,12 @@ public class HL7v2xTriggerEventIngresProcessor {
 
                 //
                 // Strip out any Media from the payload.
-//                	String obxSegment = .extractOBXSegment(newPayload.getPayload());
-//                	Media media = mediaExtractor.populateMedia(obxSegment);
-                	
                 //Has BASE64 inside OBX, it needs to be extracted
                 	if(defensivePipeParser.hasMatchingPatternInSegmentType(newPayload.getPayload(), BASE64_PATTERN, HL7v2SegmentTypeEnum.OBX)) {
                 		String message = newPayload.getPayload();
                 		Media media;
 						//1. keep searching for media objects
-                		do {
-                			media = mediaConverter.extractNextMediaResource(newPayload.getPayload());
+                		while((media = mediaConverter.extractNextMediaResource(message)) !=null) {
                 			//2. Save the media to the IM
                 			if(mediaAgent.captureMedia(media, true)) {
                 				//3. remove the byte[] from the UoW payload
@@ -276,7 +272,7 @@ public class HL7v2xTriggerEventIngresProcessor {
                 			} else {
                 				LOG.warn("failed to save Media object. media->{}", media);
                 			}
-                		} while (media != null);
+                		}
                 		//Update the payload to not have the attachments
                 		newPayload.setPayload(message);
                 	}
