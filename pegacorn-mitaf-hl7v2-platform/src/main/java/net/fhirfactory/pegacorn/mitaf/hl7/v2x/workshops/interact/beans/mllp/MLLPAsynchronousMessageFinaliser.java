@@ -61,6 +61,14 @@ public class MLLPAsynchronousMessageFinaliser {
     @Inject
     private MLLPEgressMessageMetricsCapture metricsCapture;
 
+    public String extractUoW(String answer, Exchange camelExchange) {
+        
+        String messageControlId = hL7v2MessageExtractor.extractMessageID(answer);
+        asynchronousACKCacheDM.addAckMessage(messageControlId + "-MSG", answer);
+        
+        return answer;
+    }
+    
     public UoW extractUoWAndAnswer(Message answer, Exchange camelExchange) {
         LOG.debug(".extractUoWAndAnswer(): Entry, answer->{}", answer);
         PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
@@ -70,7 +78,7 @@ public class MLLPAsynchronousMessageFinaliser {
         String messageAsString = uow.getIngresContent().getPayload();
         String messageControlId = hL7v2MessageExtractor.extractMessageID(messageAsString);
 
-        String acknowledgementMessage = asynchronousACKCacheDM.getAckMessage(messageControlId);
+        String acknowledgementMessage = asynchronousACKCacheDM.getAckMessage(messageControlId + "-ACK");
         LOG.warn("Get ACK message from asynchronous ACK cache: messageControlId->{}, ackMessage->{}", messageControlId, acknowledgementMessage);
 
         UoWProcessingOutcomeEnum outcome = null;

@@ -31,6 +31,7 @@ import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistrati
 import org.apache.camel.ExchangePattern;
 
 import javax.inject.Inject;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPAsynchronousMessageORRCollector;
 
 public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2MessageAsynchronousACKIngresWUP {
 
@@ -42,6 +43,9 @@ public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2Me
     
     @Inject
     private MLLPAsynchronousMessageACKCollector mllpAsynchronousMessageACKCollector;
+    
+    @Inject
+    private MLLPAsynchronousMessageORRCollector MLLPAsynchronousMessageORRCollector;
 
     @Override
     protected String specifyWUPInstanceName() {
@@ -64,10 +68,15 @@ public abstract class HL7v24MessageAsynchronousACKIngressWUP extends BaseHL7v2Me
                 .choice()
                     .when(header("CamelMllpEventType").isEqualTo("ACK"))
                         .bean(mllpAsynchronousMessageACKCollector, "extractAndSaveACKMessage(*, Exchange)")
-                .otherwise()
+                    .when(header("CamelMllpEventType").isEqualTo("ORR"))
+                        .bean(MLLPAsynchronousMessageORRCollector, "extractAndSaveACKMessage(*, Exchange)")  
                         .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
                         .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
                         .to(ExchangePattern.InOnly, egressFeed())
+                .otherwise()
+                    .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+                    .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
+                    .to(ExchangePattern.InOnly, egressFeed())
                 .end();
     }
 

@@ -53,7 +53,7 @@ public class MLLPAsynchronousMessageACKCollector {
         MSA msa = ackMessage.getMSA();
 
         String messageControlId = msa.getMessageControlID().getValueOrEmpty();
-        asynchronousACKCacheDM.addAckMessage(messageControlId, messageAsString);
+        asynchronousACKCacheDM.addAckMessage(messageControlId + "-ACK", messageAsString);
         LOG.warn("Add ACK message to asynchronous ACK cache: messageControlId->{}, ackMessage->{}", messageControlId, messageAsString);
 
         return (incomingUoW);
