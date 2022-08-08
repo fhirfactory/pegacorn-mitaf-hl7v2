@@ -679,33 +679,8 @@ public class Field extends MessageComponent implements Serializable {
 		List<FieldRepetition> fieldRepetitions = this.getRepetitionsMatchingValue(matchType, subFieldIndex, matchValues);
 		this.repetitions.removeAll(fieldRepetitions);
 	}
-
 	
-	/**
-	 * Removes field repetitions where the matchValue does not match the subField value.
-	 * 
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String ... matchValues) throws Exception {	
-		removeNotMatchingFieldRepetitions("equals", subFieldIndex, matchValues);
-	}
 	
-
-	/**
-	 * Removes field repetitions where the matchValue does not match the subField value.
-	 * 
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(String matchType, int subFieldIndex, String ... matchValues) throws Exception {	
-		List<FieldRepetition>fieldRepetitions = this.getRepetitionsNotMatchingValue(matchType, subFieldIndex, matchValues);
-		this.repetitions.removeAll(fieldRepetitions);
-	}
-
-
 	/**
 	 * Sets a subField value in all repetitions.
 	 * 
@@ -792,43 +767,6 @@ public class Field extends MessageComponent implements Serializable {
 	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
 		return getRepetitionsMatchingValue("equals", subFieldIndex, matchValues);
 	}
-
-	
-	/**
-	 * Returns a list of Field repetitions of this field not Matching one of the supplied value at the supplied sub field index.
-	 * 
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 * @throws Exception
-	 */
-	public List<FieldRepetition> getRepetitionsNotMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
-		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
-		
-	
-		for (FieldRepetition repetition : getRepetitions()) {
-			Subfield subField = repetition.getSubField(subFieldIndex);
-
-			if (!compare(matchType, subField.value(), matchValues)) {
-				fieldRepetitions.add(repetition);
-			}
-		}
-		
-		return fieldRepetitions;
-	}
-	
-	
-	/**
-	 * Returns a list of Field repetitions of this field not Matching one of the supplied value at the supplied sub field index.
-	 * 
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 * @throws Exception
-	 */
-	public List<FieldRepetition> getRepetitionsNotMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
-		return getRepetitionsNotMatchingValue("equals", subFieldIndex, matchValues);
-	}
 	
 	
 	/**
@@ -842,27 +780,51 @@ public class Field extends MessageComponent implements Serializable {
 	private boolean compare(String matchType, String text, String ... matchValues) {
 		MatchTypeEnum type = MatchTypeEnum.get(matchType);
 		
+		boolean result = false;
+		if (matchType.toLowerCase().startsWith("not")) {
+			result = true;
+		}
+		
 		
 		for (String matchValue : matchValues) {
-		
+				
 			switch (type) {
 				case EQUALS:
 					if  (text.equals(matchValue)) {
-						return true;
+						result = true;
 					}
 					break;
 				case CONTAINS:
 					if (text.contains(matchValue)) {
-						return true;
+						result = true;
 					}
 				case ENDS_WITH:
 					if (text.endsWith(matchValue)) {
-						return true;
+						result = true;
 					}
 					break;
 				case STARTS_WITH:
 					if (text.startsWith(matchValue)) {
-						return true;
+						result = true;
+					}
+					break;
+				case NOT_ENDS_WITH:
+					if (text.endsWith(matchValue)) {
+						result = false;
+					}
+					break;
+				case NOT_CONTAINS:
+					if (text.contains(matchValue)) {
+						result = false;
+					}
+				case NOT_STARTS_WITH:
+					if (text.startsWith(matchValue)) {
+						result = false;
+					}
+					break;
+				case NOT_EQUALS:
+					if  (text.equals(matchValue)) {
+						result = false;
 					}
 					break;
 				default:
@@ -872,6 +834,6 @@ public class Field extends MessageComponent implements Serializable {
 			}
 		}
 		
-		return false;
+		return result;
 	}
 }

@@ -519,35 +519,8 @@ public class Segment extends MessageComponent implements Serializable {
 		
 		field.removeMatchingFieldRepetitions(matchType, subFieldIndex, matchValues);	
 	}
-
-
-	/**
-	 * Removes field repetitions which do not match one of the supplied values.
-	 * 
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		removeNotMatchingFieldRepetitions("equals", fieldIndex, subFieldIndex, matchValues);
-	}
 	
 	
-	/**
-	 * Removes field repetitions which do not match one of the supplied values.
-	 * 
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		Field field = this.getField(fieldIndex);
-		field.removeNotMatchingFieldRepetitions(matchType, subFieldIndex, matchValues);
-	}
-
-
 	/**
 	 * Sets the same value in all subFields
 	 * 
@@ -615,34 +588,6 @@ public class Segment extends MessageComponent implements Serializable {
 		Field field = getField(fieldIndex);
 		
 		return field.getRepetitionsMatchingValue(matchType, subFieldIndex, matchValues);
-	}
-
-	
-	/**
-	 * Gets a list of Field repetitions which do not match the supplied value at the supplied sub field index.
-	 * 
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 */
-	public List<FieldRepetition> getFieldRepetitionsNotMatchingValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		return getFieldRepetitionsNotMatchingValue("equals", fieldIndex, subFieldIndex, matchValues);
-	}
-	
-	
-	/**
-	 * Gets a list of Field repetitions which do not match the supplied value at the supplied sub field index.
-	 * 
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param value
-	 * @return
-	 */
-	public List<FieldRepetition> getFieldRepetitionsNotMatchingValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		Field field = getField(fieldIndex);
-		
-		return field.getRepetitionsNotMatchingValue(matchType, subFieldIndex, matchValues);
 	}
 	
 	

@@ -980,38 +980,6 @@ public class HL7Message implements Serializable   {
 	
 	
 	/**
-	 * Removes a field repetitions.
-	 * 
-	 * @param segmentName
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		removeNotMatchingFieldRepetitions("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
-	}
-	
-	
-	/**
-	 * Removes field repetitions.
-	 * 
-	 * @param matchType
-	 * @param segmentName
-	 * @param fieldIndex
-	 * @param subFieldIndex
-	 * @param matchValue
-	 * @throws Exception
-	 */
-	public void removeNotMatchingFieldRepetitions(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
-		for (Segment segment : this.getSegments(segmentName)) {
-			segment.removeNotMatchingFieldRepetitions(matchType, fieldIndex, subFieldIndex, matchValues);
-		}
-	}
-		
-	
-	
-	/**
 	 * Returns a segment.
 	 * 
 	 * @param segmentName
