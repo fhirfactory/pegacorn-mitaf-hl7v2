@@ -75,6 +75,6 @@ public class PIDSegment extends Segment implements Serializable {
 	 * @throws Exception
 	 */
 	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {	
-		removeNotMatchingFieldRepetitions(3,5, identifierToKeep);
+		removeMatchingFieldRepetitions("not-equals", 3,5, identifierToKeep);
 	}
 }

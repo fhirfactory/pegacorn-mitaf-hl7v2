@@ -10,7 +10,11 @@ public enum MatchTypeEnum {
 	EQUALS("equals"),
 	CONTAINS("contains"),
 	STARTS_WITH("starts-with"),
-	ENDS_WITH("ends-with");
+	ENDS_WITH("ends-with"),
+	NOT_EQUALS("not-equals"),
+	NOT_CONTAINS("not-contains"),
+	NOT_STARTS_WITH("not-starts-with"),
+	NOT_ENDS_WITH("not-ends-with");
 	
 	private String type;
 	

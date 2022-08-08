@@ -99,4 +99,14 @@ public class HL7MessageWithAttributes {
 	public  Map<String, Object> getAttributes() {
 		return attributes;
 	}
+	
+	
+	public Object getAttribute(String key) {
+		return attributes.get(key);
+	}
+	
+	
+	public void setMessage(Message message) {
+		this.message = message.toString();
+	}
 }

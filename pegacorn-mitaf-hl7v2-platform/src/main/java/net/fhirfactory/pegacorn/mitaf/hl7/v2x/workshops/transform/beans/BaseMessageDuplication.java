@@ -56,7 +56,7 @@ public abstract class BaseMessageDuplication {
 		// get the first and only payload element.
 		String hl7Message = uow.getIngresContent().getPayload();
 
-		List<Message> messages = null;
+		List<HL7MessageWithAttributes> messages = null;
 
 		try (HapiContext context = new DefaultHapiContext();) {
 			PipeParser parser = context.getPipeParser();
@@ -67,19 +67,21 @@ public abstract class BaseMessageDuplication {
 
 			originalMessage = parser.parse(hl7Message);
 			messages = createMessages(originalMessage);
+			
+			// Add a total count of the messages attribute.
+			for (int i = 0; i < messages.size(); i++) {
+				messages.get(i).addAttribute("total_number_of_messages", messages.size());
+			}
 		}
 
 		uow.getEgressContent().getPayloadElements().clear();
-		
 
 		// Add a entry as a unit of work payload.
-		for (int i = 0; i < messages.size(); i++) {				
-			HL7MessageWithAttributes messageAttributes = addDuplicationAttributes(messages, i);
-			
+		for (HL7MessageWithAttributes message : messages) {
 			UoWPayload contentPayload = new UoWPayload();
 
 			contentPayload.setPayloadManifest(manifest);
-			contentPayload.setPayload(messageAttributes.toString());
+			contentPayload.setPayload(message.toString());
 
 			newUoW.getEgressContent().getPayloadElements().add(contentPayload);
 		}
@@ -97,18 +99,7 @@ public abstract class BaseMessageDuplication {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract List<Message>createMessages(Message orginalMessage) throws Exception;
+	public abstract List<HL7MessageWithAttributes>createMessages(Message orginalMessage) throws Exception;
 	
 	public abstract Logger getLogger();
-	
-	/**
-	 * Add duplication message attributes.  The default implementation adds 
-	 * 
-	 * @param messages
-	 * @param currentMessageIndex
-	 * @return
-	 */
-	public HL7MessageWithAttributes addDuplicationAttributes(List<Message> messages, int currentMessageIndex) {
-		return new HL7MessageWithAttributes(messages.get(currentMessageIndex).toString());
-	}
 }
