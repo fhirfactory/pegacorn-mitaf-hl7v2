@@ -266,7 +266,7 @@ public class HL7v2xTriggerEventIngresProcessor {
 						//1. keep searching for media objects
                 		while((media = mediaConverter.extractNextMediaResource(message)) !=null) {
                 			//2. Save the media to the IM
-                			if(mediaAgent.captureMedia(media, true)) {
+                			if(mediaAgent.captureMedia(media)) {
                 				//3. remove the byte[] from the UoW payload
                 				mediaParser.replaceAttachmentSegment(message, media.getId());
                 			} else {
