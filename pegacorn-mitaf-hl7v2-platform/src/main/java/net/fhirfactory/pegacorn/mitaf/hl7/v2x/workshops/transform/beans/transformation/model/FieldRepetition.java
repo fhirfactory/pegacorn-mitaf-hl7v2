@@ -20,6 +20,8 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	private List<Subfield>subFields = new ArrayList<>();
 	private Field field = null;
 	
+	protected FieldRepetition() {}
+	
 	public FieldRepetition(String fieldRepetition, boolean handleSeperators, Field field) {
 		this.field = field;
 		
@@ -49,6 +51,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	}
 	
 	
+	@Override
 	public String toString() {		
 		return subFields.stream().map(Subfield::toString).collect(Collectors.joining("^"));
 	}
@@ -89,6 +92,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	 * 
 	 * @throws Exception
 	 */
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}
@@ -98,6 +102,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	}	
 	
 	
+	@Override
 	public String value() {
 		return toString();
 	}
@@ -148,6 +153,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	 * @param value
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		subFields.clear();
 			

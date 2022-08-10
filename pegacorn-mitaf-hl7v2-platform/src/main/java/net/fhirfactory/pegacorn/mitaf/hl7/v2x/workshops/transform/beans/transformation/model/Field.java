@@ -21,6 +21,8 @@ public class Field extends MessageComponent implements Serializable {
 	
 	private Segment segment = null;
 	
+	protected Field() {}
+	
 	public Field(String field, boolean handleSeperators, Segment segment) {
 		this.segment = segment;
 		
