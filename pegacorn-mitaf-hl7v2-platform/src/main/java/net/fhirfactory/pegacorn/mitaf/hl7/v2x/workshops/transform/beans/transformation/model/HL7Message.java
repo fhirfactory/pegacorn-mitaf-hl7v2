@@ -1191,4 +1191,40 @@ public class HL7Message implements Serializable   {
 		
 		return segment;
 	}
+	
+	
+	/**
+	 * Returns an empty segment.  The segment is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment createEmptySegment(String segmentName) throws Exception {
+		return new Segment(segmentName, this);
+	}
+	
+	
+	/**
+	 * Returns an empty field repetition.  The field repetition is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition createEmptyFieldRepetition() throws Exception {
+		return new FieldRepetition();
+	}
+	
+	
+	/**
+	 * Returns an empty field.  The field is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Field createEmptyField() throws Exception {
+		return new Field();
+	}	
 }
