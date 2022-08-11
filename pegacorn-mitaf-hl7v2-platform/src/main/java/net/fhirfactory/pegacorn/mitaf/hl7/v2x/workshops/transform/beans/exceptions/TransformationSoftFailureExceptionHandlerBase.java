@@ -22,25 +22,18 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.exceptions;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.internals.hl7v2.segments.ZDESegment;
+import net.fhirfactory.pegacorn.internals.hl7v2.segments.ZDESegmentSet;
+import net.fhirfactory.pegacorn.internals.hl7v2.segments.factories.ZDESegmentFactory;
+import net.fhirfactory.pegacorn.internals.hl7v2.segments.helpers.ZDESegmentHelper;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
 import org.apache.camel.Exchange;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -51,6 +44,12 @@ public abstract class TransformationSoftFailureExceptionHandlerBase {
 
     @Inject
     private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
+
+    @Inject
+    private ZDESegmentHelper zdeSegmentHelper;
+
+    @Inject
+    private ZDESegmentFactory zdeSegmentFactory;
 
     //
     // Constructor(s)
@@ -72,6 +71,14 @@ public abstract class TransformationSoftFailureExceptionHandlerBase {
 
     protected ProcessingPlantMetricsAgent getProcessingPlantMetricsAgent(){
         return(processingPlantMetricsAgentAccessor.getMetricsAgent());
+    }
+
+    protected ZDESegmentHelper getZDESegmentHelper(){
+        return(zdeSegmentHelper);
+    }
+
+    protected ZDESegmentFactory getZdeSegmentFactory(){
+        return(zdeSegmentFactory);
     }
 
     //
@@ -139,6 +146,25 @@ public abstract class TransformationSoftFailureExceptionHandlerBase {
         String message = messageBuilder.toString();
         getLogger().debug(".createFormattedMessage(): Exit, message->{}", message);
         return(message);
+    }
+
+    protected String addZDESegment(String payload, String errorMessage, String location){
+        getLogger().debug(".addZDESegment(): Entry, payload->{}", payload);
+        if(StringUtils.isEmpty(payload) || StringUtils.isEmpty(errorMessage) || StringUtils.isEmpty(location)){
+            getLogger().debug(".addZDESegment(): Either the payload, errorMessage or location are empty, returning original payload");
+            return(payload);
+        }
+        ZDESegment newSegment = new ZDESegment();
+        newSegment.setSetId(0);
+        newSegment.setSource(location);
+        String tidiedUpErrorMessage = errorMessage.replace("\n",", ").replace("\r", ", ");
+        newSegment.setComment(tidiedUpErrorMessage);
+        newSegment.setCommentType("Soft-Failure Condition Trigger");
+        ZDESegmentSet segmentSet = new ZDESegmentSet();
+        segmentSet.addErrorNote(newSegment);
+        String updatedPayload = getZDESegmentHelper().addZDESegmentSet(payload, segmentSet);
+        getLogger().debug(".addZDESegment(): Exit, updatedPayload->{}", updatedPayload);
+        return(updatedPayload);
     }
 
 }

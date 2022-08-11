@@ -14,11 +14,13 @@ import ca.uhn.hl7v2.HL7Exception;
  * @author Brendan_Douglas
  *
  */
-public class FieldRepetition implements Serializable  {
+public class FieldRepetition extends MessageComponent implements Serializable  {
 	private static final long serialVersionUID = -861537957069177073L;
 	
 	private List<Subfield>subFields = new ArrayList<>();
 	private Field field = null;
+	
+	protected FieldRepetition() {}
 	
 	public FieldRepetition(String fieldRepetition, boolean handleSeperators, Field field) {
 		this.field = field;
@@ -49,6 +51,7 @@ public class FieldRepetition implements Serializable  {
 	}
 	
 	
+	@Override
 	public String toString() {		
 		return subFields.stream().map(Subfield::toString).collect(Collectors.joining("^"));
 	}
@@ -89,10 +92,9 @@ public class FieldRepetition implements Serializable  {
 	 * 
 	 * @throws Exception
 	 */
+	@Override
 	public void clear() throws Exception {
-		for (Subfield subField : subFields) {
-			subField.clear();
-		}
+		setValue("");
 	}
 	
 	public Field getField() {
@@ -100,6 +102,7 @@ public class FieldRepetition implements Serializable  {
 	}	
 	
 	
+	@Override
 	public String value() {
 		return toString();
 	}
@@ -141,8 +144,6 @@ public class FieldRepetition implements Serializable  {
 		}
 		
 		this.getSubFields().add(index, subField);
-		
-		this.field.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -152,6 +153,7 @@ public class FieldRepetition implements Serializable  {
 	 * @param value
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		subFields.clear();
 			
@@ -163,8 +165,6 @@ public class FieldRepetition implements Serializable  {
 			Subfield subField = new Subfield(fieldRepetitonValue, true, this);
 			subFields.add(subField);
 		}	
-		
-		this.getField().getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	/**

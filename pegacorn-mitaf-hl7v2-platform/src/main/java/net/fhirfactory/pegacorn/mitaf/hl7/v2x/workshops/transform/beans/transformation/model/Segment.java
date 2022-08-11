@@ -2,7 +2,6 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -15,11 +14,13 @@ import ca.uhn.hl7v2.HL7Exception;
  * @author Brendan Douglas
  *
  */
-public class Segment implements Serializable {
+public class Segment extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = -8797054428191615724L;
 	
-    private List<Field>fields = new ArrayList<Field>();
-	private HL7Message message = null;
+    protected List<Field>fields = new ArrayList<Field>();
+	protected HL7Message message = null;
+	
+	protected Segment() {};
 	
 	public Segment(String segment, HL7Message message) {
 		this.message = message;
@@ -29,15 +30,7 @@ public class Segment implements Serializable {
 		fields.add(new Field(splitSegmentFields[0], true, this));
 		
 		int startIndex = 1;
-			
-		// For the MSH segment the MSH-1 field value is the separator character (|) and we split based on this so create an empty field then add the seperator character to the field.
-		if (segment.startsWith("MSH")) {
-			startIndex = 2;
-			fields.add(new Field("|", false, this));
-			fields.add(new Field(splitSegmentFields[1],false, this));
-        }
-
-		
+					
 		for (int i = startIndex; i < splitSegmentFields.length; i++) {
 			String value = splitSegmentFields[i];
 			Field field = new Field(value, true, this);
@@ -63,20 +56,11 @@ public class Segment implements Serializable {
 	 */
 	public void setFields(List<Field> fields) throws Exception {
 		this.fields = fields;
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 
 	
+	@Override
 	public String toString() {	
-	
-		// Hack for MSH segment.
-		if (this.getName().equals("MSH") ) {
-			String segment = fields.stream().skip(3).map(Field::toString).collect(Collectors.joining("|"));
-			
-			return "MSH|^~\\&|"+segment;
-		}
-		
 		return fields.stream().map(Field::toString).collect(Collectors.joining("|"));
 	}
 
@@ -131,8 +115,6 @@ public class Segment implements Serializable {
 	 */
 	public void addField(Field field) throws Exception {
 		this.fields.add(field);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -156,8 +138,6 @@ public class Segment implements Serializable {
 		}
 		
 		this.getFields().add(index, field);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -203,19 +183,6 @@ public class Segment implements Serializable {
 	
 	
 	/**
-	 * Clears all repetitions of a field.
-	 * 
-	 * @param fieldIndex
-	 * @throws Exception
-	 */
-	public void clearAllFieldRepetitions(int fieldIndex) throws Exception {
-		Field field = this.getField(fieldIndex);
-				
-		field.clearAllRepetitions();
-	}
-
-	
-	/**
 	 * Clears a sub field from the supplied repetition of a field.
 	 * 
 	 * @param fieldIndex
@@ -230,28 +197,16 @@ public class Segment implements Serializable {
 
 	
 	/**
-	 * Clears a sub field from the 1st repetition of a field.
-	 * 
-	 * @param fieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void clearSubField(int fieldIndex, int subFieldIndex) throws Exception {
-		clearSubField(fieldIndex, 0, subFieldIndex);
-	}
-	
-	
-	/**
 	 * Clears a subField from all repetitions of a field.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldFromAllFieldRepetitions(int fieldIndex, int subFieldIndex) throws Exception {
+	public void clearSubField(int fieldIndex, int subFieldIndex) throws Exception {
 		Field field = this.getField(fieldIndex);
 				
-		field.clearSubFieldFromAllFieldRepetitions(subFieldIndex);		
+		field.clearSubField(subFieldIndex);		
 	}
 
 	
@@ -264,11 +219,9 @@ public class Segment implements Serializable {
 	 * @return
 	 */
 	public Subfield getSubField(int fieldIndex, int repetition, int subFieldIndex) throws Exception {
-		FieldRepetition fieldRepetition = getFieldRepetition(fieldIndex, repetition);
+		Field field = getField(fieldIndex);
 		
-		if (fieldRepetition == null) {
-			return null;
-		}
+		FieldRepetition fieldRepetition = field.getRepetition(repetition);
 		
 		return fieldRepetition.getSubField(subFieldIndex);
 	}
@@ -318,14 +271,13 @@ public class Segment implements Serializable {
 	 */
 	public void changeName(String newName) throws Exception {
 		this.getField(0).setValue(newName);
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 	
 	
 	/**
 	 * Clears the segment
 	 */
+	@Override
 	public void clear() throws Exception {
 		for (Field field : getFields()) {
 			field.clear();
@@ -362,10 +314,10 @@ public class Segment implements Serializable {
 	 * @param allowSequentialSeparators
 	 * @throws Exception
 	 */
-	public void combinedSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldIndex, int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		field.combinedSubFields(fieldRepetition, separator, allowSequentialSeparators);
+		field.combineSubFields(fieldRepetition, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -376,10 +328,10 @@ public class Segment implements Serializable {
 	 * @param separator
 	 * @throws Exception
 	 */
-	public void combinedSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldIndex, String separator, boolean allowSequentialSeparators) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		field.combinedSubFields(0, separator, allowSequentialSeparators);
+		field.combineSubFields(0, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -411,8 +363,18 @@ public class Segment implements Serializable {
 	 * 
 	 * @param startingFieldIndex
 	 */
-	public void clearFieldsFrom(int startingFieldIndex) throws Exception {
+	public void clearFieldsStartingFrom(int startingFieldIndex) throws Exception {
 		clearFieldRange(startingFieldIndex, -1);
+	}
+	
+	
+	/**
+	 * Clears all fields from this segment starting at the supplied startingFieldIndex.
+	 * 
+	 * @param startingFieldIndex
+	 */
+	public void clearSubFieldsStartingFrom(int fieldIndex, int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(fieldIndex, startingSubFieldIndex, -1);
 	}
 	
 	
@@ -452,27 +414,60 @@ public class Segment implements Serializable {
 			}
 		}
 	}
+	
+	
+	/**
+	 * Clears all fields from the supplied startingFieldIndex to the endingFieldIndex in this segment.
+	 * 
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 * @throws Exception
+	 */
+	public void clearSubFieldRange(int fieldIndex, int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		field.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
+	}
 
 	
 	/**
-	 * Does any repetition of the field in this segment contain the supplied value.
+	 * Does any repetition of the field in this segment match the supplied value.
 	 * 
 	 * @param fieldIndex
 	 * @param value
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesFieldContainValue(int fieldIndex, String value) throws Exception {
+	public boolean hasFieldMatchingValue(int fieldIndex, String ... matchValues) throws Exception {
+		return hasFieldMatchingValue("equals", fieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Does any repetition of the field in this segment match the supplied value.
+	 * 
+	 * @param matchType
+	 * @param fieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean hasFieldMatchingValue(String matchType, int fieldIndex, String ... matchValues) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesFieldContainValue(value);
+		return field.hasFieldMatchingValue(matchType, matchValues);
 	}
 
 	
-	public boolean doesSubFieldContainValue(int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public boolean hasSubFieldMatchingValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return hasSubFieldMatchingValue("equals", fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	public boolean hasSubFieldMatchingValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		Field field = getField(fieldIndex);
 		
-		return field.doesSubFieldContainValue(subFieldIndex, value);
+		return field.hasSubFieldMatchingValue(matchType, subFieldIndex, matchValues);
 	}
 	
 	
@@ -483,6 +478,7 @@ public class Segment implements Serializable {
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		fields.clear();
 
@@ -494,8 +490,6 @@ public class Segment implements Serializable {
 			Field field = new Field(fieldValue, true, this);
 			fields.add(field);
 		}
-		
-		this.getMessage().refreshSourceHL7Message();
 	}
 
 
@@ -507,23 +501,98 @@ public class Segment implements Serializable {
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
-		Field field = this.getField(fieldIndex);
-		
-		field.removeMatchingFieldRepetitions(subFieldIndex, matchValue);	
+	public void removeMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		removeMatchingFieldRepetitions("equals", fieldIndex, subFieldIndex, matchValues);
 	}
-
-
+	
+	
 	/**
+	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param matchValue
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+	public void removeMatchingFieldRepetitions(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		Field field = this.getField(fieldIndex);
 		
-		field.removeNotMatchingFieldRepetitions(subFieldIndex, matchValue);
+		field.removeMatchingFieldRepetitions(matchType, subFieldIndex, matchValues);	
+	}
+	
+	
+	/**
+	 * Sets the same value in all subFields
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @throws Exception
+	 */
+	public void setSubField(int fieldIndex, int subFieldIndex, String value) throws Exception {
+		Field field = getField(fieldIndex);
+		field.setSubField(subFieldIndex, value);
+	}
+
+
+	/**
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetitionMatchingValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return getFieldRepetitionMatchingValue("equals", fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public FieldRepetition getFieldRepetitionMatchingValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		Field field = getField(fieldIndex);
 		
+		return field.getRepetitionMatchingValue(matchType, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<FieldRepetition> getFieldRepetitionsMatchingValue(int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return getFieldRepetitionsMatchingValue("equals", fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a Field repetition which matches the supplied value at the supplied sub field index.
+	 * 
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<FieldRepetition> getFieldRepetitionsMatchingValue(String matchType, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		Field field = getField(fieldIndex);
+		
+		return field.getRepetitionsMatchingValue(matchType, subFieldIndex, matchValues);
+	}
+	
+	
+	@Override
+	public String value() throws Exception {
+		return this.toString();
 	}
 }

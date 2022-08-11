@@ -117,6 +117,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
                 .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
                 .bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
                 .bean(messageExtractor, "convertToMessage(*, Exchange)")
+                .bean(mLLPAsynchronousMessageFinisher, "extractUoW")
                 .to(egressFeed())
                 .delay(5000)
                 .bean(mLLPAsynchronousMessageFinisher, "extractUoWAndAnswer")

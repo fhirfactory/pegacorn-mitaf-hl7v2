@@ -20,6 +20,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcemen
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.HL7MessageWithAttributes;
 
 /**
  * Base class for all classes which need to duplicate a message.  The duplication rules are provided by the sub classes.
@@ -55,7 +56,7 @@ public abstract class BaseMessageDuplication {
 		// get the first and only payload element.
 		String hl7Message = uow.getIngresContent().getPayload();
 
-		List<Message> messages = null;
+		List<HL7MessageWithAttributes> messages = null;
 
 		try (HapiContext context = new DefaultHapiContext();) {
 			PipeParser parser = context.getPipeParser();
@@ -66,12 +67,17 @@ public abstract class BaseMessageDuplication {
 
 			originalMessage = parser.parse(hl7Message);
 			messages = createMessages(originalMessage);
+			
+			// Add a total count of the messages attribute.
+			for (int i = 0; i < messages.size(); i++) {
+				messages.get(i).addAttribute("total_number_of_messages", messages.size());
+			}
 		}
 
 		uow.getEgressContent().getPayloadElements().clear();
 
 		// Add a entry as a unit of work payload.
-		for (Message message : messages) {
+		for (HL7MessageWithAttributes message : messages) {
 			UoWPayload contentPayload = new UoWPayload();
 
 			contentPayload.setPayloadManifest(manifest);
@@ -93,7 +99,7 @@ public abstract class BaseMessageDuplication {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract List<Message>createMessages(Message orginalMessage) throws Exception;
+	public abstract List<HL7MessageWithAttributes>createMessages(Message orginalMessage) throws Exception;
 	
 	public abstract Logger getLogger();
 }

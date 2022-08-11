@@ -30,9 +30,66 @@ public class HL7Message implements Serializable   {
 		String[] splitMessageSegments = sourceHL7Message.toString().split("\r");
 		
 		for (String value : splitMessageSegments) {
-			Segment segment = new Segment(value, this);
+			Segment segment = createSegment(value);
+			
+		
 			segments.add(segment);
 		}
+	}
+	
+	/**
+	 * Returns the type of the message. MSH-9.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public Field getMessageTypeField() throws Exception {
+		return getMSHSegment().getMessageTypeField();
+	}
+	
+	
+	/**
+	 * Does the supplied segment exist?
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean doesSegmentExist(String segment) throws Exception {
+		return getSegmentCount(segment) > 0;
+		
+	}
+	
+	
+	/**
+	 * Returns the MSH segment.
+	 * 
+	 * @return
+	 */
+	public MSHSegment getMSHSegment() {
+		for (Segment segment : this.segments) {
+			if (segment.getName().equals("MSH")) {
+				return (MSHSegment)segment;
+			}
+		}
+		
+		return (MSHSegment)createSegment("MSH");
+	}
+	
+
+	/**
+	 * Returns the PID segment.
+	 * 
+	 * @return
+	 */
+	public PIDSegment getPIDSegment() {
+		for (Segment segment : this.segments) {
+			if (segment.getName().equals("PID")) {
+				return (PIDSegment)segment;
+			}
+		}
+		
+		return (PIDSegment)createSegment("PID");
 	}
 
 	
@@ -78,7 +135,6 @@ public class HL7Message implements Serializable   {
 			if (segment.getName().equals(name)) {
 				if (currentOccurrence == occurrence) {
 					iter.remove();
-					refreshSourceHL7Message();
 					return;
 				}
 				
@@ -99,39 +155,49 @@ public class HL7Message implements Serializable   {
 		}
 		
 		this.segments.remove(rowIndex);
-		
-		refreshSourceHL7Message();
 	}
 	
 	
 	/**
-	 * Removes the supplied segment from the list of segments.
+	 * Removes the supplied segment from the array of segments.
 	 * 
 	 * @param segment
 	 * @throws Exception
 	 */
 	public void removeSegment(Segment segment) throws Exception {	
 		this.segments.remove(segment);
+	}
+	
+	
+	public void removeSegments(Segment[] segments) throws Exception {	
 		
-		refreshSourceHL7Message();
+		for (Segment segment : segments) {
+			removeSegment(segment);
+		}
 	}
 	
 	
 	/**
-	 * Removes all segments of the supplied name.
+	 *  Removes the supplied segment from the array of segments.
+	 * 
+	 * @param segments
+	 * @throws Exception
+	 */
+	public void removeSegments(List<Segment> segments) throws Exception {	
+		
+		for (Segment segment : segments) {
+			removeSegment(segment);
+		}
+	}
+	
+	
+	/**
+	 * Removes the 1st occurrence of a segment.
 	 * 
 	 * @param name
 	 */
-	public void removeAllMatchingSegments(String name) throws Exception {
-		for (Iterator<Segment> iter = getSegments().iterator(); iter.hasNext(); ) {
-			Segment segment = iter.next();
-			
-			if (segment.getName().equals(name)) {
-				iter.remove();
-			}
-		}
-		
-		refreshSourceHL7Message();
+	public void removeSegment(String name) throws Exception {
+		removeSegment(name, 0);
 	}
 	
 	
@@ -155,8 +221,10 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @return
 	 */
-	public void refreshSourceHL7Message() throws Exception {
+	public Message getSourceMessage() throws Exception {
 		sourceHL7Message.parse(this.toString());
+		
+		return sourceHL7Message;
 	}
 
 	
@@ -185,7 +253,7 @@ public class HL7Message implements Serializable   {
 	 * 
 	 * @param message
 	 * @param segmentName
-	 * @param occurence
+	 * @param occurrence
 	 * @return
 	 * @throws Exception
 	 */
@@ -254,8 +322,6 @@ public class HL7Message implements Serializable   {
 		Segment sourceSegment = getSegments().get(sourceIndex);
 	
 		getSegments().set(targetIndex, SerializationUtils.clone(sourceSegment));
-		
-		refreshSourceHL7Message();
 	}
 	
 	
@@ -268,10 +334,9 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment insertSegment(Segment source, int targetIndex) throws Exception {
-		Segment segment = new Segment(source.toString(), this);
+		Segment segment = createSegment(source.toString());
 		
 		getSegments().add(targetIndex, segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}
@@ -305,8 +370,6 @@ public class HL7Message implements Serializable   {
 		}
 			
 		getSegments().remove(sourceSegment);
-		
-		refreshSourceHL7Message();
 	}
 	
 	
@@ -320,10 +383,9 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment insertSegment(String newSegmentName, int segmentIndex, int id) throws Exception {	
-		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		Segment segment = createSegment(newSegmentName + "|" + id);
 		
 		getSegments().add(segmentIndex, segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}
@@ -338,10 +400,9 @@ public class HL7Message implements Serializable   {
 	 * @throws Exception
 	 */
 	public Segment appendSegment(String newSegmentName, int id) throws Exception {	
-		Segment segment = new Segment(newSegmentName + "|" + id, this);
+		Segment segment = createSegment(newSegmentName + "|" + id);
 		
 		getSegments().add(segment);
-		refreshSourceHL7Message();
 		
 		return segment;
 	}	
@@ -404,8 +465,8 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param fieldIndex
 	 */
-	public void clearFieldFromAllSegments(String segmentName, int fieldIndex) throws Exception {
-		setFieldInAllSegments(segmentName, fieldIndex, "");
+	public void clearField(String segmentName, int fieldIndex) throws Exception {
+		setField(segmentName, fieldIndex, "");
 	}
 
 	
@@ -415,7 +476,7 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param fieldIndex
 	 */
-	public void setFieldInAllSegments(String segmentName, int fieldIndex, String value) throws Exception {
+	public void setField(String segmentName, int fieldIndex, String value) throws Exception {
 		for (Segment segment : getSegments(segmentName)) {
 			Field field = segment.getField(fieldIndex);
 			
@@ -435,19 +496,9 @@ public class HL7Message implements Serializable   {
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 */
-	public void setSubFieldInAllSegments(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public void setSubField(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
 		for (Segment segment : getSegments(segmentName)) {
-			Field field = segment.getField(fieldIndex);
-			
-			if (field != null) {
-				for (FieldRepetition repetition : field.getRepetitions()) {
-					Subfield subField = repetition.getSubField(subFieldIndex);
-					
-					if (subField != null) {
-						subField.setValue(value);
-					}
-				}
-			}
+			segment.setSubField(fieldIndex, subFieldIndex, value);
 		}
 	}
 
@@ -458,7 +509,7 @@ public class HL7Message implements Serializable   {
 	 * @param segment
 	 * @param startingFieldIndex
 	 */
-	public void clearFieldsFrom(String segmentName, int startingFieldIndex) throws Exception {
+	public void clearFieldsStartingFrom(String segmentName, int startingFieldIndex) throws Exception {
 		clearFieldRange(segmentName, startingFieldIndex, -1);
 	}
 
@@ -474,6 +525,33 @@ public class HL7Message implements Serializable   {
 
 		for (Segment segment : getSegments(segmentName)) {
 			segment.clearFieldRange(startingFieldIndex, endingFieldIndex);
+		}
+	}
+	
+	
+	/**
+	 * Clears all sub fields from a segment starting at the supplied startingSubFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param fieldIndex The field to clear the sub fields from
+	 * @param startingSubFieldIndex
+	 */
+	public void clearSubFieldsStartingFrom(String segmentName, int fieldIndex, int startingSubFieldIndex) throws Exception {
+		clearSubFieldRange(segmentName, fieldIndex, startingSubFieldIndex, -1);
+	}
+
+	
+	/**
+	 * Clears all sub fields from the supplied startingSubFieldIndex to the endingSubFieldIndex in all matching segments.
+	 * 
+	 * @param segment
+	 * @param startingFieldIndex
+	 * @param endingFieldIndex
+	 */
+	public void clearSubFieldRange(String segmentName, int fieldIndex, int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+
+		for (Segment segment : getSegments(segmentName)) {
+			segment.clearSubFieldRange(fieldIndex, startingSubFieldIndex, endingSubFieldIndex);
 		}
 	}
 
@@ -623,9 +701,24 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldContainValue(String segmentName, int fieldIndex, String value) throws Exception {
+	public boolean hasFieldMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		return hasFieldMatchingValue("equals", segmentName, fieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 *  * Does the supplied value appear in the specified field of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param matchType The type of match to perform.
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean hasFieldMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesFieldContainValue(fieldIndex, value)) {
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
 				return true;
 			}
 		}
@@ -643,14 +736,218 @@ public class HL7Message implements Serializable   {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesSubFieldContainValue(String segmentName, int fieldIndex, int subFieldIndex, String value) throws Exception {
+	public boolean hasSubFieldMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return hasSubFieldMatchingValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Does the supplied value appear in the specified subField of any matching segment.  All field repetitions are checked.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public boolean hasSubFieldMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			if (segment.doesSubFieldContainValue(fieldIndex, subFieldIndex, value)) {
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
 				return true;
 			}
 		}
 		
 		return false;
+	}
+	
+	
+	/**
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return getSegmentMatchingValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
+
+	
+	/**
+	 * Gets a list of  segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		return getSegmentsMatchingValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a list of  segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		List<Segment>segments = new ArrayList<>();
+		
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.hasSubFieldMatchingValue(matchType, fieldIndex, subFieldIndex, matchValues)) {
+				segments.add(segment);
+			}
+		}
+		
+		return segments;
+	}
+
+	
+	/**
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		return getSegmentMatchingValue("equals", segmentName, fieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Gets a Segment Matching the specified value.  All matching segments are searched.  All field repetitions are searched.  The first match is returned.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public Segment getSegmentMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
+				return segment;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Gets a list of segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		return getSegmentsMatchingValue("equals", segmentName, fieldIndex, matchValues);
+	}
+	
+	/**
+	 * Gets a list of segments Matching the specified value.  All matching segments are searched.  All field repetitions are searched.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 */
+	public List<Segment> getSegmentsMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		List<Segment>segments = new ArrayList<>();
+		
+		for (Segment segment : this.getSegments(segmentName)) {			
+			if (segment.hasFieldMatchingValue(matchType, fieldIndex, matchValues)) {
+				segments.add(segment);
+			}
+		}
+		
+		return segments;
+	}
+	
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsMatchingValue(String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		removeSegmentsMatchingValue("equals", segmentName, fieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsMatchingValue(String matchType, String segmentName, int fieldIndex, String ... matchValues) throws Exception {
+		List<Segment>segments = this.getSegmentsMatchingValue(matchType, segmentName, fieldIndex, matchValues);
+		removeSegments(segments);
+	}
+
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsMatchingValue(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		removeSegmentsMatchingValue("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Removes all matching segments.
+	 * 
+	 * @param segmentName
+	 * @param fieldIndex
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void removeSegmentsMatchingValue(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		List<Segment>segments = this.getSegmentsMatchingValue(matchType, segmentName, fieldIndex, subFieldIndex, matchValues);
+		removeSegments(segments);		
 	}
 
 	
@@ -662,24 +959,272 @@ public class HL7Message implements Serializable   {
 	 * @param matchValue
 	 * @return
 	 */
-	public void removeMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
-		for (Segment segment : this.getSegments(segmentName)) {
-			segment.removeMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
-		}
+	public void removeMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
+		removeMatchingFieldRepetitions("equals", segmentName, fieldIndex, subFieldIndex, matchValues);
 	}
-
+	
 	
 	/**
-	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * Removes a field repetitions.
 	 * 
 	 * @param fieldIndex
 	 * @param subFieldIndex
 	 * @param matchValue
 	 * @return
 	 */
-	public void removeNotMatchingFieldRepetitions(String segmentName, int fieldIndex, int subFieldIndex, String matchValue) throws Exception {
+	public void removeMatchingFieldRepetitions(String matchType, String segmentName, int fieldIndex, int subFieldIndex, String ... matchValues) throws Exception {
 		for (Segment segment : this.getSegments(segmentName)) {
-			segment.removeNotMatchingFieldRepetitions(fieldIndex, subFieldIndex, matchValue);
+			segment.removeMatchingFieldRepetitions(matchType, fieldIndex, subFieldIndex, matchValues);
 		}
 	}
+	
+	
+	/**
+	 * Returns a segment.
+	 * 
+	 * @param segmentName
+	 * @param occurrence
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment getSegment(String segmentName, int occurrence) throws Exception {
+		Integer index = getSegmentIndex(segmentName, occurrence);
+		
+		// If the index is null which means the segment does not exist then create and empty segment and return it to prevent NPE's.  The segment is not added to the message.
+		if (index == null) {
+			return createSegment("");
+		}
+		
+		return getSegment(index);
+	}
+	
+	
+	/**
+	 * Returns the 1st occurrence of a segment.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment getSegment(String segmentName) throws Exception {		
+		return getSegment(segmentName, 0);
+	}
+	
+	
+	/**
+	 * Returns the message row index of the last occurrence of the supplied segment name.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Integer getLastSegmentIndex(String segmentName) throws Exception {
+		List<Integer> segmentIndexes = getSegmentIndexes(segmentName);
+		
+		if (segmentIndexes.isEmpty()) {
+			return null;
+		}
+		
+		return segmentIndexes.get(segmentIndexes.size()-1);		
+	}
+	
+	
+	/**
+	 * Is the message of the supplied type.
+	 * 
+	 * @param messageType
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean isType( String messageType) throws Exception {	
+		Field messageTypeField = getMessageTypeField();
+		
+		String type = null;
+		
+		if (messageTypeField != null) {
+			type = messageTypeField.getSubField(1).value() + "_" + messageTypeField.getSubFieldValue(2);
+		}
+		
+		
+		if (messageType.endsWith("_*")) {	
+			boolean val =  type.substring(0, 3).equals(messageType.substring(0, 3));
+			return val;
+		}
+		
+		return type.equals(messageType);
+	}
+	
+	
+	/**
+	 * Changes the version of this message.
+	 * 
+	 * @param newVersion
+	 * @throws Exception
+	 */
+	public void changeMessageVersion(String newVersion) throws Exception {
+		getMSHSegment().changeMessageVersion(newVersion);
+	}
+	
+
+	/**
+	 * Removes a patient identifier from the PID segment.
+	 * 
+	 * @param message
+	 * @param identifier
+	 * @throws Exception
+	 */
+	public void removePatientIdentifierField(String identifier) throws Exception  {
+		getPIDSegment().removePatientIdentifierField(identifier);
+	}
+
+	
+	/**
+	 * Gets a patient identifier value from the PID segment
+	 * 
+	 * @param identifier
+	 * @return
+	 * @throws Exception
+	 */
+	public String getPatientIdentifierValue(String identifier) throws Exception  {	
+		return getPIDSegment().getPatientIdentifierValue(identifier);
+	}
+	
+	
+	/**
+	 * Returns a list of patient identifiers in the PID segment.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public List<String> getPatientIdentifierCodes() throws Exception {	
+		return getPIDSegment().getPatientIdentifierCodes();
+	}
+	
+	
+	/**
+	 * Removes patient identifiers which do not match the identifier to keep.
+	 * 
+	 * @param identifierToKeep
+	 * @throws Exception
+	 */
+	public void removeOtherPatientIdentifierFields( String identifierToKeep) throws Exception  {	
+		getPIDSegment().removeOtherPatientIdentifierFields(identifierToKeep);
+	}
+	
+	
+	/**
+	 * Sets the segments which must not be removed from this message.
+	 * 
+	 * @param segmentsToKeep
+	 * @throws Exception
+	 */
+	public void setSegmentsToKeep(String ... segmentsToKeep) throws Exception {	
+	
+		List<String>segmentsToRemove = new ArrayList<>();
+		
+		for (Segment segment : getSegments()) {
+			if(!doesContainSegment(segment.getName(), segmentsToKeep)) {
+				segmentsToRemove.add(segment.getName());
+			}
+		}
+		
+		for (String segmentToRemove : segmentsToRemove) {
+			removeAllSegments(segmentToRemove);
+		}
+	}
+	
+	
+	/**
+	 * 
+	 * @param segmentName
+	 * @param requiredSegments
+	 * @return
+	 */
+	private boolean doesContainSegment(String segmentName, String[] requiredSegments) {
+		for (String requiredSegment : requiredSegments) {
+			if (segmentName.equals(requiredSegment)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	
+	/**
+	 * Removes all segments matching the segment name no matter where they appear in the message.
+	 * 
+	 * @param segmentName
+	 * @throws Exception
+	 */
+	public void removeAllSegments(String segmentName) throws Exception {	
+		for (Iterator<Segment> iter = getSegments().iterator(); iter.hasNext(); ) {
+			Segment segment = iter.next();
+			
+			if (segment.getName().equals(segmentName)) {
+				iter.remove();
+			}
+		}
+	}
+	
+	
+	/**
+	 * Returns the total number of segments in this message.
+	 * 
+	 * @return
+	 */
+	public int getTotalSegmentCount() {
+		return getSegments().size();
+	}
+	
+	
+	private Segment createSegment(String value) {
+		Segment segment = null;
+		
+		if (value.startsWith("MSH") ) {
+			segment = new MSHSegment(value, this);
+		} else if (value.startsWith("PID")) {
+			segment = new PIDSegment(value, this);
+		} else {
+			segment = new Segment(value, this);
+		}
+		
+		return segment;
+	}
+	
+	
+	/**
+	 * Returns an empty segment.  The segment is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Segment createEmptySegment(String segmentName) throws Exception {
+		return new Segment(segmentName, this);
+	}
+	
+	
+	/**
+	 * Returns an empty field repetition.  The field repetition is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition createEmptyFieldRepetition() throws Exception {
+		return new FieldRepetition();
+	}
+	
+	
+	/**
+	 * Returns an empty field.  The field is not added to the message.
+	 * 
+	 * @param segmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Field createEmptyField() throws Exception {
+		return new Field();
+	}	
 }

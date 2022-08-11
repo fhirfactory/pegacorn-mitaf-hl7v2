@@ -2,10 +2,11 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A single field within a segment.
@@ -13,12 +14,14 @@ import java.util.stream.Collectors;
  * @author Brendan Douglas
  *
  */
-public class Field implements Serializable {
+public class Field extends MessageComponent implements Serializable {
 	private static final long serialVersionUID = 3815655672813186758L;
 
 	private List<FieldRepetition> repetitions = new ArrayList<>();
 	
 	private Segment segment = null;
+	
+	protected Field() {}
 	
 	public Field(String field, boolean handleSeperators, Segment segment) {
 		this.segment = segment;
@@ -49,8 +52,27 @@ public class Field implements Serializable {
 	}
 	
 	
+	@Override
 	public String toString() {		
-		return repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
+		String originalValue = repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
+		
+		if (originalValue.isEmpty()) {
+			return originalValue;
+		}
+		
+		try {
+			String value = StringUtils.replace(originalValue, "^", "");
+			value = StringUtils.replace(value, "~", "");
+			value = StringUtils.replace(value, "&", "");
+			
+			if (value.isEmpty()) {
+				clear();
+			}
+		} catch(Exception e) {
+			return "";
+		}
+		
+		return originalValue;
 	}
 
 	
@@ -60,9 +82,9 @@ public class Field implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public FieldRepetition getRepetition(int repetition) {
-		if (repetition > repetitions.size()) {
-			return null;
+	public FieldRepetition getRepetition(int repetition) throws Exception {
+		if (repetition >= repetitions.size()) {
+			return addRepetition("");
 		}
 		
 		return repetitions.get(repetition);
@@ -75,7 +97,7 @@ public class Field implements Serializable {
 	 * @param repetition
 	 * @return
 	 */
-	public String getRepetitionValue(int repetition) {
+	public String getRepetitionValue(int repetition) throws Exception{
 		FieldRepetition fieldRepetition = getRepetition(repetition);
 		
 		if (fieldRepetition == null) {
@@ -97,8 +119,6 @@ public class Field implements Serializable {
 		}
 		
 		repetitions.remove(repetition);
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
 	
 	
@@ -109,10 +129,18 @@ public class Field implements Serializable {
 	 */
 	public void removeRepetition(FieldRepetition repetition) throws Exception {		
 		repetitions.remove(repetition);
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
-
+	
+	
+	/**
+	 * Removes a list of repetitions from the field.
+	 * 
+	 * @param repetition
+	 */
+	public void removeRepetitions(List<FieldRepetition> repetitionsToRemove) throws Exception {		
+		repetitions.removeAll(repetitionsToRemove);
+	}
+	
 	
 	/**
 	 * Adds a repetition to this field.
@@ -124,13 +152,13 @@ public class Field implements Serializable {
 		// if the 1st repetition is empty then replace, otherwise add a new repetition to the end.
 		if (!this.value().isEmpty() ) {
 			getRepetitions().add(fieldRepetition);
+		} else if (!repetitions.isEmpty()) {
+			getRepetitions().set(0, fieldRepetition);
 		} else {
-			getRepetitions().add(0, fieldRepetition);
+			getRepetitions().add(fieldRepetition);
 		}
-		
-		this.segment.getMessage().refreshSourceHL7Message();
 	}
-	
+
 	
 	/**
 	 * Adds a repetition to this field.
@@ -138,9 +166,23 @@ public class Field implements Serializable {
 	 * @param value
 	 * @throws Exception
 	 */
-	public void addRepetition(String value) throws Exception {
+	public FieldRepetition addRepetition(String value) throws Exception {
 		FieldRepetition fieldRepetition = new FieldRepetition(value, false, this);
 		this.addRepetition(fieldRepetition);
+		
+		return fieldRepetition;
+	}
+
+	
+	/**
+	 * Adds an empty repetition.
+	 * 
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition addEmptyRepetition() throws Exception {
+		return addRepetition("");
 	}
 
 	
@@ -151,6 +193,7 @@ public class Field implements Serializable {
 	 * @param clearExistingContent - if true the field value becomes the only value in this field.  All other repetitions are cleared.
 	 * @throws Exception
 	 */
+	@Override
 	public void setValue(String value) throws Exception {
 		repetitions.clear();
 
@@ -162,8 +205,6 @@ public class Field implements Serializable {
 			FieldRepetition repetition = new FieldRepetition(fieldValue, true, this);
 			repetitions.add(repetition);
 		}
-		
-		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 	
@@ -240,6 +281,7 @@ public class Field implements Serializable {
 	}
 	
 	
+	@Override
 	public String value() {
 		return toString();
 	}
@@ -248,12 +290,12 @@ public class Field implements Serializable {
 	/**
 	 * Clears the entire field, including all repetitions.
 	 */
+	@Override
 	public void clear() throws Exception {
-		for (FieldRepetition repetition : repetitions) {
-			repetition.clear();
-		}
+		setValue("");
 	}
-
+	
+	
 	/**
 	 * Clears a single repetition of the field
 	 * 
@@ -277,7 +319,7 @@ public class Field implements Serializable {
 	 * @param subFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldFromAllFieldRepetitions(int subFieldIndex) throws Exception {
+	public void clearSubField(int subFieldIndex) throws Exception {
 		for (FieldRepetition repetition : this.getRepetitions()) {
 			repetition.clearSubField(subFieldIndex);
 		}
@@ -312,18 +354,6 @@ public class Field implements Serializable {
 		}
 		
 		fieldRepetition.clearSubField(subFieldIndex);
-	}
-
-	
-	/**
-	 * Clears a subfield in the 1st field repetition.
-	 * 
-	 * @param subFieldIndex
-	 * @param repetition
-	 * @throws Exception
-	 */
-	public void clearSubField(int subFieldIndex) throws Exception {
-		clearSubField(subFieldIndex, 0);
 	}
 
 	
@@ -455,7 +485,7 @@ public class Field implements Serializable {
 	/**
 	 * Combine all subField values into a single field with the supplied separator between the subfields.
 	 */
-	public void combinedSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
+	public void combineSubFields(int fieldRepetition, String separator, boolean allowSequentialSeparators) throws Exception {
 		StringBuilder sb = new StringBuilder();
 		
 		for (Subfield subField : getSubFields(fieldRepetition)) {
@@ -480,8 +510,8 @@ public class Field implements Serializable {
 	/**
 	 * Combine all subField values into a single field with the supplied separator between the subfields.
 	 */
-	public void combinedSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
-		combinedSubFields(0, separator, allowSequentialSeparators);
+	public void combineSubFields(String separator, boolean allowSequentialSeparators) throws Exception {
+		combineSubFields(0, separator, allowSequentialSeparators);
 	}
 	
 	
@@ -520,19 +550,8 @@ public class Field implements Serializable {
 	 * @param startingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldsFrom(int fieldRepetition, int startingSubFieldIndex) throws Exception {
+	public void clearSubFieldsStartingFrom(int fieldRepetition, int startingSubFieldIndex) throws Exception {
 		clearSubFieldRange(fieldRepetition, startingSubFieldIndex, -1);
-	}
-	
-	
-	/**
-	 * Clears all subFields from the startingSubFieldIndex in the 1st field repetition.
-	 * 
-	 * @param startingSubFieldIndex
-	 * @throws Exception
-	 */
-	public void clearSubFieldsFrom(int startingSubFieldIndex) throws Exception {
-		clearSubFieldRange(0, startingSubFieldIndex, -1);
 	}
 
 	
@@ -542,7 +561,7 @@ public class Field implements Serializable {
 	 * @param startingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldsFromAllRepetitions(int startingSubFieldIndex) throws Exception {
+	public void clearSubFieldsStartingFrom(int startingSubFieldIndex) throws Exception {
 		for (FieldRepetition repetition : this.repetitions) {
 			repetition.clearSubFieldsFrom(startingSubFieldIndex);
 		}
@@ -568,25 +587,13 @@ public class Field implements Serializable {
 
 	
 	/**
-	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in the 1st field repetition.
-	 * 
-	 * @param startingSubFieldIndex
-	 * @param endingSubFieldIndex
-	 * @throws Exception
-	 */
-	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
-		clearSubFieldRange(0, startingSubFieldIndex, endingSubFieldIndex);
-	}
-
-	
-	/**
 	 * Clears all subFields from the supplied startingFieldIndex to the endingFieldIndex in all field repetitions.
 	 * 
 	 * @param startingSubFieldIndex
 	 * @param endingSubFieldIndex
 	 * @throws Exception
 	 */
-	public void clearSubFieldRangeAllRepetitions(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
+	public void clearSubFieldRange(int startingSubFieldIndex, int endingSubFieldIndex) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
 			fieldRepetition.clearSubFieldRange(startingSubFieldIndex, endingSubFieldIndex);
 		}
@@ -599,9 +606,20 @@ public class Field implements Serializable {
 	 * @param value
 	 * @return
 	 */
-	public boolean doesFieldContainValue(String value) {
+	public boolean hasFieldMatchingValue(String value) {
+		return hasFieldMatchingValue("equals", value);
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public boolean hasFieldMatchingValue(String matchType, String ... matchValues) {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.value().contains(value)) {
+			if (compare(matchType, fieldRepetition.value(), matchValues)) {
 				return true;
 			}
 		}
@@ -618,9 +636,9 @@ public class Field implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean doesSubFieldContainValue(int subFieldIndex, String value) throws Exception {
+	public boolean hasSubFieldMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
 		for (FieldRepetition fieldRepetition : this.repetitions) {
-			if (fieldRepetition.getSubField(subFieldIndex).value().contains(value)) {
+			if (compare(matchType, fieldRepetition.getSubField(subFieldIndex).value(), matchValues)) {
 				return true;
 			}
 		}
@@ -630,44 +648,194 @@ public class Field implements Serializable {
 	
 	
 	/**
-	 * Removes a field repetition where the matchValue matches the subField value.
+	 * 
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean hasSubFieldMatchingValue(int subFieldIndex, String value) throws Exception {
+		return hasSubFieldMatchingValue("equals", subFieldIndex, value);
+	}
+	
+	
+	/**
+	 * Removes field repetitions where the matchValue matches the subField value. 
 	 * 
 	 * @param subFieldIndex
 	 * @param matchValue
 	 */
-	public void removeMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
-		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
-		
-		while (repetitionIterator.hasNext()) {
-			FieldRepetition repetition = repetitionIterator.next();
+	public void removeMatchingFieldRepetitions(int subFieldIndex, String ... matchValues) throws Exception {
+		removeMatchingFieldRepetitions("equals", subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Removes field repetitions where the matchValue matches the subField value. 
+	 * 
+	 * @param subFieldIndex
+	 * @param matchValue
+	 */
+	public void removeMatchingFieldRepetitions(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
+		List<FieldRepetition> fieldRepetitions = this.getRepetitionsMatchingValue(matchType, subFieldIndex, matchValues);
+		this.repetitions.removeAll(fieldRepetitions);
+	}
+	
+	
+	/**
+	 * Sets a subField value in all repetitions.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 */
+	public void setSubField(int subFieldIndex, String value) throws Exception {
+
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
 			
-			if (repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
-				repetitionIterator.remove();
+			if (subField != null) {
+				subField.setValue(value);
 			}
 		}
-		
-		this.getSegment().getMessage().refreshSourceHL7Message();
 	}
 
 
 	/**
-	 * Removes a field repetition where the matchValue does not match the subField value.
+	 * Returns a repetition of this field Matching the supplied value at the supplied sub field index.  The first match is returned.
 	 * 
 	 * @param subFieldIndex
-	 * @param matchValue
+	 * @param value
+	 * @return
 	 * @throws Exception
 	 */
-	public void removeNotMatchingFieldRepetitions(int subFieldIndex, String matchValue) throws Exception {
-		Iterator<FieldRepetition>repetitionIterator = repetitions.iterator();
-		
-		while (repetitionIterator.hasNext()) {
-			FieldRepetition repetition = repetitionIterator.next();
+	public FieldRepetition getRepetitionMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
 			
-			if (!repetition.getSubField(subFieldIndex).value().equals(matchValue)) {
-				repetitionIterator.remove();
+			if (compare(matchType, subField.value(), matchValues)) {
+				return repetition;
 			}
 		}
 		
-		this.getSegment().getMessage().refreshSourceHL7Message();
+		return null;
+	}
+	
+	
+	/**
+	 * Returns a repetition of this field Matching the supplied value at the supplied sub field index.  The first match is returned.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public FieldRepetition getRepetitionMatchingValue(int subFieldIndex, String ...matchValues) throws Exception {
+		return getRepetitionMatchingValue("equals", subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Returns a list of repetitions of this field Matching the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsMatchingValue(String matchType, int subFieldIndex, String ... matchValues) throws Exception {
+		List<FieldRepetition>fieldRepetitions = new ArrayList<>();
+		
+		for (FieldRepetition repetition : getRepetitions()) {
+			Subfield subField = repetition.getSubField(subFieldIndex);
+			
+			if (compare(matchType, subField.value(), matchValues)) {
+				fieldRepetitions.add(repetition);
+			}
+		}
+		
+		return fieldRepetitions;
+	}
+	
+	
+	/**
+	 * Returns a list of repetitions of this field Matching the supplied value at the supplied sub field index.
+	 * 
+	 * @param subFieldIndex
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
+		return getRepetitionsMatchingValue("equals", subFieldIndex, matchValues);
+	}
+	
+	
+	/**
+	 * Does one of the supplied match values match the text using the supplied match type.
+	 * 
+	 * @param matchType
+	 * @param text
+	 * @param compareValue
+	 * @return
+	 */
+	private boolean compare(String matchType, String text, String ... matchValues) {
+		MatchTypeEnum type = MatchTypeEnum.get(matchType);
+		
+		boolean result = false;
+		if (matchType.toLowerCase().startsWith("not")) {
+			result = true;
+		}
+		
+		
+		for (String matchValue : matchValues) {
+				
+			switch (type) {
+				case EQUALS:
+					if  (text.equals(matchValue)) {
+						result = true;
+					}
+					break;
+				case CONTAINS:
+					if (text.contains(matchValue)) {
+						result = true;
+					}
+				case ENDS_WITH:
+					if (text.endsWith(matchValue)) {
+						result = true;
+					}
+					break;
+				case STARTS_WITH:
+					if (text.startsWith(matchValue)) {
+						result = true;
+					}
+					break;
+				case NOT_ENDS_WITH:
+					if (text.endsWith(matchValue)) {
+						result = false;
+					}
+					break;
+				case NOT_CONTAINS:
+					if (text.contains(matchValue)) {
+						result = false;
+					}
+				case NOT_STARTS_WITH:
+					if (text.startsWith(matchValue)) {
+						result = false;
+					}
+					break;
+				case NOT_EQUALS:
+					if  (text.equals(matchValue)) {
+						result = false;
+					}
+					break;
+				default:
+					if (text.equals(matchValue)) {
+						return true;
+					}
+			}
+		}
+		
+		return result;
 	}
 }

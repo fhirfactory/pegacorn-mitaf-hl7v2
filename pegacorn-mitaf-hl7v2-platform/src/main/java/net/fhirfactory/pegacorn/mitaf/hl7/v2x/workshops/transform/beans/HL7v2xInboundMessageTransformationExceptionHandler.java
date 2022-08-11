@@ -24,6 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
+import net.fhirfactory.pegacorn.core.model.component.SoftwareComponent;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
@@ -117,6 +118,10 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
         PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
 
         //
+        // Extract the WorkUnitProcessor detail
+        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+
+        //
         // Log Exception
         sendExceptionNotification(exceptionMessage, camelExchange);
 
@@ -145,7 +150,10 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
 
         if(isAllowingSoftFailures()){
             getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
-            UoWPayload continuationMessage = SerializationUtils.clone(uow.getIngresContent());
+            String participantName = fulfillerWorkUnitProcessor.getParticipantName();
+            String updatedPayload = addZDESegment(uow.getIngresContent().getPayload(), exceptionMessage, participantName);
+            UoWPayload continuationMessage =  SerializationUtils.clone(uow.getIngresContent());
+            continuationMessage.setPayload(updatedPayload);
             continuationMessage.getPayloadManifest().setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
             continuationMessage.getPayloadManifest().setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
             continuationMessage.getPayloadManifest().setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
@@ -159,6 +167,8 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
         return(uow);
 
     }
+
+
 
     //
     // Getters and Setters
@@ -180,4 +190,6 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
     protected ProcessingPlantInterface getProcessingPlant(){
         return(processingPlant);
     }
+
+
 }
