@@ -24,6 +24,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
+import ca.uhn.hl7v2.model.Structure;
 import ca.uhn.hl7v2.model.v24.segment.QRD;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
@@ -73,10 +74,24 @@ public class HL7v24TaskA19QueryClientHandler {
 			// Remove once Auditing is in place
 			//
             LOG.warn(".processA19Request(): IncomingMessage->{}", stringToPrint); // Log at WARN level so always seen in TEST
-            QRD query = (QRD) incomingRequest.get("QRD");
-            queryString = incomingRequest.encode();
-            urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
-            LOG.info(".processA19Request(): URN --> {}", urn);
+            Structure qrd = incomingRequest.get("QRD");
+            if (qrd != null) {
+                queryString = incomingRequest.encode();
+                if (QRD.class.isInstance(qrd)) {
+                    QRD query = (QRD) incomingRequest.get("QRD");
+                    urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
+                    LOG.info(".processA19Request(): URN --> {}", urn);
+                } else {
+                    LOG.warn(".processA19Request(): Unexpected QRD segment type {}, likely wrong message version", qrd.getClass().getCanonicalName());
+                    throw new IllegalArgumentException("Unexpected QRD segment type " + qrd.getClass().getCanonicalName() +
+                            ", likely wrong message version");
+                }
+            } else {
+                LOG.warn(".processA19Request(): No QRD segment in incoming request");
+                throw new IllegalArgumentException("No QRD segment in incoming request");
+            }
+        } catch (IllegalArgumentException iae) {
+            throw iae;
         } catch (Exception ex) {
             LOG.warn(".processA19Request(): Something went wrong --> {}", ex);
         }
@@ -117,6 +132,9 @@ public class HL7v24TaskA19QueryClientHandler {
         // Do Query
         //
         CapabilityUtilisationResponse a19QueryTaskOutcome = capabilityUtilisationBroker.executeTask(A19_CAPABILITY_PROVIDER, task);
+        if (a19QueryTaskOutcome == null) {
+            throw new IllegalStateException("Null result for A19 Query Task Outcome for task " + task);
+        }
         //
         // Extract the response
         //
