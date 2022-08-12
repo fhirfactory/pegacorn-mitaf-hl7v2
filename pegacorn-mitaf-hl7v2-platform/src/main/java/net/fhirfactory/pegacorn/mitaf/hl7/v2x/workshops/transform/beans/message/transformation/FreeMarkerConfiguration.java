@@ -23,6 +23,7 @@ import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
@@ -76,7 +77,11 @@ public class FreeMarkerConfiguration {
 	 */
 	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException, Exception {
 		PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
-		configure(fulfillmentTask.getTaskWorkItem(), message, exchange, null);
+		TaskWorkItemType uow = null;
+		if (fulfillmentTask != null) {
+		    uow = fulfillmentTask.getTaskWorkItem();
+		}
+		configure(uow, message, exchange, null);
 	}
 
 	
