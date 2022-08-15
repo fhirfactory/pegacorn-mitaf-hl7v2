@@ -51,7 +51,7 @@ public class HL7v24TaskA19QueryClientHandler {
     //
     // W A R N I N G: Tactical Solution for Short-Term Integration Support
     //
-    private static String A19_CAPABILITY_PROVIDER = "aether-mitaf-bridges";
+    private static String A19_CAPABILITY_PROVIDER = "MITaF.Bridges";
     //
     // ***********************************************************************************
 
@@ -139,6 +139,10 @@ public class HL7v24TaskA19QueryClientHandler {
         // Extract the response
         //
         String resultString = a19QueryTaskOutcome.getResponseStringContent();
+        if (resultString == null) {
+            throw new IllegalStateException("Null result string in response for A19Query Task Outcome: response->"
+                    + a19QueryTaskOutcome + ", task->" + task);
+        }
         return(resultString);
     }
 
