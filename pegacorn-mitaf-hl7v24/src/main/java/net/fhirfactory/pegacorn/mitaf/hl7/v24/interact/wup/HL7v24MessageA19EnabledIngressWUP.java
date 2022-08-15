@@ -23,6 +23,11 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
 import static org.apache.camel.component.hl7.HL7.ack;
 
+import java.io.File;
+
+import javax.inject.Inject;
+
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.hl7.HL7DataFormat;
 import org.apache.camel.spi.DataFormat;
 
@@ -30,6 +35,7 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEnd
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 
@@ -38,6 +44,9 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
 
+    @Inject
+    private FreeMarkerConfiguration freemarkerConfig;
+    
     @Override
     protected String specifyWUPInstanceName() {
         return (this.getClass().getSimpleName());
@@ -53,6 +62,14 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
         getLogger().info("{}:: ingresFeed() --> {}", getClass().getSimpleName(), ingresFeed());
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
+        // This will make sure the file exists during app startup
+        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-pre-a19-client-handler-config.ftl";
+        File file = new File(fileName);
+        
+        if (!file.exists()) {
+            throw new RuntimeException("Transformation file not found: " + fileName);
+        }
+        
         DataFormat hl7 = new HL7DataFormat();
 
         fromInteractIngresService(ingresFeed())
@@ -60,6 +77,9 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                 .unmarshal(hl7)
                 .choice()
                     .when(header("CamelHL7TriggerEvent").contains("A19"))
+                        .bean(freemarkerConfig,"configure(*, Exchange)")
+                        .to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+                        .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
                         .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
                     .otherwise()
                         .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
