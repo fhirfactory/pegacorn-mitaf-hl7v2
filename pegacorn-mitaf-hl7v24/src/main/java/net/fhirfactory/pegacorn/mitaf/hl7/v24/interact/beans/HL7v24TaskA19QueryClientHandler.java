@@ -126,6 +126,7 @@ public class HL7v24TaskA19QueryClientHandler {
         CapabilityUtilisationRequest task = new CapabilityUtilisationRequest();
         task.setRequestID(UUID.randomUUID().toString());
         task.setRequestContent(queryString);
+        task.setRequestContentType(String.class);
         task.setRequiredCapabilityName("A19QueryFulfillment");
         task.setRequestInstant(Instant.now());
         //
