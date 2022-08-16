@@ -46,6 +46,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 
 @ApplicationScoped
 public class MLLPAsynchronousMessageORRCollector {
+
     private static final Logger LOG = LoggerFactory.getLogger(MLLPAsynchronousMessageORRCollector.class);
 
     @Inject
@@ -53,67 +54,67 @@ public class MLLPAsynchronousMessageORRCollector {
 
     @Inject
     private HL7v2MessageAsTextToHL7V2xMessage hL7v2MessageAsTextToHL7V2xMessage;
-    
+
     @Inject
     private HL7v2xInformationExtractionInterface informationExtractionInterface;
 
     public UoW extractAndSaveACKMessage(UoW incomingUoW, Exchange camelExchange) throws HL7Exception {
         LOG.warn(".extractAndSaveACKMessage(): Entry, incomingUoW->{}", incomingUoW);
-        String messageAsString = incomingUoW.getIngresContent().getPayload();        
-        Message message = hL7v2MessageAsTextToHL7V2xMessage.convertToMessage(incomingUoW, camelExchange);        
-        ORR_O02 ackMessage = (ORR_O02) message;        
+        String messageAsString = incomingUoW.getIngresContent().getPayload();
+        Message message = hL7v2MessageAsTextToHL7V2xMessage.convertToMessage(incomingUoW, camelExchange);
+        ORR_O02 ackMessage = (ORR_O02) message;
         MSA msa = ackMessage.getMSA();
 
         String messageControlId = msa.getMessageControlID().getValueOrEmpty();
         asynchronousACKCacheDM.addAckMessage(messageControlId + "-ACK", messageAsString);
         LOG.warn("Add ACK message to asynchronous ACK cache: messageControlId->{}, ackMessage->{}", messageControlId, messageAsString);
-        
+
         return incomingUoW;
     }
-    
+
     public Message extractAndTransformMessage(UoW incomingUoW, Exchange camelExchange) throws HL7Exception, Exception {
-        Message message = hL7v2MessageAsTextToHL7V2xMessage.convertToMessage(incomingUoW, camelExchange);        
-        ORR_O02 ackMessage = (ORR_O02) message;        
+        Message message = hL7v2MessageAsTextToHL7V2xMessage.convertToMessage(incomingUoW, camelExchange);
+        ORR_O02 ackMessage = (ORR_O02) message;
         MSA msa = ackMessage.getMSA();
-        
+
         String messageControlId = msa.getMessageControlID().getValueOrEmpty();
         String outgoingMessage = asynchronousACKCacheDM.getAckMessage(messageControlId + "-MSG");
-        LOG.warn("Get outgoing message from asynchronous ACK cache: messageControlId->{}, Message->{}", messageControlId, outgoingMessage);        
+        LOG.warn("Get outgoing message from asynchronous ACK cache: messageControlId->{}, Message->{}", messageControlId, outgoingMessage);
 
-        
         HL7Message orrMessage = HL7MessageUtils.getHL7Message(message);
         HL7Message oruMessage = HL7MessageUtils.getHL7Message(informationExtractionInterface.convertToHL7v2Message(outgoingMessage));
-        
+
         MSHSegment orrMsh = orrMessage.getMSHSegment();
         orrMsh.getField(9).setValue("ORU^R01");
-        
+
         Segment MSA = orrMessage.getSegment("MSA");
         Field msa_3 = MSA.getField(3);
-        
+
         PIDSegment oruPid = oruMessage.getPIDSegment();
-        
+        Segment ORC = oruMessage.getSegment("ORC");
+        String orc_2_1 = ORC.getSubField(2, 1).toString();
+
         HL7Message transformedOruMessage = new HL7Message(orrMessage.getSourceMessage());
         transformedOruMessage.removeAllSegments("MSA");
         List segments = new ArrayList();
-        
-        // TODO - Need to confirm if below values should be hard coded or extracted from outgoing message or ack message. 
+
         // TODO - Attempt to extract transform method to freemarker to make dynamic.
-        String orcString = "ORC|RE|1148957^NATA2508^2508^AUSNATA||1";
+        String orcString = "ORC|RE|" + orc_2_1 + "^NATA2508^2508^AUSNATA||1";
         Segment orc = new Segment(orcString, transformedOruMessage);
-        
-        String obrString = "OBR|1|1148957^NATA2508^2508^AUSNATA||5491000179105^^SCT|||||||||" + msa_3;
+
+        String obrString = "OBR|1|" + orc_2_1 + "^NATA2508^2508^AUSNATA||5491000179105^^SCT|||||||||" + msa_3;
         Segment obr = new Segment(obrString, transformedOruMessage);
-        
+
         String obxString = "OBX|1|FT|PATHHIST^^NCSRLRR||" + msa_3;
         Segment obx = new Segment(obxString, transformedOruMessage);
-        
+
         segments.add(orrMsh);
         segments.add(oruPid);
         segments.add(orc);
         segments.add(obr);
         segments.add(obx);
         transformedOruMessage.setSegments(segments);
-        
+
         return transformedOruMessage.getSourceMessage();
     }
 }
