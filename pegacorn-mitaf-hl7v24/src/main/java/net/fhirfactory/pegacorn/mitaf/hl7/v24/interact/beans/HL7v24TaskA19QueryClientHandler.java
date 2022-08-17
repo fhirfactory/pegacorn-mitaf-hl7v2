@@ -82,12 +82,10 @@ public class HL7v24TaskA19QueryClientHandler {
                     urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
                     LOG.info(".processA19Request(): URN --> {}", urn);
                 } else {
-                    LOG.warn(".processA19Request(): Unexpected QRD segment type {}, likely wrong message version", qrd.getClass().getCanonicalName());
                     throw new IllegalArgumentException("Unexpected QRD segment type " + qrd.getClass().getCanonicalName() +
                             ", likely wrong message version");
                 }
             } else {
-                LOG.warn(".processA19Request(): No QRD segment in incoming request");
                 throw new IllegalArgumentException("No QRD segment in incoming request");
             }
         } catch (IllegalArgumentException iae) {
