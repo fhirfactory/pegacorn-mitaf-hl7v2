@@ -70,7 +70,8 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
             throw new RuntimeException("Transformation file not found: " + fileName);
         }
         
-        DataFormat hl7 = new HL7DataFormat();
+        HL7DataFormat hl7 = new HL7DataFormat();
+        hl7.setValidate(false);
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
