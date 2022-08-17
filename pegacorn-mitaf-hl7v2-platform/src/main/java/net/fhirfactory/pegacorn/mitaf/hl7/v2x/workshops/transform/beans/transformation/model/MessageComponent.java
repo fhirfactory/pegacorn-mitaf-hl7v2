@@ -56,6 +56,21 @@ public abstract class MessageComponent {
 	
 	
 	/**
+	 * Swaps the values of the 2 components.
+	 * 
+	 * @param sourceComponent
+	 * @throws Exception
+	 */
+	public void swap(MessageComponent sourceComponent) throws Exception {
+		String thisValue = this.value();
+		String sourceComponentValue = sourceComponent.value();
+		
+		this.setValue(sourceComponentValue);
+		sourceComponent.setValue(thisValue);
+	}
+	
+	
+	/**
 	 * Appends a value to the end of the components value.
 	 * 
 	 * @param valueToAppend
