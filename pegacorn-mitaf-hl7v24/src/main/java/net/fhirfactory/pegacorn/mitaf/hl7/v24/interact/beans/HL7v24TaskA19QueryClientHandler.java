@@ -51,7 +51,7 @@ public class HL7v24TaskA19QueryClientHandler {
     //
     // W A R N I N G: Tactical Solution for Short-Term Integration Support
     //
-    private static String A19_CAPABILITY_PROVIDER = "aether-mitaf-bridges";
+    private static String A19_CAPABILITY_PROVIDER = "MITaF.Bridges";
     //
     // ***********************************************************************************
 
@@ -82,12 +82,10 @@ public class HL7v24TaskA19QueryClientHandler {
                     urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
                     LOG.info(".processA19Request(): URN --> {}", urn);
                 } else {
-                    LOG.warn(".processA19Request(): Unexpected QRD segment type {}, likely wrong message version", qrd.getClass().getCanonicalName());
                     throw new IllegalArgumentException("Unexpected QRD segment type " + qrd.getClass().getCanonicalName() +
                             ", likely wrong message version");
                 }
             } else {
-                LOG.warn(".processA19Request(): No QRD segment in incoming request");
                 throw new IllegalArgumentException("No QRD segment in incoming request");
             }
         } catch (IllegalArgumentException iae) {
@@ -126,6 +124,7 @@ public class HL7v24TaskA19QueryClientHandler {
         CapabilityUtilisationRequest task = new CapabilityUtilisationRequest();
         task.setRequestID(UUID.randomUUID().toString());
         task.setRequestContent(queryString);
+        task.setRequestContentType(String.class);
         task.setRequiredCapabilityName("A19QueryFulfillment");
         task.setRequestInstant(Instant.now());
         //
@@ -139,6 +138,10 @@ public class HL7v24TaskA19QueryClientHandler {
         // Extract the response
         //
         String resultString = a19QueryTaskOutcome.getResponseStringContent();
+        if (resultString == null) {
+            throw new IllegalStateException("Null result string in response for A19Query Task Outcome: response->"
+                    + a19QueryTaskOutcome + ", task->" + task);
+        }
         return(resultString);
     }
 
