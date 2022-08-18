@@ -102,7 +102,7 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         outcome.setInstantCompleted(Instant.now());
         outcome.setSuccessful(true);
         outcome.setAssociatedRequestID(request.getRequestID());
-        outcome.setResponseContent(response);
+        outcome.setResponseStringContent(response);
         getLogger().info(".executeTask(): Exit, outcome->{}", outcome);
         return(outcome);
     }
