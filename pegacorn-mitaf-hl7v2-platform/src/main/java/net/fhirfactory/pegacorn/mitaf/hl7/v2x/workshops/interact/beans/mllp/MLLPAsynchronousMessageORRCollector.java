@@ -48,6 +48,8 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfor
 public class MLLPAsynchronousMessageORRCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(MLLPAsynchronousMessageORRCollector.class);
+    
+    private static String OPT_OUT = "Participant has opted out of the Cervical Program";
 
     @Inject
     private ProcessingPlantAsynchronousCacheDM asynchronousACKCacheDM;
@@ -114,6 +116,11 @@ public class MLLPAsynchronousMessageORRCollector {
         segments.add(obr);
         segments.add(obx);
         transformedOruMessage.setSegments(segments);
+        
+        // if the incoming ORR message is not OPT OUT, do not forward the message on, not required.
+        if (!msa_3.toString().toLowerCase().contains(OPT_OUT.toLowerCase())) {
+            camelExchange.setProperty("sendMessage", false);
+        }
 
         return transformedOruMessage.getSourceMessage();
     }
