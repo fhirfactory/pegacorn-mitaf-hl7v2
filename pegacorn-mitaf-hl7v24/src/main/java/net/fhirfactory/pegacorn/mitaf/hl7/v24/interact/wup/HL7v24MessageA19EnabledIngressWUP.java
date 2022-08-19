@@ -24,20 +24,22 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 import static org.apache.camel.component.hl7.HL7.ack;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.hl7.HL7DataFormat;
-import org.apache.camel.spi.DataFormat;
 
+import ca.uhn.hl7v2.AcknowledgmentCode;
+import ca.uhn.hl7v2.ErrorCode;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 
 public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
 
@@ -63,11 +65,15 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
         getLogger().info("{}:: egressFeed() --> {}", getClass().getSimpleName(), egressFeed());
 
         // This will make sure the file exists during app startup
-        String fileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-pre-a19-client-handler-config.ftl";
-        File file = new File(fileName);
-        
-        if (!file.exists()) {
-            throw new RuntimeException("Transformation file not found: " + fileName);
+        String ingresTransformFileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-ingres-transformation-config.ftl";
+        Path ingresTransformationFile = Paths.get(ingresTransformFileName);
+        if (!Files.exists(ingresTransformationFile)) {
+            throw new RuntimeException("Transformation file not found: " + ingresTransformFileName);
+        }
+        String egressTransformFileName = System.getenv("TRANSFORMATION_CONFIG_FILE_LOCATION") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "/" + System.getenv("KUBERNETES_SERVICE_NAME") + "-egress-transformation-config.ftl";
+        Path egressTransformFile = Paths.get(egressTransformFileName);
+        if (!Files.exists(egressTransformFile)) {
+            throw new RuntimeException("Transformation file not found: " + ingresTransformFileName);
         }
         
         HL7DataFormat hl7 = new HL7DataFormat();
@@ -79,16 +85,19 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                 .choice()
                     .when(header("CamelHL7TriggerEvent").contains("A19"))
                         .bean(freemarkerConfig,"configure(*, Exchange)")
-                        .to("freemarker:file:" + fileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+                        .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
                         .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
+                        .bean(freemarkerConfig,"configure(*, Exchange)")
+                        .to("freemarker:file:" + egressTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+                        .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
+                        .marshal(hl7)
+                        .transform(ack())
                     .otherwise()
-                        .bean(HL7v2xMessageEncapsulator.class, "encapsulateMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
-                        .bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
-                        .to(egressFeed())
-                .end()
-                .marshal(hl7)
-               .transform(ack());
+                        .marshal(hl7)
+                        .transform(ack(AcknowledgmentCode.AE, "Supports only A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
+                .end();
+                
     }
 
     @Override
