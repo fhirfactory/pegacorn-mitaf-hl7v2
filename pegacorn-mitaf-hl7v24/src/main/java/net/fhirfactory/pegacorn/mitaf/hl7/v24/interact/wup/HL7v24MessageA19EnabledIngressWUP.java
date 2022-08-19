@@ -22,8 +22,8 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
 import static org.apache.camel.component.hl7.HL7.ack;
+import static org.apache.camel.support.builder.PredicateBuilder.and;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,7 +83,8 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                 .routeId(getNameSet().getRouteCoreWUP())
                 .unmarshal(hl7)
                 .choice()
-                    .when(header("CamelHL7TriggerEvent").contains("A19"))
+                    .when(and(header("CamelHL7MessageType").contains("QRY"),
+                              header("CamelHL7TriggerEvent").contains("A19")))
                         .bean(freemarkerConfig,"configure(*, Exchange)")
                         .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
@@ -95,7 +96,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                         .transform(ack())
                     .otherwise()
                         .marshal(hl7)
-                        .transform(ack(AcknowledgmentCode.AE, "Supports only A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
+                        .transform(ack(AcknowledgmentCode.AE, "Supports only QRY A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
                 .end();
                 
     }
