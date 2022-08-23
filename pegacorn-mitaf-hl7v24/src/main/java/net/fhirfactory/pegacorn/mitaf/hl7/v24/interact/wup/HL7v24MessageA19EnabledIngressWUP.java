@@ -85,6 +85,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                 .choice()
                     .when(and(header("CamelHL7MessageType").contains("QRY"),
                               header("CamelHL7TriggerEvent").contains("A19")))
+                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Received QRY A19 -> ${body}")  // temporary logging at WARN level prior to further alteration of this A19 Query
                         .bean(freemarkerConfig,"configure(*, Exchange)")
                         .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
@@ -94,9 +95,12 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
                         .marshal(hl7)
                         .transform(ack())
+                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Returning ACK -> ${body}")  // temporary logging at WARN level prior to further alteration of this A19 Query
                     .otherwise()
+                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Not an QRY A19 -> ${body}")
                         .marshal(hl7)
                         .transform(ack(AcknowledgmentCode.AE, "Supports only QRY A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
+                        .log(LoggingLevel.DEBUG, "HL7v24MessageA19EnabledIngressWUP: Returning NACK -> ${body}")
                 .end();
                 
     }
