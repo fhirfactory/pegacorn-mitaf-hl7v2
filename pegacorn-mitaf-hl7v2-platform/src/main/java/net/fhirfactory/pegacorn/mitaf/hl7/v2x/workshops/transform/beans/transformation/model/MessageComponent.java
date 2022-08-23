@@ -1,5 +1,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * A message component.
  * 
@@ -42,7 +44,20 @@ public abstract class MessageComponent {
 	public void copy(MessageComponent sourceComponent) throws Exception {
 		this.setValue(sourceComponent.value());
 	}
-
+	
+	
+	/**
+	 * Copies the source component value to this component if this component is empty.
+	 * 
+	 * @param sourceComponent
+	 * @throws Exception
+	 */
+	public void copyIfEmpty(MessageComponent sourceComponent) throws Exception {
+		if (StringUtils.isBlank(this.value())) {
+			copy(sourceComponent);
+		}
+	}
+	
 	
 	/**
 	 * Moves the value from the sourceComponent to this component.  This is a copy followed by a clear.
