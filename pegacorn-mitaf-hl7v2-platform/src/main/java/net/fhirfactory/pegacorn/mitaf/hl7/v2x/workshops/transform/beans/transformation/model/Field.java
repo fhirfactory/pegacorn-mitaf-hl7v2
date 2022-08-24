@@ -841,9 +841,18 @@ public class Field extends MessageComponent implements Serializable {
 			result = true;
 		}
 		
+
+		if (matchValues == null) {
+			return false;
+		}
+		
 		
 		for (String matchValue : matchValues) {
-				
+			if (matchValue == null) {
+				return false;
+			}
+			
+			
 			switch (type) {
 				case EQUALS:
 					if  (text.equals(matchValue)) {
