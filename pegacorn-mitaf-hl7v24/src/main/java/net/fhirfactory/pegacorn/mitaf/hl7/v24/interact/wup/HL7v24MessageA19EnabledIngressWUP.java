@@ -22,7 +22,6 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
 import static org.apache.camel.component.hl7.HL7.ack;
-import static org.apache.camel.support.builder.PredicateBuilder.and;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,10 +32,9 @@ import javax.inject.Inject;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.hl7.HL7DataFormat;
 
-import ca.uhn.hl7v2.AcknowledgmentCode;
-import ca.uhn.hl7v2.ErrorCode;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
+import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24UnsupportedInput;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
@@ -82,27 +80,27 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
                 .unmarshal(hl7)
+                .log(LoggingLevel.INFO, "HL7v24MessageA19EnabledIngressWUP: Received -> ${body}")
+                .bean(freemarkerConfig,"configure(*, Exchange)")
+                .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
+                .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
                 .choice()
-                    .when(and(header("CamelHL7MessageType").contains("QRY"),
-                              header("CamelHL7TriggerEvent").contains("A19")))
-                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Received QRY A19 -> ${body}")  // temporary logging at WARN level prior to further alteration of this A19 Query
-                        .bean(freemarkerConfig,"configure(*, Exchange)")
-                        .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
-                        .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
+                    .when(exchangeProperty(HL7v24UnsupportedInput.EXCHANGE_PROP_UNSUPPORTED_ERROR).isNull())
+                        .log(LoggingLevel.DEBUG, "HL7v24MessageA19EnabledIngressWUP: Received Supported Query -> ${body}")
                         .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
+                        .log(LoggingLevel.DEBUG, "HL7v24MessageA19EnabledIngressWUP: Post A19 Query Client Handler -> ${body}")
                         .bean(freemarkerConfig,"configure(*, Exchange)")
                         .to("freemarker:file:" + egressTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
                         .marshal(hl7)
-                        .transform(ack())
-                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Returning ACK -> ${body}")  // temporary logging at WARN level prior to further alteration of this A19 Query
+                        .log(LoggingLevel.INFO, "HL7v24MessageA19EnabledIngressWUP: Returning ACK -> ${body}")
                     .otherwise()
-                        .log(LoggingLevel.WARN, "HL7v24MessageA19EnabledIngressWUP: Not an QRY A19 -> ${body}")
+                        .log(LoggingLevel.DEBUG, "HL7v24MessageA19EnabledIngressWUP: Not a supported query after ingres transformation -> ${body}")
+                        .bean(HL7v24UnsupportedInput.class, "buildUnsupportedNACK(*, Exchange)")
                         .marshal(hl7)
-                        .transform(ack(AcknowledgmentCode.AE, "Supports only QRY A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
-                        .log(LoggingLevel.DEBUG, "HL7v24MessageA19EnabledIngressWUP: Returning NACK -> ${body}")
-                .end();
-                
+                        .log(LoggingLevel.INFO, "HL7v24MessageA19EnabledIngressWUP: Returning NACK -> ${body}")
+                .end()
+                .setProperty("CamelMllpAcknowledgementString", body());  // this property is used for what is sent back to the client, not the body
     }
 
     @Override
