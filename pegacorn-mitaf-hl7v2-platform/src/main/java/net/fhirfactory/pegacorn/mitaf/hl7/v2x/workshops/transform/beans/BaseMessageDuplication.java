@@ -3,8 +3,10 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
@@ -12,6 +14,7 @@ import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
@@ -21,6 +24,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.HL7MessageWithAttributes;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 
 /**
  * Base class for all classes which need to duplicate a message.  The duplication rules are provided by the sub classes.
@@ -30,7 +34,10 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.
  */
 public abstract class BaseMessageDuplication {
 
-	public UoW duplicateMessage(UoW uow) throws Exception {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseMessageDuplication.class);
+	
+	public UoW duplicateMessage(UoW uow, Exchange exchange) throws Exception {
+			    
 		List<DataParcelManifest> subscribedTopics = new ArrayList<>();
 
 		DataParcelManifest manifest = SerializationUtils.clone(uow.getIngresContent().getPayloadManifest());
@@ -75,6 +82,17 @@ public abstract class BaseMessageDuplication {
 		}
 
 		uow.getEgressContent().getPayloadElements().clear();
+		
+		
+		// If there are no messages to be sent then discard the fulfilment task.
+        if (messages.size() == 0) {
+        	PetasosFulfillmentTaskSharedInstance fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+            LOG.warn("postTransformProcessing() -> No messages to be sent, discard fullfilment task.");
+            fulfillmentTask.getTaskFulfillment().setToBeDiscarded(true);
+            uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FILTERED);
+            
+            return uow;
+        }
 
 		// Add a entry as a unit of work payload.
 		for (HL7MessageWithAttributes message : messages) {
@@ -85,6 +103,7 @@ public abstract class BaseMessageDuplication {
 
 			newUoW.getEgressContent().getPayloadElements().add(contentPayload);
 		}
+		
 
 		newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS);
 
