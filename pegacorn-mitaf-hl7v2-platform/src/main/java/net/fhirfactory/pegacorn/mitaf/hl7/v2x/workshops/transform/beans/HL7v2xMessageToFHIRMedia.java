@@ -34,9 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.v24.message.ORU_R01;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.media.factories.MediaFactory;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.MediaPipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
@@ -60,12 +57,6 @@ public class HL7v2xMessageToFHIRMedia {
     
     public Media extractNextMediaResource(String message){
         LOG.debug(".extractMediaResource(): Entry, message->{}", message);
-        Message encapsulatedMessage = new ORU_R01();
-        try {
-			encapsulatedMessage.parse(message);
-		} catch (HL7Exception e) {
-			LOG.warn(".extractMediaResource(): Message unable to be converted to ORU message->{}, exception->{}", message);
-		}
         Media media = parseMessage(message);
         LOG.debug(".extractMediaResource(): Exit, media->{}", media);
         return(media);
@@ -79,6 +70,7 @@ public class HL7v2xMessageToFHIRMedia {
 		Media media = mediaFactory.newMediaResource(messageID, messageDate);
 		byte[] data = extractMediaFromORU(message);
 		if(data == null || data.length == 0) {
+			LOG.warn("parseMessage(): no data able to be extracted. Message: ->{}", message);
 			return null;
 		}
 		media.getContent().setData(data);

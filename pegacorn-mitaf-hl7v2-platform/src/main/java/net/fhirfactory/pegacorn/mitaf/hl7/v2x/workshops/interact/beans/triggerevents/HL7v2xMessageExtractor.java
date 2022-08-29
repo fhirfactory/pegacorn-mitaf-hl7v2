@@ -133,7 +133,11 @@ public class HL7v2xMessageExtractor {
 			String segment = mediaParser.extractNextAlteredSegment(messageAsString);
 			String mediaId = mediaParser.extractIdFromAlteredSegment(segment);
 			Media media = mediaAgent.loadMedia(mediaId);
-//			mediaParser.media.getContent()
+			if(media != null) {
+				messageAsString = mediaParser.replaceAlteredSegment(messageAsString, media);
+			} else {
+				getLogger().error("Media should have returned!");
+			}
 		}
 		return (messageAsString);
 	}

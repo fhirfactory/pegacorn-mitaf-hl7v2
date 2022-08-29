@@ -268,9 +268,13 @@ public class HL7v2xTriggerEventIngresProcessor {
                 			//2. Save the media to the IM
                 			if(mediaAgent.captureMedia(media)) {
                 				//3. remove the byte[] from the UoW payload
+                				LOG.debug("Media ID: " + media.getId());
                 				mediaParser.replaceAttachmentSegment(message, media.getId());
                 			} else {
                 				LOG.warn("failed to save Media object. media->{}", media);
+                				newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
+                				newUoW.setFailureDescription("Media Storage is down. Unable to process attachment.");
+                				break;
                 			}
                 		}
                 		//Update the payload to not have the attachments
