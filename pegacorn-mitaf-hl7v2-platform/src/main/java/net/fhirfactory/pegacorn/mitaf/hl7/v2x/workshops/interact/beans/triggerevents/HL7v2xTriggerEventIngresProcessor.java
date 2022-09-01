@@ -265,16 +265,16 @@ public class HL7v2xTriggerEventIngresProcessor {
                 		Media media;
 						//1. keep searching for media objects
                 		while((media = mediaConverter.extractNextMediaResource(message)) !=null) {
+                			LOG.debug("Attempting extract of media from message -> {}", message);
                 			//2. Save the media to the IM
                 			if(mediaAgent.captureMedia(media)) {
                 				//3. remove the byte[] from the UoW payload
-                				LOG.debug("Media ID: " + media.getId());
-                				mediaParser.replaceAttachmentSegment(message, media.getId());
+                				LOG.trace("Media ID: " + media.getId());
+                				message = mediaParser.replaceAttachmentSegment(message, media.getId());
+                				LOG.trace("message after replacement -> {}", message);
                 			} else {
                 				LOG.warn("failed to save Media object. media->{}", media);
-                				newUoW.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FAILED);
-                				newUoW.setFailureDescription("Media Storage is down. Unable to process attachment.");
-                				break;
+                				throw new Exception("Media storage service is down");
                 			}
                 		}
                 		//Update the payload to not have the attachments
