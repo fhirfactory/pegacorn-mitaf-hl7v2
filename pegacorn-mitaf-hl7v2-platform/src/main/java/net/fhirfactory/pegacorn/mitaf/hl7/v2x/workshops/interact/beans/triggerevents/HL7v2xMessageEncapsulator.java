@@ -21,161 +21,54 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
-import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
-import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ca.uhn.hl7v2.DefaultHapiContext;
-import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.HL7v2xMessageInformationExtractor;
+import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.common.HL7v2xMessageEncapsulatorBase;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
+import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class HL7v2xMessageEncapsulator  {
+public class HL7v2xMessageEncapsulator extends HL7v2xMessageEncapsulatorBase {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageEncapsulator.class);
-
-    private static final Integer SYNAPSE_PAYLOAD_SIZE = 32000;
-
-    private HapiContext context;
-    private DateTimeFormatter timeFormatter;
-    private boolean initialised;
-    private boolean includeFullHL7MessageInLog;
-    private Integer maxHL7MessageSize;
-
-    @Inject
-    private HL7V2XTopicFactory topicFactory;
-
-    @Inject
-    private ProcessingPlantInterface processingPlant;
-
-    @Inject
-    private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
-
-    @Inject
-    private ProcessingPlantMetricsAgentAccessor processingPlantMetricsAgentAccessor;
-
-    @Inject
-    private UltraDefensivePipeParser defensivePipeParser;
 
     //
     // Constructor(s)
     //
 
-    public HL7v2xMessageEncapsulator() {
-        context = new DefaultHapiContext();
-        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
-        maxHL7MessageSize = SYNAPSE_PAYLOAD_SIZE;
-        includeFullHL7MessageInLog = false;
-        initialised = false;
-    }
-
     //
     // Post Construct
     //
-
-    @PostConstruct
-    public void initialise(){
-        getLogger().debug(".initialise(): Entry");
-        if(initialised){
-            getLogger().debug(".initialise(): Nothing to do, already initialised!");
-        } else {
-            getLogger().info(".initialise(): Start");
-            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
-            if(StringUtils.isNotEmpty(includeMessageString)){
-                if(includeMessageString.equalsIgnoreCase("true")){
-                    setIncludeFullHL7MessageInLog(true);
-                }
-            }
-            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
-            getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
-            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
-            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
-            if(StringUtils.isNotEmpty(messageMaximumSize)){
-                Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
-                if(messageMaxSize != null){
-                    setMaxHL7MessageSize(messageMaxSize);
-                }
-            }
-            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] MaximumSize->{}", getMaxHL7MessageSize());
-            getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Finish");
-            getLogger().info(".initialise(): Finish");
-            this.initialised = true;
-        }
-        getLogger().debug(".initialise(): Exit");
-    }
-
 
     //
     // Getters (and Setters)
     //
 
-    protected HL7V2XTopicFactory getTopicFactory(){
-        return(topicFactory);
-    }
-
-    protected DateTimeFormatter getTimeFormatter(){
-        return(timeFormatter);
-    }
-
+    @Override
     protected Logger getLogger(){
         return(LOG);
-    }
-
-    protected ProcessingPlantInterface getProcessingPlant(){
-        return(processingPlant);
-    }
-
-    protected boolean isIncludeFullHL7MessageInLog() {
-        return includeFullHL7MessageInLog;
-    }
-
-    protected void setIncludeFullHL7MessageInLog(boolean includeFullHL7MessageInLog) {
-        this.includeFullHL7MessageInLog = includeFullHL7MessageInLog;
-    }
-
-    protected Integer getMaxHL7MessageSize() {
-        return maxHL7MessageSize;
-    }
-
-    protected void setMaxHL7MessageSize(Integer maxHL7MessageSize) {
-        this.maxHL7MessageSize = maxHL7MessageSize;
     }
 
     //
     // Business Functions
     //
-
 
     public UoW encapsulateMessage(String hl7MessageString,
                                   Exchange exchange,
@@ -260,8 +153,8 @@ public class HL7v2xMessageEncapsulator  {
             String mshSegment = null;
             String pidSegment = null;
             try{
-                mshSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.MSH);
-                pidSegment = defensivePipeParser.extractSegment(message.encode(), HL7v2SegmentTypeEnum.PID);
+                mshSegment = getDefensivePipeParser().extractSegment(message.encode(), HL7v2SegmentTypeEnum.MSH);
+                pidSegment = getDefensivePipeParser().extractSegment(message.encode(), HL7v2SegmentTypeEnum.PID);
                 if(StringUtils.isEmpty(pidSegment)) {
                     pidSegment = "PID: Unknown";
                 }
@@ -342,7 +235,7 @@ public class HL7v2xMessageEncapsulator  {
             messageManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
             messageManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
             messageManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-            messageManifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
+            messageManifest.setSourceProcessingPlantParticipantName(getParticipantNameHolder().getSubsystemParticipantName());
             LOG.trace(".encapsulateMessage(): messageManifest created->{}", messageManifest);
 
             //
@@ -372,10 +265,10 @@ public class HL7v2xMessageEncapsulator  {
             UoWPayload newPayload = new UoWPayload();
             if(message != null){
                 newPayload.setPayload(message.toString());
-                newPayload.setPayloadManifest(topicFactory.newBadDataParcelManifest());
+                newPayload.setPayloadManifest(getTopicFactory().newBadDataParcelManifest());
             } else {
                 newPayload.setPayload("Unable to decipher input message");
-                newPayload.setPayloadManifest(topicFactory.newBadDataParcelManifest());
+                newPayload.setPayloadManifest(getTopicFactory().newBadDataParcelManifest());
             }
             UoW newUoW = new UoW();
             newUoW.setIngresContent(newPayload);
@@ -384,65 +277,5 @@ public class HL7v2xMessageEncapsulator  {
             LOG.debug(".encapsulateMessage(): Exit, newUoW created ->{}", newUoW);
             return(newUoW);
         }
-    }
-
-    protected void sendMessageReceivedConsoleNotification(String portDescription, Message message, String mshSegment, String pidSegment, EndpointMetricsAgent endpointMetricsAgent){
-        getLogger().debug(".sendMessageReceivedConsoleNotification(): Entry, portDescription->{}, message->{}", portDescription, message);
-        StringBuilder notificationContentBuilder = new StringBuilder();
-        notificationContentBuilder.append("Ingres-Message((" + portDescription +")(" + getTimeFormatter().format(Instant.now()) + ")){");
-        if(includeFullHL7MessageInLog){
-            String displayedMessage = null;
-            try {
-                String actualMessage = message.encode();
-
-                if (actualMessage.length() > getMaxHL7MessageSize()) {
-                    displayedMessage = actualMessage.substring(0, getMaxHL7MessageSize());
-                } else {
-                    displayedMessage = actualMessage;
-                }
-            } catch (Exception ex){
-                displayedMessage = "Cannot Parse Message Content";
-                getLogger().warn(".sendMessageReceivedConsoleNotification(): Cannot parse message, error->{}, stackTrace->{}", ExceptionUtils.getMessage(ex), ExceptionUtils.getStackTrace(ex));
-            }
-            notificationContentBuilder.append(displayedMessage);
-        } else {
-            notificationContentBuilder.append(mshSegment);
-            notificationContentBuilder.append(" ::: ");
-            notificationContentBuilder.append(pidSegment);
-        }
-        notificationContentBuilder.append("}");
-
-        StringBuilder formattedNotificationContent = new StringBuilder();
-        formattedNotificationContent.append("<table>");
-        formattedNotificationContent.append("<tr>");
-        formattedNotificationContent.append("<th> From </th><th>" + portDescription + " ("+ getTimeFormatter().format(Instant.now()) + ") </th");
-        formattedNotificationContent.append("</tr>");
-        formattedNotificationContent.append("<tr>");
-        formattedNotificationContent.append("<td> Metadata </td><td>" + mshSegment + "\n" + pidSegment + "</td>");
-        formattedNotificationContent.append("</tr>");
-        formattedNotificationContent.append("</table>");
-
-        endpointMetricsAgent.sendITOpsNotification(notificationContentBuilder.toString(),formattedNotificationContent.toString());
-
-        getLogger().debug(".sendMessageReceivedConsoleNotification(): Exit");
-    }
-
-    //
-    // Getters (and Setters)
-    //
-
-    protected ProcessingPlantMetricsAgent getProcessingPlantMetricsAgent(){
-        return(processingPlantMetricsAgentAccessor.getMetricsAgent());
-    }
-
-
-    public boolean triggerIsSupported(String trigger) {
-        return true;
-    }
-
-
-    public DataParcelTypeDescriptor createDataParcelTypeDescriptor(String messageEventType, String messageTriggerEvent, String version) {
-        DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(messageEventType, messageTriggerEvent, version);
-        return (descriptor);
     }
 }

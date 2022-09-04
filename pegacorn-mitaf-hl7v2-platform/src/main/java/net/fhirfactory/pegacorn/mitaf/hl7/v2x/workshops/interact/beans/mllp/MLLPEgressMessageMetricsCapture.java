@@ -355,7 +355,8 @@ public class MLLPEgressMessageMetricsCapture {
         endpointMetricsAgent.sendITOpsNotification(unformattedMessage, formattedMessage);
 
         if(!success){
-            getProcessingPlantMetricsAgent().sendITOpsNotification(unformattedMessage, formattedMessage);
+            String errorMessage = "failure";
+            getProcessingPlantMetricsAgent().sendITOpsNotification(unformattedMessage, formattedMessage, PetasosComponentITOpsNotificationTypeEnum.FAILURE_NOTIFICATION_TYPE, errorMessage);
         }
         getLogger().debug(".sendACKNotification(): Exit ...");
     }

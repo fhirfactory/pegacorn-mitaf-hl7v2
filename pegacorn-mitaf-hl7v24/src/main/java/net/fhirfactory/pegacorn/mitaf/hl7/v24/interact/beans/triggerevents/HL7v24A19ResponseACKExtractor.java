@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.triggerevents;
 
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;

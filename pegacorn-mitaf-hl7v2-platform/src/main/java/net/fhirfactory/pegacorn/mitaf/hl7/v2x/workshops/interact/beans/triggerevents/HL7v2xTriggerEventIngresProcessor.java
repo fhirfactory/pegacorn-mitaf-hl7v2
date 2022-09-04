@@ -52,6 +52,7 @@ import java.time.format.DateTimeFormatter;
 
 @ApplicationScoped
 public class HL7v2xTriggerEventIngresProcessor {
+
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xTriggerEventIngresProcessor.class);
 
     private HapiContext context;
@@ -78,7 +79,6 @@ public class HL7v2xTriggerEventIngresProcessor {
     //
     // Constructor(s)
     //
-
     public HL7v2xTriggerEventIngresProcessor() {
         context = new DefaultHapiContext();
         timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
@@ -90,28 +90,27 @@ public class HL7v2xTriggerEventIngresProcessor {
     //
     // Post Construct
     //
-
     @PostConstruct
-    public void initialise(){
+    public void initialise() {
         getLogger().debug(".initialise(): Entry");
-        if(initialised){
+        if (initialised) {
             getLogger().debug(".initialise(): Nothing to do, already initialised!");
         } else {
             getLogger().info(".initialise(): Start");
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
-            if(StringUtils.isNotEmpty(includeMessageString)){
-                if(includeMessageString.equalsIgnoreCase("true")){
+            String includeMessageString = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
+            if (StringUtils.isNotEmpty(includeMessageString)) {
+                if (includeMessageString.equalsIgnoreCase("true")) {
                     setIncludeFullHL7MessageInLog(true);
                 }
             }
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
             getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
-            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
-            if(StringUtils.isNotEmpty(messageMaximumSize)){
+            String messageMaximumSize = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
+            if (StringUtils.isNotEmpty(messageMaximumSize)) {
                 Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
-                if(messageMaxSize != null){
+                if (messageMaxSize != null) {
                     setMaxHL7MessageSize(messageMaxSize);
                 }
             }
@@ -123,25 +122,23 @@ public class HL7v2xTriggerEventIngresProcessor {
         getLogger().debug(".initialise(): Exit");
     }
 
-
     //
     // Getters (and Setters)
     //
-
-    protected HL7V2XTopicFactory getTopicFactory(){
-        return(topicFactory);
+    protected HL7V2XTopicFactory getTopicFactory() {
+        return (topicFactory);
     }
 
-    protected DateTimeFormatter getTimeFormatter(){
-        return(timeFormatter);
+    protected DateTimeFormatter getTimeFormatter() {
+        return (timeFormatter);
     }
 
-    protected Logger getLogger(){
-        return(LOG);
+    protected Logger getLogger() {
+        return (LOG);
     }
 
-    protected ProcessingPlantInterface getProcessingPlant(){
-        return(processingPlant);
+    protected ProcessingPlantInterface getProcessingPlant() {
+        return (processingPlant);
     }
 
     protected boolean isIncludeFullHL7MessageInLog() {
@@ -163,13 +160,11 @@ public class HL7v2xTriggerEventIngresProcessor {
     //
     // Business Functions
     //
-
-
     public UoW encapsulateTriggerEvent(MLLPMessageActivityParcel incomingMessageActivity, Exchange exchange) {
 
         LOG.debug(".encapsulateTriggerEvent(): Entry, incomingMessageActivity->{}", incomingMessageActivity);
 
-        if(incomingMessageActivity.getUow().getProcessingOutcome().equals(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS)) {
+        if (incomingMessageActivity.getUow().getProcessingOutcome().equals(UoWProcessingOutcomeEnum.UOW_OUTCOME_SUCCESS)) {
 
             try {
 
@@ -256,25 +251,20 @@ public class HL7v2xTriggerEventIngresProcessor {
             }
         } else {
             LOG.debug(".encapsulateTriggerEvent(): Exit, UoW is a Failure ->{}", incomingMessageActivity.getUow());
-            return(incomingMessageActivity.getUow());
+            return (incomingMessageActivity.getUow());
         }
     }
-
-
 
     //
     // Getters (and Setters)
     //
-
-    protected ProcessingPlantMetricsAgent getProcessingPlantMetricsAgent(){
-        return(processingPlantMetricsAgentAccessor.getMetricsAgent());
+    protected ProcessingPlantMetricsAgent getProcessingPlantMetricsAgent() {
+        return (processingPlantMetricsAgentAccessor.getMetricsAgent());
     }
-
 
     public boolean triggerIsSupported(String trigger) {
         return true;
     }
-
 
     public DataParcelTypeDescriptor createDataParcelTypeDescriptor(String messageEventType, String messageTriggerEvent, String version) {
         DataParcelTypeDescriptor descriptor = getTopicFactory().newDataParcelDescriptor(messageEventType, messageTriggerEvent, version);

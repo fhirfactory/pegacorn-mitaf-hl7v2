@@ -35,7 +35,7 @@ import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLP
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventIngresProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventValidationProcessor;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
-import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
+import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityRegistrationServices;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
 import org.apache.camel.ExchangePattern;
@@ -204,7 +204,7 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
                 .bean(MLLPMessageIngresProcessor.class, "captureMLLPMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
 				.bean(HL7v2xTriggerEventValidationProcessor.class, "ensureMinimalCompliance(*, Exchange)")
 				.bean(HL7v2xTriggerEventIngresProcessor.class, "encapsulateTriggerEvent(*, Exchange)")
-				.bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+				.bean(IngresActivityRegistrationServices.class, "registerActivityStart(*,  Exchange)")
                 .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
                 .to(ExchangePattern.InOnly, egressFeed());
     }

@@ -36,70 +36,66 @@ import javax.inject.Inject;
 
 @Dependent
 public class HL7v2xMessageExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
-	@Inject
-	private ZDESegmentHelper zdeSegmentHelper;
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
-
-	//
-	// Constructor(s)
-	//
-
-	public HL7v2xMessageExtractor(){
-	}
-
-	//
-	// Getters (and Setters)
-	//
-
-    protected Logger getLogger(){
-        return(LOG);
-    }
-
-	protected ZDESegmentHelper getZDESegmentHelper(){
-		return(zdeSegmentHelper);
-	}
+    @Inject
+    private ZDESegmentHelper zdeSegmentHelper;
 
     //
-	// Business Methods
-	//
+    // Constructor(s)
+    //
+    public HL7v2xMessageExtractor() {
+    }
 
-	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
-		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+    //
+    // Getters (and Setters)
+    //
+    protected Logger getLogger() {
+        return (LOG);
+    }
 
-		String messageAsString = incomingUoW.getIngresContent().getPayload();
+    protected ZDESegmentHelper getZDESegmentHelper() {
+        return (zdeSegmentHelper);
+    }
 
-		getLogger().info("OutgoingMessage--->>>" + messageAsString + "<<<---");
+    //
+    // Business Methods
+    //
+    public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
+        getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 
-		//
-		// Strip the ZDE segment (or not)
+        String messageAsString = incomingUoW.getIngresContent().getPayload();
 
-		StandardInteractClientTopologyEndpointPort endpointPort = (StandardInteractClientTopologyEndpointPort) camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_TOPOLOGY_NODE_EXCHANGE_PROPERTY);
-		if(endpointPort == null){
-			getLogger().error(".convertToMessage(): endpointPort not found in exchange!");
-		}
+        getLogger().info("OutgoingMessage--->>>" + messageAsString + "<<<---");
 
-		// See if the flag is set to leave the ZDE segment in
-		String forwardZDESegmentFlag = endpointPort.getOtherConfigurationParameter(PetasosPropertyConstants.FORWARD_ZDE_SEGMENT);
-		getLogger().debug(".convertToMessage(): forwardZDESegmentFlag-->{}", forwardZDESegmentFlag);
-		boolean forwardSegment = false;
-		if(StringUtils.isNotEmpty(forwardZDESegmentFlag)){
-			if(StringUtils.equalsIgnoreCase(forwardZDESegmentFlag, "true")){
-				forwardSegment = true;
-			}
-		}
-		getLogger().debug(".convertToMessage(): forwardSegment-->{}", forwardSegment);
-		// Populate output string based on whether the zde inclusion flag is set
-		String outputMessageAsString = null;
-		if(forwardSegment){
-			// we are to forward zde segments (if present), so merely copy the payload and forward
-			outputMessageAsString = SerializationUtils.clone(messageAsString);
-		} else {
-			// we have to strip out the zde segment
-			outputMessageAsString = zdeSegmentHelper.removeZDESegmentsIfPresent(messageAsString);
-		}
-		getLogger().debug(".convertToMessage(): Exit, outputMessageAsString->{}", outputMessageAsString);
-		return (outputMessageAsString);
-	}
+        //
+        // Strip the ZDE segment (or not)
+        StandardInteractClientTopologyEndpointPort endpointPort = (StandardInteractClientTopologyEndpointPort) camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_TOPOLOGY_NODE_EXCHANGE_PROPERTY);
+        if (endpointPort == null) {
+            getLogger().error(".convertToMessage(): endpointPort not found in exchange!");
+        }
+
+        // See if the flag is set to leave the ZDE segment in
+        String forwardZDESegmentFlag = endpointPort.getOtherConfigurationParameter(PetasosPropertyConstants.FORWARD_ZDE_SEGMENT);
+        getLogger().debug(".convertToMessage(): forwardZDESegmentFlag-->{}", forwardZDESegmentFlag);
+        boolean forwardSegment = false;
+        if (StringUtils.isNotEmpty(forwardZDESegmentFlag)) {
+            if (StringUtils.equalsIgnoreCase(forwardZDESegmentFlag, "true")) {
+                forwardSegment = true;
+            }
+        }
+        getLogger().debug(".convertToMessage(): forwardSegment-->{}", forwardSegment);
+        // Populate output string based on whether the zde inclusion flag is set
+        String outputMessageAsString = null;
+        if (forwardSegment) {
+            // we are to forward zde segments (if present), so merely copy the payload and forward
+            outputMessageAsString = SerializationUtils.clone(messageAsString);
+        } else {
+            // we have to strip out the zde segment
+            outputMessageAsString = zdeSegmentHelper.removeZDESegmentsIfPresent(messageAsString);
+        }
+        getLogger().debug(".convertToMessage(): Exit, outputMessageAsString->{}", outputMessageAsString);
+        return (outputMessageAsString);
+    }
 }

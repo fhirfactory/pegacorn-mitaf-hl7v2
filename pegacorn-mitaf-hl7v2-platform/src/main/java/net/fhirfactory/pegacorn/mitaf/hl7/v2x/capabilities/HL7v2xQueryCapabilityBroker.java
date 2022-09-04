@@ -19,15 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.capabilities;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import ca.uhn.hl7v2.model.Structure;
-import ca.uhn.hl7v2.model.v24.segment.QRD;
-import ca.uhn.hl7v2.parser.Parser;
-import ca.uhn.hl7v2.util.idgenerator.NanoTimeGenerator;
 import net.fhirfactory.pegacorn.core.interfaces.capabilities.CapabilityUtilisationBrokerInterface;
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
@@ -40,12 +36,19 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.UUID;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
-public class HL7v24TaskA19QueryClientHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(HL7v24TaskA19QueryClientHandler.class);
+public class HL7v2xQueryCapabilityBroker {
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xQueryCapabilityBroker.class);
 
     private HapiContext hapiContext;
+    
+    private boolean initialised;
 
     // ***********************************************************************************
     //
@@ -57,74 +60,62 @@ public class HL7v24TaskA19QueryClientHandler {
 
     @Inject
     private CapabilityUtilisationBrokerInterface capabilityUtilisationBroker;
+    
+    //
+    // Constructor
+    //
+    
+    public HL7v2xQueryCapabilityBroker(){
+        this.initialised = false;
+    }
+    
+    //
+    // PostConstruct
+    //
 
     @PostConstruct
     public void initialise(){
-        this.hapiContext = new DefaultHapiContext();
-    }
-
-    public Message processA19Request(Message incomingRequest, Exchange exchange) {
-        LOG.info(".processA19Request(): Entry Received Message");
-        String queryString = "";
-        String urn = "";
-        try {
-            String stringToPrint = incomingRequest.printStructure();
-			//
-			// Because auditing is not running yet
-			// Remove once Auditing is in place
-			//
-            LOG.warn(".processA19Request(): IncomingMessage->{}", stringToPrint); // Log at WARN level so always seen in TEST
-            Structure qrd = incomingRequest.get("QRD");
-            if (qrd != null) {
-                queryString = incomingRequest.encode();
-                if (QRD.class.isInstance(qrd)) {
-                    QRD query = (QRD) incomingRequest.get("QRD");
-                    urn = query.getWhoSubjectFilter(0).getIDNumber().getValue();
-                    LOG.info(".processA19Request(): URN --> {}", urn);
-                } else {
-                    throw new IllegalArgumentException("Unexpected QRD segment type " + qrd.getClass().getCanonicalName() +
-                            ", likely wrong message version");
-                }
-            } else {
-                throw new IllegalArgumentException("No QRD segment in incoming request");
-            }
-        } catch (IllegalArgumentException iae) {
-            throw iae;
-        } catch (Exception ex) {
-            LOG.warn(".processA19Request(): Something went wrong --> {}", ex);
+        if(initialised){
+            getLogger().debug(".initialise(): Nothing to do, already initialised");
+        } else {
+            this.hapiContext = new DefaultHapiContext();
         }
-        Parser parser = getHAPIContext().getPipeParser();
-        parser.getParserConfiguration().setValidating(false);
-        parser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
-        NanoTimeGenerator timeBasedIdGenerator = new NanoTimeGenerator();
-        parser.getParserConfiguration().setIdGenerator(timeBasedIdGenerator);
+    }
+    
+    //
+    // Business Methods
+    //
 
-        String queryResponse = utiliseA19QueryCapability(queryString);
-        //
-        // Because auditing is not running yet
-        // Remove once Auditing is in place
-        //
-        LOG.warn(".processA19Request(): ResponseMessage->{}", queryResponse); // Log at WARN level so always seen in TEST
-        try {
-            Message resultMessage = parser.parse(queryResponse);
-            String responseAsString = resultMessage.encode();
-            exchange.setProperty("CamelMllpAcknowledgementString", responseAsString);
-            return (resultMessage.getMessage());
-        } catch (Exception ex) {
-            LOG.info(".processA19Request(): Something went wrong with parsing --> {}", ex);
+    public String processQueryTask(Message incomingRequest, Exchange camelExchange) {
+        LOG.info(".processA19Request(): Entry Received Message");
+        
+        // We embed the fulfillmentTask within the exchange as part of Petasos framework
+        PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+
+        PetasosFulfillmentTask task = fulfillmentTask.getInstance();
+        PetasosFulfillmentTask responseTask = utiliseRemoteQueryCapability(task);
+        if(responseTask.getTaskWorkItem().hasEgressContent()){
+            UoWPayload payload = responseTask.getTaskWorkItem().getEgressContent().getPayloadElements().stream().findFirst().get();
+            if(payload != null){
+                String responseString = payload.getPayload();
+                if(StringUtils.isNotEmpty(responseString)){
+                    camelExchange.setProperty("CamelMllpAcknowledgementString", responseString);
+                    return (responseString);
+                }
+            }
         }
         return(null);
     }
 
-    private String utiliseA19QueryCapability( String queryString){
-        LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}", queryString);
+    private PetasosFulfillmentTask utiliseRemoteQueryCapability( PetasosFulfillmentTask queryTask){
+        LOG.info(".utiliseA19QueryCapability(): Entry, queryTask->{}", queryTask);
         //
         // Build Query
         //
         CapabilityUtilisationRequest task = new CapabilityUtilisationRequest();
         task.setRequestID(UUID.randomUUID().toString());
-        task.setRequestContent(queryString);
-        task.setRequestContentType(String.class);
+        task.setRequestContent(queryTask);
+        task.setRequestContentType(PetasosFulfillmentTask.class);
         task.setRequiredCapabilityName("A19QueryFulfillment");
         task.setRequestInstant(Instant.now());
         //
@@ -137,12 +128,12 @@ public class HL7v24TaskA19QueryClientHandler {
         //
         // Extract the response
         //
-        String resultString = a19QueryTaskOutcome.getResponseStringContent();
-        if (resultString == null) {
+        PetasosFulfillmentTask result = a19QueryTaskOutcome.getResponseFulfillmentTask();
+        if (result == null) {
             throw new IllegalStateException("Null result string in response for A19Query Task Outcome: response->"
                     + a19QueryTaskOutcome + ", task->" + task);
         }
-        return(resultString);
+        return(result);
     }
 
 
@@ -153,5 +144,9 @@ public class HL7v24TaskA19QueryClientHandler {
 
     public HapiContext getHAPIContext() {
         return hapiContext;
+    }
+    
+    protected Logger getLogger(){
+        return(LOG);
     }
 }

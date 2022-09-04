@@ -19,35 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
-
-import static org.apache.camel.component.hl7.HL7.ack;
-import static org.apache.camel.support.builder.PredicateBuilder.and;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import javax.inject.Inject;
-
-import org.apache.camel.component.hl7.HL7DataFormat;
+package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
 import ca.uhn.hl7v2.AcknowledgmentCode;
 import ca.uhn.hl7v2.ErrorCode;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
-import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.triggerevents.HL7v24TaskA19QueryClientHandler;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPMessageIngresProcessor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.capabilities.HL7v2xQueryCapabilityBroker;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xQueryCapturePostTransformResponse;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xQueryUnsupportedTriggerEvent;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventIngresProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityRegistrationServices;
+import org.apache.camel.ExchangePattern;
+import org.apache.camel.component.hl7.HL7DataFormat;
 
-public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
+import javax.inject.Inject;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.apache.camel.component.hl7.HL7.ack;
+import static org.apache.camel.support.builder.PredicateBuilder.and;
+
+public abstract class BaseHL7v2QueryMessageServerWUP extends BaseHL7v2xMessageIngressWUP {
 
     private String WUP_VERSION="1.0.0";
     private String CAMEL_COMPONENT_TYPE="mllp";
 
     @Inject
     private FreeMarkerConfiguration freemarkerConfig;
-    
+
     @Override
     protected String specifyWUPInstanceName() {
         return (this.getClass().getSimpleName());
@@ -80,24 +83,42 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
 
         fromInteractIngresService(ingresFeed())
                 .routeId(getNameSet().getRouteCoreWUP())
-                .unmarshal(hl7)
+                .bean(MLLPMessageIngresProcessor.class, "captureMLLPMessage(*, Exchange," + specifySourceSystem() +","+specifyIntendedTargetSystem()+","+specifyMessageDiscriminatorType()+","+specifyMessageDiscriminatorValue()+")")
+                .bean(HL7v2xTriggerEventIngresProcessor.class, "encapsulateTriggerEvent(*, Exchange)")
+                .bean(IngresActivityRegistrationServices.class, "registerQueryActivityStart(*,  Exchange)")
                 .choice()
                     .when(and(header("CamelHL7MessageType").contains("QRY"),
                               header("CamelHL7TriggerEvent").contains("A19")))
                         .bean(freemarkerConfig,"configure(*, Exchange)")
                         .to("freemarker:file:" + ingresTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
                         .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
-                        .bean(HL7v24TaskA19QueryClientHandler.class, "processA19Request")
+                        .bean(HL7v2xQueryCapabilityBroker.class, "processQueryTask")
                         .bean(freemarkerConfig,"configure(*, Exchange)")
                         .to("freemarker:file:" + egressTransformFileName + "?contentCache=false&allowTemplateFromHeader=true&allowContextMapAll=true")
-                        .bean(freemarkerConfig,"convertToMessage(*, Exchange)")
-                        .marshal(hl7)
+                        .to(ExchangePattern.InOnly, forwardToEgressFeed())
                         .transform(ack())
                     .otherwise()
-                        .marshal(hl7)
+                        .to(ExchangePattern.InOnly,unsupportedTriggerEventTypeChannel())
                         .transform(ack(AcknowledgmentCode.AE, "Supports only QRY A19 messages to this port", ErrorCode.UNSUPPORTED_MESSAGE_TYPE))
                 .end();
-                
+
+        from(unsupportedTriggerEventTypeChannel())
+                .bean(HL7v2xQueryUnsupportedTriggerEvent.class, "articulateUnsupportedTrigger(*, Exchange)")
+                .to(egressFeed());
+
+        from(forwardToEgressFeed())
+                .bean(HL7v2xQueryCapturePostTransformResponse.class, "capturePostTransformMessage(*,  Exchange)")
+                .to(egressFeed());
+    }
+
+    protected String forwardToEgressFeed(){
+        String endpointURL = "direct:"+getClass().getSimpleName()+"egressFeedContinuityChannel";
+        return(endpointURL);
+    }
+
+    protected String unsupportedTriggerEventTypeChannel(){
+        String endpointURL = "direct:"+getClass().getSimpleName()+"unsupportedTriggerEventChannel";
+        return(endpointURL);
     }
 
     @Override
@@ -113,16 +134,6 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
         endpoint.setFrameworkEnabled(false);
         getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);
         return (endpoint);
-    }
-
-    @Override
-    protected String specifySourceSystem() {
-        return null;
-    }
-
-    @Override
-    protected String specifyIntendedTargetSystem() {
-        return null;
     }
 
     @Override
