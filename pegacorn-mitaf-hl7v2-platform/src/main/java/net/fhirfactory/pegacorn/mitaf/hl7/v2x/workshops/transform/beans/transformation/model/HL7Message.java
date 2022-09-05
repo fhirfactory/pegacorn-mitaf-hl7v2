@@ -111,11 +111,15 @@ public class HL7Message implements Serializable   {
 	public void setSegments(List<Segment> segments) {
 		this.segments = segments;
 	}
+	
+	public String value() {
+		return segments.stream().map(Segment::toString).collect(Collectors.joining("\r"));	
+	}
 
 	
 	@Override
 	public String toString() {	
-		return segments.stream().map(Segment::toString).collect(Collectors.joining("\r"));	
+		return value();
 	}
 	
 	

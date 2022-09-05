@@ -9,8 +9,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * A single field within a segment.
  * 
@@ -57,25 +55,7 @@ public class Field extends MessageComponent implements Serializable {
 	
 	@Override
 	public String toString() {		
-		String originalValue = repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
-		
-		if (originalValue.isEmpty()) {
-			return originalValue;
-		}
-		
-		try {
-			String value = StringUtils.replace(originalValue, "^", "");
-			value = StringUtils.replace(value, "~", "");
-			value = StringUtils.replace(value, "&", "");
-			
-			if (value.isEmpty()) {
-				clear();
-			}
-		} catch(Exception e) {
-			return "";
-		}
-		
-		return originalValue;
+		return repetitions.stream().map(FieldRepetition::toString).collect(Collectors.joining("~"));
 	}
 
 	

@@ -16,7 +16,7 @@ public abstract class MessageComponent {
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract String value() throws Exception;
+	public abstract String value();
 	
 	
 	/**

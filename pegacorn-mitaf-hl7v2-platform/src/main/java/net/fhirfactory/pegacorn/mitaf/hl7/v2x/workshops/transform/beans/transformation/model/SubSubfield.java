@@ -23,20 +23,23 @@ public class SubSubfield extends MessageComponent implements Serializable {
 		this.subField = subField;
 	}
 
-	public String value() {
-		return value;
+	@Override
+	public String value() {	
+		return HL7EscapeCharacterEnum.replace(value);
 	}
 
+	@Override
 	public void setValue(String value) throws Exception {
 		this.value = value;
 	}
 	
 	@Override
 	public String toString() {
-		return value;
+		return HL7EscapeCharacterEnum.replace(value);
 	}
 	
 	
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}

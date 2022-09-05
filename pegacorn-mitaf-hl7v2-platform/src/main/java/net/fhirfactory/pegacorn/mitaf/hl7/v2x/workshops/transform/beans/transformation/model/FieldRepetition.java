@@ -53,7 +53,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	
 	@Override
 	public String toString() {		
-		return subFields.stream().map(Subfield::toString).collect(Collectors.joining("^"));
+		return value();
 	}
 
 	
@@ -104,7 +104,7 @@ public class FieldRepetition extends MessageComponent implements Serializable  {
 	
 	@Override
 	public String value() {
-		return toString();
+		return subFields.stream().map(Subfield::toString).collect(Collectors.joining("^"));
 	}
 	
 	

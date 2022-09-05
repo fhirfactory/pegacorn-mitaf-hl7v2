@@ -61,7 +61,7 @@ public class Segment extends MessageComponent implements Serializable {
 	
 	@Override
 	public String toString() {	
-		return fields.stream().map(Field::toString).collect(Collectors.joining("|"));
+		return value();
 	}
 
 	
@@ -592,7 +592,7 @@ public class Segment extends MessageComponent implements Serializable {
 	
 	
 	@Override
-	public String value() throws Exception {
-		return this.toString();
+	public String value()  {
+		return fields.stream().map(Field::toString).collect(Collectors.joining("|"));
 	}
 }

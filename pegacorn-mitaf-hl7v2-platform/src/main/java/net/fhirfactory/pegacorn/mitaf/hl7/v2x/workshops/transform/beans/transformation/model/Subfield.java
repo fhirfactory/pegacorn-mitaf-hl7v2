@@ -39,10 +39,12 @@ public class Subfield extends MessageComponent implements Serializable {
 		}		
 	}
 
+	@Override
 	public String value() {
-		return toString();
+		return subSubFields.stream().map(SubSubfield::toString).collect(Collectors.joining("&"));
 	}
 
+	@Override
 	public void setValue(String value) throws Exception {
 		subSubFields.clear();
 
@@ -59,10 +61,11 @@ public class Subfield extends MessageComponent implements Serializable {
 	
 	@Override
 	public String toString() {
-		return subSubFields.stream().map(SubSubfield::toString).collect(Collectors.joining("&"));
+		return value();
 	}
 	
 	
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}
