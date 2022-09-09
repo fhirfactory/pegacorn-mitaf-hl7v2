@@ -39,10 +39,12 @@ public class Subfield extends MessageComponent implements Serializable {
 		}		
 	}
 
+	@Override
 	public String value() {
 		return toString();
 	}
 
+	@Override
 	public void setValue(String value) throws Exception {
 		subSubFields.clear();
 
@@ -63,6 +65,7 @@ public class Subfield extends MessageComponent implements Serializable {
 	}
 	
 	
+	@Override
 	public void clear() throws Exception {
 		setValue("");
 	}
@@ -76,8 +79,17 @@ public class Subfield extends MessageComponent implements Serializable {
     public SubSubfield getSubSubField(int subSubFieldIndex) {
     	return subSubFields.get(--subSubFieldIndex);
     }
+
     
-    
+    public List<SubSubfield> getSubSubFields() {
+		return subSubFields;
+	}
+
+	public void setSubSubFields(List<SubSubfield> subSubFields) {
+		this.subSubFields = subSubFields;
+	}
+	
+	
 	/**
 	 * Is this subfield empty?
 	 * 
