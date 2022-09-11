@@ -2,8 +2,11 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -156,6 +159,19 @@ public class Field extends MessageComponent implements Serializable {
 			getRepetitions().set(0, fieldRepetition);
 		} else {
 			getRepetitions().add(fieldRepetition);
+		}
+	}
+	
+	
+	/**
+	 * Add field repetitions to this field.
+	 * 
+	 * @param fieldRepetitions
+	 * @throws Exception
+	 */
+	public void addRepetitions(List<FieldRepetition> fieldRepetitions) throws Exception {
+		for (FieldRepetition fieldRFepetition : fieldRepetitions) {
+			addRepetition(fieldRFepetition);
 		}
 	}
 
@@ -769,7 +785,45 @@ public class Field extends MessageComponent implements Serializable {
 	public List<FieldRepetition> getRepetitionsMatchingValue(int subFieldIndex, String ... matchValues) throws Exception {
 		return getRepetitionsMatchingValue("equals", subFieldIndex, matchValues);
 	}
+
 	
+	/**
+	 * Removes duplicates from a field repetition.  The value at subFieldIndex is checked
+	 * 
+	 * @param subFieldIndex
+	 */
+	public void removeDuplicateRepetitions(int subFieldIndex) throws Exception {
+		Set<String>repetitionValues = new TreeSet<>();
+		
+		for (Iterator<FieldRepetition> iter = this.getRepetitions().iterator(); iter.hasNext(); ) {
+			FieldRepetition repetition = iter.next();
+		
+			// Attempt to add the value to a set.  If the add method returns false then the set already contains that value which means it is a duplicate so the repetition can be removed.
+			if (!repetitionValues.add(repetition.getSubField(subFieldIndex).value())) {
+				iter.remove();
+			}
+		}
+	}
+	
+	
+	/**
+	 * Removes duplicates from a field repetition.  The entire repetition value is checked.
+	 * 
+	 * @param subFieldIndex
+	 */
+	public void removeDuplicateRepetitions() throws Exception {
+		Set<String>repetitionValues = new TreeSet<>();
+		
+		for (Iterator<FieldRepetition> iter = this.getRepetitions().iterator(); iter.hasNext(); ) {
+			FieldRepetition repetition = iter.next();
+		
+			// Attempt to add the value to a set.  If the add method returns false then the set already contains that value which means it is a duplicate so the repetition can be removed.
+			if (!repetitionValues.add(repetition.value())) {
+				iter.remove();
+			}
+		}
+	}
+
 	
 	/**
 	 * Does one of the supplied match values match the text using the supplied match type.
@@ -787,9 +841,18 @@ public class Field extends MessageComponent implements Serializable {
 			result = true;
 		}
 		
+
+		if (matchValues == null) {
+			return false;
+		}
+		
 		
 		for (String matchValue : matchValues) {
-				
+			if (matchValue == null) {
+				return false;
+			}
+			
+			
 			switch (type) {
 				case EQUALS:
 					if  (text.equals(matchValue)) {
