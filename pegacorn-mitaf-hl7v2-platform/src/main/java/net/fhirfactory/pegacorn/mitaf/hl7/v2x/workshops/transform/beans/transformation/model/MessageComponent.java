@@ -109,4 +109,25 @@ public abstract class MessageComponent {
 		
 		this.setValue(valueToPrepend + currentValue);		
 	}
+	
+	
+	/**
+	 * Returns this components value unescaped.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String unescapedValue() throws Exception {
+		return EscapeSequenceEnum.unescape(this.value());
+	}
+	
+	/**
+	 * Returns this components value escaped.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String escapedValue() throws Exception {
+		return EscapeSequenceEnum.escape(this.value());
+	}
 }
