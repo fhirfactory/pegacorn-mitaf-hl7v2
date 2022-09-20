@@ -25,7 +25,7 @@ import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v24.message.ACK;
 import ca.uhn.hl7v2.model.v24.segment.MSA;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.caches.ProcessingPlantAsynchronousCacheDM;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import org.apache.camel.Exchange;

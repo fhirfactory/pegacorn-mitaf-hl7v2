@@ -24,17 +24,17 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
+import net.fhirfactory.dricats.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
-import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import net.fhirfactory.dricats.petasos.participant.processingplant.PetasosEnabledProcessingPlant;
 import org.hl7.fhir.r4.model.ResourceType;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
+public abstract class MITaFHL7v2xSubSystem extends PetasosEnabledProcessingPlant {
 
     private boolean mitafHL7v2SubsystemInitialised;
 
@@ -64,7 +64,7 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 getLogger().info(".executePostConstructActivities(): Invoking subscribeToRemoteDataParcels()!");
 
                 getLogger().info(".executePostConstructActivities(): currentDescriptor->{}", currentDescriptor);
-                DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getPegacornReferenceProperties().getPegacornDefaultFHIRVersion());
+                DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getReferenceProperties().getPegacornDefaultFHIRVersion());
                 getLogger().info(".executePostConstructActivities(): container->{}", container);
                 TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
                 manifest.setContentDescriptor(currentDescriptor);
@@ -80,7 +80,7 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             }
         }
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
-        PetasosParticipantRegistration participantRegistration = getLocalPetasosParticipantCacheIM().registerPetasosParticipant(getMeAsASoftwareComponent(), new HashSet<>(), manifestList);
+        PetasosParticipantRegistration participantRegistration = getLocalPetasosParticipantCacheIM().registerPetasosParticipant(getTopologyNode(), new HashSet<>(), manifestList);
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant, registration->{}!", participantRegistration);
         getLogger().info(".executePostConstructActivities(): Exit");
         this.mitafHL7v2SubsystemInitialised = true;

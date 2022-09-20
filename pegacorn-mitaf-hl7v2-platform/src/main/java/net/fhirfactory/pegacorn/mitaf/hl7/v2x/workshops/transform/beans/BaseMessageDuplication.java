@@ -17,9 +17,9 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirect
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoWPayload;
+import net.fhirfactory.dricats.model.petasos.uow.UoWProcessingOutcomeEnum;
 
 /**
  * Base class for all classes which need to duplicate a message.  The duplication rules are provided by the sub classes.

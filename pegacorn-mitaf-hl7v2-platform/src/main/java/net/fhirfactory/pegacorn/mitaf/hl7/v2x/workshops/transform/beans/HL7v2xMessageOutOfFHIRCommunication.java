@@ -36,9 +36,9 @@ import ca.uhn.fhir.parser.IParser;
 import ca.uhn.hl7v2.HL7Exception;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoWPayload;
+import net.fhirfactory.dricats.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
 @ApplicationScoped

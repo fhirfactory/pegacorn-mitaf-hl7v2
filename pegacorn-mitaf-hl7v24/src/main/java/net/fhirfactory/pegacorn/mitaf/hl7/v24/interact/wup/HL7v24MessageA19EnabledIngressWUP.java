@@ -30,7 +30,7 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEnd
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.participant.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
 
 public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
@@ -71,7 +71,7 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
     }
 
     @Override
-    protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
+    protected MessageBasedWUPEndpointContainer establishIngresEndpoint() {
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
         MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());

@@ -21,16 +21,16 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import net.fhirfactory.pegacorn.core.interfaces.capabilities.CapabilityFulfillmentInterface;
-import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
-import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
+import net.fhirfactory.dricats.interfaces.capabilities.CapabilityFulfillmentInterface;
+import net.fhirfactory.dricats.model.capabilities.base.CapabilityUtilisationRequest;
+import net.fhirfactory.dricats.model.capabilities.base.CapabilityUtilisationResponse;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19ResponseACKExtractor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.participant.wup.MessageBasedWUPEndpointContainer;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.model.RouteDefinition;

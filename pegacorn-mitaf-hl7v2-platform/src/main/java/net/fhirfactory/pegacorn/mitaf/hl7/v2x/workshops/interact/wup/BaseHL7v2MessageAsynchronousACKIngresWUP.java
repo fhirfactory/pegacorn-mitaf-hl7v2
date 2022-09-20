@@ -21,9 +21,9 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
-import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
+import net.fhirfactory.dricats.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.dricats.petasos.participant.workshops.InteractWorkshop;
+import net.fhirfactory.dricats.petasos.participant.wup.messagebased.InteractIngresMessagingGatewayWUP;
 
 import javax.inject.Inject;
 

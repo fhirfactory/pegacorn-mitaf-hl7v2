@@ -21,8 +21,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
-import net.fhirfactory.pegacorn.core.model.component.valuesets.SoftwareComponentConnectivityContextEnum;
+import net.fhirfactory.dricats.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
@@ -31,14 +30,14 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEn
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.dricats.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.HL7v2xMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.MLLPActivityAuditTrail;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.participant.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.IngresActivityBeginRegistration;
-import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
-import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractIngresMessagingGatewayWUP;
+import net.fhirfactory.dricats.petasos.participant.workshops.InteractWorkshop;
+import net.fhirfactory.dricats.petasos.participant.wup.messagebased.InteractIngresMessagingGatewayWUP;
 
 import org.apache.camel.ExchangePattern;
 
@@ -133,7 +132,7 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
     }
 
     @Override
-    protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
+    protected MessageBasedWUPEndpointContainer establishIngresEndpoint() {
         getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
         MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());

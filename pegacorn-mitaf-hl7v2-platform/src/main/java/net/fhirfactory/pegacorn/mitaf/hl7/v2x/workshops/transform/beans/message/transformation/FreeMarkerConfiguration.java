@@ -21,10 +21,10 @@ import ca.uhn.hl7v2.parser.PipeParser;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.petasos.tasking.caches.local.PetasosFulfillmentTaskSharedInstance;
 
 /**
  * @author Brendan Douglas

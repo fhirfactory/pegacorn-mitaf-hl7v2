@@ -100,7 +100,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${version-org.apache.commons-lang3}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -110,13 +109,11 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>
-            <version>${version-org.apache.camel}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-cdi</artifactId>
-            <version>${version-org.apache.camel}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -126,13 +123,11 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hl7</artifactId>
-            <version>${version-org.apache.camel}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-mllp</artifactId>
-            <version>${version-org.apache.camel}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -142,7 +137,6 @@
         <dependency>
             <groupId>ca.uhn.hapi</groupId>
             <artifactId>hapi-structures-v24</artifactId>
-            <version>${version-ca.uhn.hapi-hl7structures}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -159,13 +153,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${version-com.fasterxml.jackson.core-jackson-core}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${version-com.fasterxml.jackson.datatype-jackson-datatype-jsr310}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -176,7 +168,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.10.4</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -197,7 +188,7 @@
 
         <dependency>
             <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-datamodels-core</artifactId>
+            <artifactId>dricats-datamodels-petasos</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -208,31 +199,8 @@
 
         <dependency>
             <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-deployment-constants</artifactId>
+            <artifactId>dricats-deployment-configuration</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-deployment-properties</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-deployment-datasets</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-deployment-topology</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
@@ -242,7 +210,7 @@
 
          <dependency>
             <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-petasos-core</artifactId>
+            <artifactId>dricats-petasos-framework</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -254,70 +222,10 @@
 
         <dependency>
             <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-datamodels-fhir</artifactId>
+            <artifactId>dricats-datamodels-fhir</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
             <type>jar</type>
-        </dependency>
-
-        <!--*******************************************************************************-->
-        <!-- Pegacorn (Petasos Audit) Libraries                                            -->
-        <!--*******************************************************************************-->
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-petasos-audit</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-            <type>jar</type>
-        </dependency>
-
-        <!--*******************************************************************************-->
-        <!-- Pegacorn Component Archetypes                                                 -->
-        <!--*******************************************************************************-->
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-processingplant</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-workshop</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-workunitprocessors</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <!--*******************************************************************************-->
-        <!-- Pegacorn Inter-Processing Communication Libraries                             -->
-        <!--*******************************************************************************-->
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-edge-messaging</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.fhirfactory.dricats</groupId>
-            <artifactId>dricats-buildingblocks-edge-model</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -340,14 +248,12 @@
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
             <scope>compile</scope>
-            <version>${version-org.infinispan}</version>
         </dependency>
 
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-commons</artifactId>
             <scope>compile</scope>
-            <version>${version-org.infinispan}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -357,7 +263,6 @@
         <dependency>
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
-            <version>${version-org.jgroups-jgroups}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -385,7 +290,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${version-org.junit5}</version>
             <scope>test</scope>
         </dependency>
 
@@ -402,7 +306,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${version-ch.qos.logback-classic}</version>
             <scope>compile</scope>
         </dependency>
 

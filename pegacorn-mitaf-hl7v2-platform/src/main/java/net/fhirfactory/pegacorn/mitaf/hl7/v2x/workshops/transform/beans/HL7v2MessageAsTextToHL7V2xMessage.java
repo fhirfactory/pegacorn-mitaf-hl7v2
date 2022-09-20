@@ -33,9 +33,9 @@ import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoWProcessingOutcomeEnum;
 
 @ApplicationScoped
 public class HL7v2MessageAsTextToHL7V2xMessage {

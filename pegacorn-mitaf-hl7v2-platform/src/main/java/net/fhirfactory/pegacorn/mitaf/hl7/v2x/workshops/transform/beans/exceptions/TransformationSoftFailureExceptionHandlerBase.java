@@ -21,26 +21,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.exceptions;
 
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
+import net.fhirfactory.dricats.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.ProcessingPlantMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.WorkUnitProcessorMetricsAgent;
 import org.apache.camel.Exchange;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;

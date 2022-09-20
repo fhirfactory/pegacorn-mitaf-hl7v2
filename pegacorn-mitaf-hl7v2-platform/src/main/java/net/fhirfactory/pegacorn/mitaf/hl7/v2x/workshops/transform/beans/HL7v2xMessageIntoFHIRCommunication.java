@@ -27,7 +27,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.petasos.tasking.caches.local.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
@@ -36,13 +36,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.hl7v2.model.Message;
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.dricats.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
+import net.fhirfactory.dricats.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
 
 @ApplicationScoped
 public class HL7v2xMessageIntoFHIRCommunication {

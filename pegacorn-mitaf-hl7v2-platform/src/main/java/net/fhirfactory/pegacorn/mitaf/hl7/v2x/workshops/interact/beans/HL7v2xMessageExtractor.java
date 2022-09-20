@@ -27,7 +27,7 @@ import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
 
 @Dependent
 public class HL7v2xMessageExtractor {

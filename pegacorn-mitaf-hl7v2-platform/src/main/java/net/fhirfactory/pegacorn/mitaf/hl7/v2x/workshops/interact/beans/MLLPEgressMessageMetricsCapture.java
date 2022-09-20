@@ -21,18 +21,18 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.notifications.PetasosITOpsNotificationContentFactory;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.interfaces.topology.ProcessingPlantInterface;
+import net.fhirfactory.dricats.model.petasos.oam.notifications.valuesets.PetasosComponentITOpsNotificationTypeEnum;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.model.petasos.uow.UoWPayload;
+import net.fhirfactory.dricats.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.petasos.tasking.factories.metadata.HL7v2xTaskMetadataExtractor;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.EndpointMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.ProcessingPlantMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.WorkUnitProcessorMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.notifications.PetasosITOpsNotificationContentFactory;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;

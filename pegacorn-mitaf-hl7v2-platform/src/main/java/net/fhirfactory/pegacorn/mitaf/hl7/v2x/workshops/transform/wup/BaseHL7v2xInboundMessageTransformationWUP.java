@@ -21,20 +21,20 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.wup;
 
-import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.dricats.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.dricats.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
+import net.fhirfactory.dricats.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationExceptionHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xInboundMessageTransformationPostProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageIntoFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
-import net.fhirfactory.pegacorn.workshops.TransformWorkshop;
-import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
+import net.fhirfactory.dricats.petasos.participant.workshops.TransformWorkshop;
+import net.fhirfactory.dricats.petasos.participant.wup.messagebased.MOAStandardWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.OnExceptionDefinition;
 import org.slf4j.Logger;

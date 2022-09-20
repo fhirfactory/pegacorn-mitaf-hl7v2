@@ -21,12 +21,12 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans;
 
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
-import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
-import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalFulfillmentTaskCache;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacorn.petasos.tasking.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
+import net.fhirfactory.pegacorn.petasos.tasking.caches.local.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.petasos.tasking.caches.local.LocalFulfillmentTaskCache;
+import net.fhirfactory.dricats.model.petasos.uow.UoW;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 

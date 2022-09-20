@@ -42,18 +42,15 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
-import io.github.linuxforhealth.hl7.HL7ToFHIRConverter;
-import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
-import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
+import net.fhirfactory.dricats.constants.systemwide.PegacornReferenceProperties;
+import net.fhirfactory.dricats.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.dricats.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
-import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
-import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-import org.hl7.fhir.r4.model.ResourceType;
+import net.fhirfactory.dricats.petasos.participant.workshops.PolicyEnforcementWorkshop;
+import net.fhirfactory.dricats.petasos.participant.wup.messagebased.MOAStandardWUP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
