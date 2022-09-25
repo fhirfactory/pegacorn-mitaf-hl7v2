@@ -21,7 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.component.SoftwareComponent;
@@ -121,7 +120,7 @@ public class HL7v2xOutboundMessageTransformationExceptionHandler extends Transfo
         }
         //
         // Extract the WorkUnitProcessor detail
-        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfiller();
         //
         // Log Exception
         sendExceptionNotification(exceptionMessage, camelExchange);
@@ -151,7 +150,7 @@ public class HL7v2xOutboundMessageTransformationExceptionHandler extends Transfo
 
         if(isAllowingSoftFailures()){
             getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
-            String participantName = fulfillerWorkUnitProcessor.getParticipantName();
+            String participantName = fulfillerWorkUnitProcessor.getParticipantId().getName();
             String updatedPayload = addZDESegment(uow.getIngresContent().getPayload(), exceptionMessage, participantName);
             UoWPayload continuationMessage =  SerializationUtils.clone(uow.getIngresContent());
             continuationMessage.setPayload(updatedPayload);

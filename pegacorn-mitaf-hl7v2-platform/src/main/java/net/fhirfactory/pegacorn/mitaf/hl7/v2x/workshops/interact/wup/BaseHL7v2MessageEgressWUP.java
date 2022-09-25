@@ -92,7 +92,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	protected String specifyEndpointParticipantName() {
 		MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
 		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
-		String participantName = clientTopologyEndpoint.getParticipantName();
+		String participantName = clientTopologyEndpoint.getParticipantId().getName();
 		return (participantName);
 	}
 

@@ -119,7 +119,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
 
         //
         // Extract the WorkUnitProcessor detail
-        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        SoftwareComponent fulfillerWorkUnitProcessor = fulfillmentTask.getTaskFulfillment().getFulfiller();
 
         //
         // Log Exception
@@ -150,7 +150,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
 
         if(isAllowingSoftFailures()){
             getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
-            String participantName = fulfillerWorkUnitProcessor.getParticipantName();
+            String participantName = fulfillerWorkUnitProcessor.getParticipantId().getName();
             String updatedPayload = addZDESegment(uow.getIngresContent().getPayload(), exceptionMessage, participantName);
             UoWPayload continuationMessage =  SerializationUtils.clone(uow.getIngresContent());
             continuationMessage.setPayload(updatedPayload);
