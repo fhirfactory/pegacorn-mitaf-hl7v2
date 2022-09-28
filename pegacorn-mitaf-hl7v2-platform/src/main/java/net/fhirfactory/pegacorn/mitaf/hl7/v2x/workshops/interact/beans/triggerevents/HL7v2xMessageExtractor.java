@@ -113,7 +113,7 @@ public class HL7v2xMessageExtractor {
 			// we have to strip out the zde segment
 			outputMessageAsString = zdeSegmentHelper.removeZDESegmentsIfPresent(messageAsString);
 		}
-		messageAsString = checkForAndReinsertMediaObjects(messageAsString);
+		outputMessageAsString = checkForAndReinsertMediaObjects(outputMessageAsString);
 		getLogger().debug(".convertToMessage(): Exit, outputMessageAsString->{}", outputMessageAsString);
 		return (outputMessageAsString);
 	}
@@ -125,20 +125,35 @@ public class HL7v2xMessageExtractor {
 
 	@VisibleForTesting
 	String checkForAndReinsertMediaObjects(String messageAsString) {
+	    getLogger().debug(".checkForAndReinsertMediaObjects(): Entry, message->{}", messageAsString);
 		//If media objects have been loaded into our system
 		if(mediaParser.hasMatchingPatternInSegmentType(messageAsString, 
 				"<fhir-resource>", HL7v2SegmentTypeEnum.OBX)) {
-			
+		    getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX");
 			//Put the media objects back into the message
+		    //FIXME needs a loop and iteration for multiple media references.  These are not currently handled
 			String segment = mediaParser.extractNextAlteredSegment(messageAsString);
 			String mediaId = mediaParser.extractIdFromAlteredSegment(segment);
-			Media media = mediaAgent.loadMedia(mediaId);
-			if(media != null) {
-				messageAsString = mediaParser.replaceAlteredSegment(messageAsString, media);
+			if (mediaId != null) {
+    			getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX: mediaId->{}", mediaId);
+    			Media media = mediaAgent.loadMedia(mediaId);
+    			if(media != null) {
+    			    getLogger().debug(".checkForAndReinsertMediaObjects(): Replacing media: mediaId->{}", mediaId);
+    				 String alteredMessage = mediaParser.replaceAlteredSegment(messageAsString, media);
+    				 if (alteredMessage.equals(messageAsString)) {
+    				     // nothing done
+    				     getLogger().error(".checkForAndReinsertMediaObjects(): failed to replace media reference for mediaId->{} in fragment->{}", mediaId, messageAsString);
+    				 }
+    				 messageAsString = alteredMessage;
+    			} else {
+    				getLogger().error(".checkForAndReinsertMediaObjects(): Media should have returned! mediaId->{}", mediaId);
+    			}
 			} else {
-				getLogger().error("Media should have returned!");
+			    //TODO we really need to retry or mark this as an unrecoverable error or something here as sending out with the link does not work
+			    getLogger().error(".checkForAndReinsertMediaObjects(): No media Id found in segment->{}", segment);
 			}
 		}
+		getLogger().debug(".checkForAndReinsertMediaObjects(): Exit, message->{}", messageAsString);
 		return (messageAsString);
 	}
 }

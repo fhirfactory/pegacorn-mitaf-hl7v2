@@ -274,7 +274,7 @@ public class HL7v2xTriggerEventIngresProcessor {
                 				LOG.trace("message after replacement -> {}", message);
                 			} else {
                 				LOG.warn("failed to save Media object. media->{}", media);
-                				throw new Exception("Media storage service is down");
+                				throw new Exception("Failed to save Media Object");
                 			}
                 		}
                 		//Update the payload to not have the attachments
