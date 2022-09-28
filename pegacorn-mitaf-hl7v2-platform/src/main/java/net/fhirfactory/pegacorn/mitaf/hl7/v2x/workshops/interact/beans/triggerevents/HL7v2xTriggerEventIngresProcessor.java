@@ -260,29 +260,29 @@ public class HL7v2xTriggerEventIngresProcessor {
                 //
                 // Strip out any Media from the payload.
                 //Has BASE64 inside OBX, it needs to be extracted
-                	if(defensivePipeParser.hasMatchingPatternInSegmentType(newPayload.getPayload(), BASE64_PATTERN, HL7v2SegmentTypeEnum.OBX)) {
-                		String message = newPayload.getPayload();
-                		Media media;
-						//1. keep searching for media objects
-                		while((media = mediaConverter.extractNextMediaResource(message)) !=null) {
-                			LOG.debug("Attempting extract of media from message -> {}", message);
-                			//2. Save the media to the IM
-                			if(mediaAgent.captureMedia(media)) {
-                				//3. remove the byte[] from the UoW payload
-                				LOG.trace("Media ID: " + media.getId());
-                				message = mediaParser.replaceAttachmentSegment(message, media.getId());
-                				LOG.trace("message after replacement -> {}", message);
-                			} else {
-                				LOG.warn("failed to save Media object. media->{}", media);
-                				throw new Exception("Failed to save Media Object");
-                			}
-                		}
-                		//Update the payload to not have the attachments
-                		newPayload.setPayload(message);
-                	}
-                	
+                if (defensivePipeParser.hasMatchingPatternInSegmentType(newPayload.getPayload(), BASE64_PATTERN, HL7v2SegmentTypeEnum.OBX)) {
+                    String message = newPayload.getPayload();
+                    Media media;
+                    // 1. keep searching for media objects
+                    while ((media = mediaConverter.extractNextMediaResource(message)) != null) {
+                        LOG.debug("Attempting extract of media from message -> {}", message);
+                        // 2. Save the media to the IM
+                        if (mediaAgent.captureMedia(media)) {
+                            // 3. remove the byte[] from the UoW payload
+                            LOG.trace("Media ID: " + media.getId());
+                            message = mediaParser.replaceAttachmentSegment(message, media.getId());
+                            LOG.trace("message after replacement -> {}", message);
+                        } else {
+                            LOG.warn("failed to save Media object. media->{}", media);
+                            throw new Exception("Failed to save Media Object");
+                        }
+                    }
+                    // Update the payload to not have the attachments
+                    newPayload.setPayload(message);
+                }
                 
-                	//
+                
+                //
                 // All Done!
                 LOG.debug(".encapsulateTriggerEvent(): Exit, newUoW created ->{}", newUoW);
                 return (newUoW);

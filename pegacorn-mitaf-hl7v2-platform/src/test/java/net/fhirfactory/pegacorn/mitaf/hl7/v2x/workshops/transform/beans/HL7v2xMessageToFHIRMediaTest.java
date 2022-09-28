@@ -27,135 +27,133 @@ import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 
 public class HL7v2xMessageToFHIRMediaTest {
-	
-	private HL7v2xMessageToFHIRMedia converter;	
-	private HL7v2xInformationExtractionInterface messageExtractor;		
-	private PegacornReferenceProperties systemWideProperties;
-	private PegacornIdentifierFactory identifierFactory;
-	private PegacornIdentifierCodeSystemFactory pegacornIdentifierCodeSystemFactory;	
-	private MediaFactory mediaFactory;
+
+    private HL7v2xMessageToFHIRMedia converter;
+    private HL7v2xInformationExtractionInterface messageExtractor;
+    private PegacornReferenceProperties systemWideProperties;
+    private PegacornIdentifierFactory identifierFactory;
+    private PegacornIdentifierCodeSystemFactory pegacornIdentifierCodeSystemFactory;
+    private MediaFactory mediaFactory;
     private Parser pipeParser;
     private MediaPipeParser mediaParser;
     private UltraDefensivePipeParser udpp;
-	
-	@SuppressWarnings("resource")
-	@BeforeEach
-	public void setup() {
-		pipeParser = new DefaultHapiContext().getPipeParser();
+
+    @SuppressWarnings("resource")
+    @BeforeEach
+    public void setup() {
+        pipeParser = new DefaultHapiContext().getPipeParser();
         pipeParser.getParserConfiguration().setValidating(false);
         pipeParser.getParserConfiguration().setEncodeEmptyMandatoryFirstSegments(true);
 
-		converter = new HL7v2xMessageToFHIRMedia();
-		messageExtractor = new HL7v2xMessageInformationExtractor();
-		converter.setMessageInformationExtractionInterface(messageExtractor );
-		mediaFactory = new MediaFactory();
-		identifierFactory = new PegacornIdentifierFactory();
-		pegacornIdentifierCodeSystemFactory = new PegacornIdentifierCodeSystemFactory();
-		systemWideProperties = new PegacornReferenceProperties();
-		pegacornIdentifierCodeSystemFactory.setSystemWideProperties(systemWideProperties);
-		identifierFactory.setPegacornIdentifierCodeSystemFactory(pegacornIdentifierCodeSystemFactory);
-		mediaFactory.setIdentifierFactory(identifierFactory);
-		converter.setMediaFactory(mediaFactory );
-		identifierFactory.setSiteIdentification(new DeploymentSystemSiteIdentificationInterface() { @Override public String getDeploymentSite() { return ""; } } );
-		identifierFactory.setPegacornReferenceProperties(systemWideProperties);
-		DeploymentInstanceDetailInterface deploymentDetails = new DeploymentInstanceDetailInterface() {		
-			@Override
-			public Reference getDeploymentInstanceSystemOwnerPractitionerRole() { return null; }
-			@Override
-			public Reference getDeploymentInstanceSystemOwnerPractitioner() { return null; }
-			@Override
-			public Reference getDeploymentInstanceSystemOwnerOrganization() { return null; }
-			@Override
-			public String getDeploymentInstanceSystemOwnerContactName() { return null; }
-			@Override
-			public String getDeploymentInstanceSystemEndpointSystem() { return null; }
-			@Override
-			public Reference getDeploymentInstanceSystemAdministratorPractitionerRole() { return null; }
-			@Override
-			public Reference getDeploymentInstanceSystemAdministratorPractitioner() { return null; }
-			@Override
-			public String getDeploymentInstanceSystemAdministratorContactName() { return null; }
-			@Override
-			public String getDeploymentInstanceOrganizationName() { return null; }
-			@Override
-			public Reference getDeploymentInstanceOrganization() {return null;}
-		};
-		identifierFactory.setDeploymentInstanceDetailInterface(deploymentDetails );
-		mediaParser = new MediaPipeParser();
-		udpp = new UltraDefensivePipeParser();
-		mediaParser.setPipeParser(udpp);
-		converter.setMediaParser(mediaParser);
-	}
-	
-	@Test
-	void testExtractMediaResource() {
-		try {
-			String resource = loadORUAttachmentResource();
-			Media media = converter.extractNextMediaResource(resource);
-			Assertions.assertNotNull(media);
-			Assertions.assertNotNull(media.getIdentifierFirstRep());
-			Assertions.assertNotNull(media.getContent().getData());
-		} catch (IOException e) {
-			fail(e);
-		}
-	}
-	
-	
-	@Test
-	void testExtractMediaResourceNoBase64() {
-		try {
-			String resource = loadORUInlineResource();
-			Media media = converter.extractNextMediaResource(resource);
-			Assertions.assertNull(media);
-		} catch (IOException e) {
-			fail(e);
-		}
-	}
-	
-	
-	@Test
-	void testEncodedMediaResource() {
-		try {
-			String resource = loadORUAttachmentResource();
-			Media media = converter.extractNextMediaResource(resource);
-			Assertions.assertNotNull(media);
-			Assertions.assertNotNull(media.getIdentifierFirstRep());
-			Assertions.assertNotNull(media.getContent().getData());
-			Assertions.assertNotEquals(0, media.getContent().getData().length);
-			Assertions.assertEquals("application/pdf", media.getContent().getContentType());
-		} catch (IOException e) {
-			fail(e);
-		}
-	}
-	
-	@Test
-	void testNonMediaResource() throws HL7Exception {
-		try {
-		String resource = loadADTResource();
-		Media media = converter.extractNextMediaResource(resource);
-		Assertions.assertNull(media);
-		} catch (IOException e) {
-			fail(e);
-		}
-	}
-	
-	private String loadORUAttachmentResource() throws IOException {
-		Path filePath = Path.of("./src/test/resources/oru_r01_with_attachment.txt");
-		return loadResource(filePath);
-	}
-	
-	private String loadORUInlineResource() throws IOException {
-		Path filePath = Path.of("./src/test/resources/oru_r01_with_inline.txt");
-		return loadResource(filePath);
-	}	
-	
-	private String loadADTResource() throws IOException {
-		Path filePath = Path.of("./src/test/resources/adt_a01.txt");
-		return loadResource(filePath);
-	}
-	
-	private String loadResource(Path filePath) throws IOException {
+        converter = new HL7v2xMessageToFHIRMedia();
+        messageExtractor = new HL7v2xMessageInformationExtractor();
+        converter.setMessageInformationExtractionInterface(messageExtractor );
+        mediaFactory = new MediaFactory();
+        identifierFactory = new PegacornIdentifierFactory();
+        pegacornIdentifierCodeSystemFactory = new PegacornIdentifierCodeSystemFactory();
+        systemWideProperties = new PegacornReferenceProperties();
+        pegacornIdentifierCodeSystemFactory.setSystemWideProperties(systemWideProperties);
+        identifierFactory.setPegacornIdentifierCodeSystemFactory(pegacornIdentifierCodeSystemFactory);
+        mediaFactory.setIdentifierFactory(identifierFactory);
+        converter.setMediaFactory(mediaFactory );
+        identifierFactory.setSiteIdentification(new DeploymentSystemSiteIdentificationInterface() { @Override public String getDeploymentSite() { return ""; } } );
+        identifierFactory.setPegacornReferenceProperties(systemWideProperties);
+        DeploymentInstanceDetailInterface deploymentDetails = new DeploymentInstanceDetailInterface() {
+            @Override
+            public Reference getDeploymentInstanceSystemOwnerPractitionerRole() { return null; }
+            @Override
+            public Reference getDeploymentInstanceSystemOwnerPractitioner() { return null; }
+            @Override
+            public Reference getDeploymentInstanceSystemOwnerOrganization() { return null; }
+            @Override
+            public String getDeploymentInstanceSystemOwnerContactName() { return null; }
+            @Override
+            public String getDeploymentInstanceSystemEndpointSystem() { return null; }
+            @Override
+            public Reference getDeploymentInstanceSystemAdministratorPractitionerRole() { return null; }
+            @Override
+            public Reference getDeploymentInstanceSystemAdministratorPractitioner() { return null; }
+            @Override
+            public String getDeploymentInstanceSystemAdministratorContactName() { return null; }
+            @Override
+            public String getDeploymentInstanceOrganizationName() { return null; }
+            @Override
+            public Reference getDeploymentInstanceOrganization() {return null;}
+        };
+        identifierFactory.setDeploymentInstanceDetailInterface(deploymentDetails );
+        mediaParser = new MediaPipeParser();
+        udpp = new UltraDefensivePipeParser();
+        mediaParser.setPipeParser(udpp);
+        converter.setMediaParser(mediaParser);
+    }
 
-		return Files.readString(filePath);
-	}
+    @Test
+    void testExtractMediaResource() {
+        try {
+            String resource = loadORUAttachmentResource();
+            Media media = converter.extractNextMediaResource(resource);
+            Assertions.assertNotNull(media);
+            Assertions.assertNotNull(media.getIdentifierFirstRep());
+            Assertions.assertNotNull(media.getContent().getData());
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    void testExtractMediaResourceNoBase64() {
+        try {
+            String resource = loadORUInlineResource();
+            Media media = converter.extractNextMediaResource(resource);
+            Assertions.assertNull(media);
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    void testEncodedMediaResource() {
+        try {
+            String resource = loadORUAttachmentResource();
+            Media media = converter.extractNextMediaResource(resource);
+            Assertions.assertNotNull(media);
+            Assertions.assertNotNull(media.getIdentifierFirstRep());
+            Assertions.assertNotNull(media.getContent().getData());
+            Assertions.assertNotEquals(0, media.getContent().getData().length);
+            Assertions.assertEquals("application/pdf", media.getContent().getContentType());
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    void testNonMediaResource() throws HL7Exception {
+        try {
+            String resource = loadADTResource();
+            Media media = converter.extractNextMediaResource(resource);
+            Assertions.assertNull(media);
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
+
+    private String loadORUAttachmentResource() throws IOException {
+        Path filePath = Path.of("./src/test/resources/oru_r01_with_attachment.txt");
+        return loadResource(filePath);
+    }
+
+    private String loadORUInlineResource() throws IOException {
+        Path filePath = Path.of("./src/test/resources/oru_r01_with_inline.txt");
+        return loadResource(filePath);
+    }
+
+    private String loadADTResource() throws IOException {
+        Path filePath = Path.of("./src/test/resources/adt_a01.txt");
+        return loadResource(filePath);
+    }
+
+    private String loadResource(Path filePath) throws IOException {
+
+        return Files.readString(filePath);
+    }
 }

@@ -44,116 +44,116 @@ import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2Seg
 
 @Dependent
 public class HL7v2xMessageExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageExtractor.class);
 
-	@Inject
-	private MediaPipeParser mediaParser;
+    @Inject
+    private MediaPipeParser mediaParser;
 
-	@Inject
-	private PetasosMediaServiceAgentInterface mediaAgent;
+    @Inject
+    private PetasosMediaServiceAgentInterface mediaAgent;
 
-	@Inject
-	private ZDESegmentHelper zdeSegmentHelper;
+    @Inject
+    private ZDESegmentHelper zdeSegmentHelper;
 
 
-	//
-	// Constructor(s)
-	//
+    //
+    // Constructor(s)
+    //
 
-	public HL7v2xMessageExtractor(){
-	}
+    public HL7v2xMessageExtractor(){
+    }
 
-	//
-	// Getters (and Setters)
-	//
+    //
+    // Getters (and Setters)
+    //
 
     protected Logger getLogger(){
         return(LOG);
     }
 
-	protected ZDESegmentHelper getZDESegmentHelper(){
-		return(zdeSegmentHelper);
-	}
+    protected ZDESegmentHelper getZDESegmentHelper(){
+        return(zdeSegmentHelper);
+    }
 
     //
-	// Business Methods
-	//
+    // Business Methods
+    //
 
-	public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
-		getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
+    public String convertToMessage(UoW incomingUoW, Exchange camelExchange) {
+        getLogger().debug(".convertToMessage(): Entry, incomingUoW->{}", incomingUoW);
 
-		String messageAsString = incomingUoW.getIngresContent().getPayload();
+        String messageAsString = incomingUoW.getIngresContent().getPayload();
 
-		getLogger().info("OutgoingMessage--->>>" + messageAsString + "<<<---");
+        getLogger().info("OutgoingMessage--->>>" + messageAsString + "<<<---");
 
-		//
-		// Strip the ZDE segment (or not)
+        //
+        // Strip the ZDE segment (or not)
 
-		StandardInteractClientTopologyEndpointPort endpointPort = (StandardInteractClientTopologyEndpointPort) camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_TOPOLOGY_NODE_EXCHANGE_PROPERTY);
-		if(endpointPort == null){
-			getLogger().error(".convertToMessage(): endpointPort not found in exchange!");
-		}
+        StandardInteractClientTopologyEndpointPort endpointPort = (StandardInteractClientTopologyEndpointPort) camelExchange.getProperty(PetasosPropertyConstants.ENDPOINT_TOPOLOGY_NODE_EXCHANGE_PROPERTY);
+        if(endpointPort == null){
+            getLogger().error(".convertToMessage(): endpointPort not found in exchange!");
+        }
 
-		// See if the flag is set to leave the ZDE segment in
-		String forwardZDESegmentFlag = endpointPort.getOtherConfigurationParameter(PetasosPropertyConstants.FORWARD_ZDE_SEGMENT);
-		getLogger().debug(".convertToMessage(): forwardZDESegmentFlag-->{}", forwardZDESegmentFlag);
-		boolean forwardSegment = false;
-		if(StringUtils.isNotEmpty(forwardZDESegmentFlag)){
-			if(StringUtils.equalsIgnoreCase(forwardZDESegmentFlag, "true")){
-				forwardSegment = true;
-			}
-		}
-		getLogger().debug(".convertToMessage(): forwardSegment-->{}", forwardSegment);
-		// Populate output string based on whether the zde inclusion flag is set
-		String outputMessageAsString = null;
-		if(forwardSegment){
-			// we are to forward zde segments (if present), so merely copy the payload and forward
-			outputMessageAsString = SerializationUtils.clone(messageAsString);
-		} else {
-			// we have to strip out the zde segment
-			outputMessageAsString = zdeSegmentHelper.removeZDESegmentsIfPresent(messageAsString);
-		}
-		outputMessageAsString = checkForAndReinsertMediaObjects(outputMessageAsString);
-		getLogger().debug(".convertToMessage(): Exit, outputMessageAsString->{}", outputMessageAsString);
-		return (outputMessageAsString);
-	}
+        // See if the flag is set to leave the ZDE segment in
+        String forwardZDESegmentFlag = endpointPort.getOtherConfigurationParameter(PetasosPropertyConstants.FORWARD_ZDE_SEGMENT);
+        getLogger().debug(".convertToMessage(): forwardZDESegmentFlag-->{}", forwardZDESegmentFlag);
+        boolean forwardSegment = false;
+        if(StringUtils.isNotEmpty(forwardZDESegmentFlag)){
+            if(StringUtils.equalsIgnoreCase(forwardZDESegmentFlag, "true")){
+                forwardSegment = true;
+            }
+        }
+        getLogger().debug(".convertToMessage(): forwardSegment-->{}", forwardSegment);
+        // Populate output string based on whether the zde inclusion flag is set
+        String outputMessageAsString = null;
+        if(forwardSegment){
+            // we are to forward zde segments (if present), so merely copy the payload and forward
+            outputMessageAsString = SerializationUtils.clone(messageAsString);
+        } else {
+            // we have to strip out the zde segment
+            outputMessageAsString = zdeSegmentHelper.removeZDESegmentsIfPresent(messageAsString);
+        }
+        outputMessageAsString = checkForAndReinsertMediaObjects(outputMessageAsString);
+        getLogger().debug(".convertToMessage(): Exit, outputMessageAsString->{}", outputMessageAsString);
+        return (outputMessageAsString);
+    }
 
     //
-	// Business Methods
-	//
+    // Business Methods
+    //
 
 
-	@VisibleForTesting
-	String checkForAndReinsertMediaObjects(String messageAsString) {
-	    getLogger().debug(".checkForAndReinsertMediaObjects(): Entry, message->{}", messageAsString);
-		//If media objects have been loaded into our system
-		if(mediaParser.hasMatchingPatternInSegmentType(messageAsString, 
-				"<fhir-resource>", HL7v2SegmentTypeEnum.OBX)) {
-		    getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX");
-			//Put the media objects back into the message
-		    //FIXME needs a loop and iteration for multiple media references.  These are not currently handled
-			String segment = mediaParser.extractNextAlteredSegment(messageAsString);
-			String mediaId = mediaParser.extractIdFromAlteredSegment(segment);
-			if (mediaId != null) {
-    			getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX: mediaId->{}", mediaId);
-    			Media media = mediaAgent.loadMedia(mediaId);
-    			if(media != null) {
-    			    getLogger().debug(".checkForAndReinsertMediaObjects(): Replacing media: mediaId->{}", mediaId);
-    				 String alteredMessage = mediaParser.replaceAlteredSegment(messageAsString, media);
-    				 if (alteredMessage.equals(messageAsString)) {
-    				     // nothing done
-    				     getLogger().error(".checkForAndReinsertMediaObjects(): failed to replace media reference for mediaId->{} in fragment->{}", mediaId, messageAsString);
-    				 }
-    				 messageAsString = alteredMessage;
-    			} else {
-    				getLogger().error(".checkForAndReinsertMediaObjects(): Media should have returned! mediaId->{}", mediaId);
-    			}
-			} else {
-			    //TODO we really need to retry or mark this as an unrecoverable error or something here as sending out with the link does not work
-			    getLogger().error(".checkForAndReinsertMediaObjects(): No media Id found in segment->{}", segment);
-			}
-		}
-		getLogger().debug(".checkForAndReinsertMediaObjects(): Exit, message->{}", messageAsString);
-		return (messageAsString);
-	}
+    @VisibleForTesting
+    String checkForAndReinsertMediaObjects(String messageAsString) {
+        getLogger().debug(".checkForAndReinsertMediaObjects(): Entry, message->{}", messageAsString);
+        //If media objects have been loaded into our system
+        if(mediaParser.hasMatchingPatternInSegmentType(messageAsString, 
+                "<fhir-resource>", HL7v2SegmentTypeEnum.OBX)) {
+            getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX");
+            //Put the media objects back into the message
+            //FIXME needs a loop and iteration for multiple media references.  These are not currently handled
+            String segment = mediaParser.extractNextAlteredSegment(messageAsString);
+            String mediaId = mediaParser.extractIdFromAlteredSegment(segment);
+            if (mediaId != null) {
+                getLogger().debug(".checkForAndReinsertMediaObjects(): Found fhir-resource in OBX: mediaId->{}", mediaId);
+                Media media = mediaAgent.loadMedia(mediaId);
+                if(media != null) {
+                    getLogger().debug(".checkForAndReinsertMediaObjects(): Replacing media: mediaId->{}", mediaId);
+                     String alteredMessage = mediaParser.replaceAlteredSegment(messageAsString, media);
+                     if (alteredMessage.equals(messageAsString)) {
+                         // nothing done
+                         getLogger().error(".checkForAndReinsertMediaObjects(): failed to replace media reference for mediaId->{} in fragment->{}", mediaId, messageAsString);
+                     }
+                     messageAsString = alteredMessage;
+                } else {
+                    getLogger().error(".checkForAndReinsertMediaObjects(): Media should have returned! mediaId->{}", mediaId);
+                }
+            } else {
+                //TODO we really need to retry or mark this as an unrecoverable error or something here as sending out with the link does not work
+                getLogger().error(".checkForAndReinsertMediaObjects(): No media Id found in segment->{}", segment);
+            }
+        }
+        getLogger().debug(".checkForAndReinsertMediaObjects(): Exit, message->{}", messageAsString);
+        return (messageAsString);
+    }
 }

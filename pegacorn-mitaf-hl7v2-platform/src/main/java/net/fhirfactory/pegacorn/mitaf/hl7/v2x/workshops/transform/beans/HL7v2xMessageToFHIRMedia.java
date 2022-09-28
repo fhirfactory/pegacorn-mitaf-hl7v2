@@ -63,59 +63,59 @@ public class HL7v2xMessageToFHIRMedia {
     }
 
 
-	private Media parseMessage(String message) {
+    private Media parseMessage(String message) {
         String messageID = messageInformationExtractionInterface.extractMessageID(message);
         Date messageDate = messageInformationExtractionInterface.extractMessageDate(message);
 
-		Media media = mediaFactory.newMediaResource(messageID, messageDate);
-		byte[] data = extractMediaFromORU(message);
-		if(data == null || data.length == 0) {
-			LOG.warn("parseMessage(): no data able to be extracted. Message: ->{}", message);
-			return null;
-		}
-		media.getContent().setData(data);
-		String type = extractContentTypeFromORU(message);
-		media.getContent().setContentType(type );
-		return media;
-	}
+        Media media = mediaFactory.newMediaResource(messageID, messageDate);
+        byte[] data = extractMediaFromORU(message);
+        if (data == null || data.length == 0) {
+            LOG.warn("parseMessage(): no data able to be extracted. Message: ->{}", message);
+            return null;
+        }
+        media.getContent().setData(data);
+        String type = extractContentTypeFromORU(message);
+        media.getContent().setContentType(type);
+        return media;
+    }
 
-	private String extractContentTypeFromORU(String message) {
-		String obxSegment = mediaParser.extractNextAttachmentSegment(message);
-		if(StringUtils.isEmpty(obxSegment)) {
-			return null; //No media to extract
-		}
-		String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
-		String obx5 = segments[5];
-		String prefix = obx5.split("\\^Base64\\^")[0];
-		prefix = mediaParser.hl7ToContentType(prefix);
-		return prefix;
-	}
-	
-	private byte[] extractMediaFromORU(String message) {	
-			String obxSegment = mediaParser.extractNextAttachmentSegment(message);
-			if(StringUtils.isEmpty(obxSegment)) {
-				return null; //No media to extract
-			}
-			String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
-			String obx5 = segments[5];
-			String suffix = obx5.split("\\^Base64\\^")[1];
-			return suffix.getBytes();
-		
-	}
+    private String extractContentTypeFromORU(String message) {
+        String obxSegment = mediaParser.extractNextAttachmentSegment(message);
+        if (StringUtils.isEmpty(obxSegment)) {
+            return null; // No media to extract
+        }
+        String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
+        String obx5 = segments[5];
+        String prefix = obx5.split("\\^Base64\\^")[0];
+        prefix = mediaParser.hl7ToContentType(prefix);
+        return prefix;
+    }
+
+    private byte[] extractMediaFromORU(String message) {
+        String obxSegment = mediaParser.extractNextAttachmentSegment(message);
+        if (StringUtils.isEmpty(obxSegment)) {
+            return null; // No media to extract
+        }
+        String[] segments = mediaParser.breakSegmentIntoChunks(obxSegment);
+        String obx5 = segments[5];
+        String suffix = obx5.split("\\^Base64\\^")[1];
+        return suffix.getBytes();
+
+    }
 
     @VisibleForTesting
     void setMessageInformationExtractionInterface(HL7v2xInformationExtractionInterface messageInformationExtractionInterface) {
-    	this.messageInformationExtractionInterface = messageInformationExtractionInterface;
-    }
-    
-    @VisibleForTesting
-    void setMediaFactory(MediaFactory mediaFactory) {
-    	this.mediaFactory = mediaFactory;
+        this.messageInformationExtractionInterface = messageInformationExtractionInterface;
     }
 
     @VisibleForTesting
-	void setMediaParser(MediaPipeParser mediaParser) {
-		this.mediaParser = mediaParser;
-	}
+    void setMediaFactory(MediaFactory mediaFactory) {
+        this.mediaFactory = mediaFactory;
+    }
+
+    @VisibleForTesting
+    void setMediaParser(MediaPipeParser mediaParser) {
+        this.mediaParser = mediaParser;
+    }
 
 }
