@@ -32,6 +32,7 @@ import net.fhirfactory.pegacorn.core.interfaces.capabilities.CapabilityUtilisati
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationRequest;
 import net.fhirfactory.pegacorn.core.model.capabilities.base.CapabilityUtilisationResponse;
 import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,10 @@ import java.util.UUID;
 public class HL7v24TaskA19QueryClientHandler {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v24TaskA19QueryClientHandler.class);
 
+    //TODO move these to a more common place
+    public final static String A19QUERY_FULFILLMENT_NAME = "A19QueryFulfillment";
+    public final static String EXCHANGE_PROP_AIP = "AIPNumber";
+    
     private HapiContext hapiContext;
 
     // ***********************************************************************************
@@ -99,7 +104,7 @@ public class HL7v24TaskA19QueryClientHandler {
         NanoTimeGenerator timeBasedIdGenerator = new NanoTimeGenerator();
         parser.getParserConfiguration().setIdGenerator(timeBasedIdGenerator);
 
-        String queryResponse = utiliseA19QueryCapability(queryString);
+        String queryResponse = utiliseA19QueryCapability(queryString, (String) exchange.getProperty(EXCHANGE_PROP_AIP));
         //
         // Because auditing is not running yet
         // Remove once Auditing is in place
@@ -116,16 +121,20 @@ public class HL7v24TaskA19QueryClientHandler {
         return(null);
     }
 
-    private String utiliseA19QueryCapability( String queryString){
+    private String utiliseA19QueryCapability(String queryString, String aipNumber){
         LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}", queryString);
         //
         // Build Query
         //
+        String capabilityName = A19QUERY_FULFILLMENT_NAME;
+        if (StringUtils.isNotEmpty(aipNumber)) {
+            capabilityName += aipNumber;
+        }
         CapabilityUtilisationRequest task = new CapabilityUtilisationRequest();
         task.setRequestID(UUID.randomUUID().toString());
         task.setRequestContent(queryString);
         task.setRequestContentType(String.class);
-        task.setRequiredCapabilityName("A19QueryFulfillment");
+        task.setRequiredCapabilityName(capabilityName);
         task.setRequestInstant(Instant.now());
         //
         // Do Query
