@@ -122,7 +122,7 @@ public class HL7v24TaskA19QueryClientHandler {
     }
 
     private String utiliseA19QueryCapability(String queryString, String aipNumber){
-        LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}", queryString);
+        LOG.info(".utiliseA19QueryCapability(): Entry, queryString --> {}, aipNumber --> {}", queryString, aipNumber);
         //
         // Build Query
         //
