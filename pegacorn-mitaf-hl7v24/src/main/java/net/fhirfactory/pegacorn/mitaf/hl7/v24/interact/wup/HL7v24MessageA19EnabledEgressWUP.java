@@ -29,6 +29,7 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLP
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19QueryMessageEncapsulator;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24A19ResponseACKExtractor;
+import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2MessageEgressWUP;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import org.apache.camel.Produce;
@@ -107,9 +108,13 @@ public abstract class HL7v24MessageA19EnabledEgressWUP extends BaseHL7v2MessageE
         return(outcome);
     }
 
+    protected String getA19QueryCapabilityName() {
+        return HL7v24TaskA19QueryClientHandler.A19QUERY_FULFILLMENT_NAME;
+    }
+    
     @Override
     protected void registerCapabilities(){
-        getProcessingPlant().registerCapabilityFulfillmentService("A19QueryFulfillment", this);
+        getProcessingPlant().registerCapabilityFulfillmentService(getA19QueryCapabilityName(), this);
     }
 
     private String getA19DirectCamelEndpointName(){
