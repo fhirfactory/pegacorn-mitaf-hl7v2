@@ -1,17 +1,5 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.enterprise.context.ApplicationScoped;
-
-import org.apache.camel.Exchange;
-import org.apache.camel.component.freemarker.FreemarkerConstants;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
@@ -23,10 +11,20 @@ import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import org.apache.camel.Exchange;
+import org.apache.camel.component.freemarker.FreemarkerConstants;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Brendan Douglas
@@ -76,7 +74,7 @@ public class FreeMarkerConfiguration {
 	 * @throws IOException
 	 */
 	public void configure(Message message, Exchange exchange) throws HL7Exception, IOException, Exception {
-		PetasosFulfillmentTaskSharedInstance fulfillmentTask = (PetasosFulfillmentTaskSharedInstance) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
+		PetasosFulfillmentTask fulfillmentTask = (PetasosFulfillmentTask) exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY);
 		TaskWorkItemType uow = null;
 		if (fulfillmentTask != null) {
 		    uow = fulfillmentTask.getTaskWorkItem();

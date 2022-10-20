@@ -30,11 +30,10 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLP
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.*;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xMessageExtractor;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAnswerCollector;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAuditTrail;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPAsynchronousMessageFinaliser;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
+import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
 import org.apache.camel.LoggingLevel;
@@ -45,9 +44,6 @@ import org.apache.camel.model.RouteDefinition;
 import javax.inject.Inject;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPEgressMessageMetricsCapture;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPExceptionToUoW;
-import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
 
 /**
  * Base class for all Mitaf Egress WUPs.
@@ -94,7 +90,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
     protected String specifyEndpointParticipantName() {
         MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
         StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
-        String participantName = clientTopologyEndpoint.getParticipantId().getName();
+        String participantName = clientTopologyEndpoint.getParticipant().getParticipantId().getName();
         return (participantName);
     }
 
@@ -136,7 +132,7 @@ public abstract class BaseHL7v2MessageAsynchronousACKEgressWUP extends InteractE
         endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE + ":" + targetInterfaceDNSName + ":" + Integer.toString(portValue));
         endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
         endpoint.setFrameworkEnabled(false);
-        getMeAsATopologyComponent().setEgressEndpoint(clientTopologyEndpoint);
+        getTopologyNode().setEgressEndpoint(clientTopologyEndpoint);
         return endpoint;
     }
 

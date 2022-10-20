@@ -155,7 +155,7 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 	protected String specifyEndpointParticipantName() {
 		MessageBasedWUPEndpointContainer ingresEndpoint = getIngresEndpoint();
 		MLLPServerEndpoint mllpServerEndpoint = (MLLPServerEndpoint)ingresEndpoint.getEndpointTopologyNode();
-		String participantName = mllpServerEndpoint.getParticipantId().getName();
+		String participantName = mllpServerEndpoint.getParticipant().getParticipantId().getName();
 		return (participantName);
 	}
 

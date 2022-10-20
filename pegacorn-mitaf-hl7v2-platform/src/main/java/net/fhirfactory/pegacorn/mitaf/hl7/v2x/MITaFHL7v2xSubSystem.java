@@ -21,23 +21,19 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.hl7.fhir.r4.model.ResourceType;
-
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import org.hl7.fhir.r4.model.ResourceType;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
@@ -71,7 +67,7 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 getLogger().info(".executePostConstructActivities(): currentDescriptor->{}", currentDescriptor);
                 DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getPegacornReferenceProperties().getPegacornDefaultFHIRVersion());
                 getLogger().info(".executePostConstructActivities(): container->{}", container);
-                TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
+                TaskWorkItemSubscriptionType manifest = new TaskWorkItemSubscriptionType();
                 manifest.setContentDescriptor(currentDescriptor);
                 manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
                 manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
@@ -79,13 +75,13 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
                 manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
                 manifest.setInterSubsystemDistributable(true);
-                manifest.setSourceSystem(currentSource);
+                manifest.setExternalSourceSystem(currentSource);
                 manifest.setSourceProcessingPlantParticipantName(currentSimpleSubscription.getSourceSubsystemParticipantName());
-                manifestList.add(manifest);
+                getTopologyNode().getParticipant().getSubscriptions().add(manifest);
             }
         }
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
-        PetasosParticipantRegistration participantRegistration = getLocalPetasosParticipantCacheIM().registerPetasosParticipant(getMeAsASoftwareComponent(), new HashSet<>(), manifestList);
+        PetasosParticipantRegistration participantRegistration = getParticipantRegistrationAdministrator().registerParticipant(getTopologyNode().getParticipant());
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant, registration->{}!", participantRegistration);
         getLogger().info(".executePostConstructActivities(): Exit");
         this.mitafHL7v2SubsystemInitialised = true;

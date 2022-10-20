@@ -21,13 +21,16 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import java.util.Date;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
+import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
+import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.r4.model.Communication;
@@ -35,14 +38,9 @@ import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.uhn.hl7v2.model.Message;
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.factories.CommunicationFactory;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.util.Date;
 
 @ApplicationScoped
 public class HL7v2xMessageIntoFHIRCommunication {
@@ -89,7 +87,7 @@ public class HL7v2xMessageIntoFHIRCommunication {
         String messageVersion = messageInformationExtractionInterface.extractMessageVersion(message);
         DataParcelTypeDescriptor parcelTypeDescriptor = hl7v2TopicFactory.newDataParcelDescriptor(messageType, messageTrigger, messageVersion);
 
-        PetasosFulfillmentTaskSharedInstance fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
         UoW uowFromExchange = fulfillmentTask.getTaskWorkItem();
         DataParcelManifest manifestFromUoW = uowFromExchange.getPayloadTopicID();
         DataParcelTypeDescriptor descriptorFromUoW = SerializationUtils.clone(manifestFromUoW.getContentDescriptor());

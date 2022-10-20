@@ -23,10 +23,9 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
-import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
-import net.fhirfactory.pegacorn.petasos.core.tasks.caches.processingplant.LocalFulfillmentTaskCache;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
+import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
+import net.fhirfactory.pegacorn.petasos.core.tasks.registries.LocalFulfillmentTaskRegistry;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -37,21 +36,21 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private LocalFulfillmentTaskCache parcelCacheDM;
+    private LocalFulfillmentTaskRegistry parcelCacheDM;
 
     @Inject
     private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange, String filtered) {
-        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
-        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
         servicesBroker.logMLLPTransactions(clonedFulfillmentTask, filtered, true);
         return (incomingUoW);
     }
 
     public UoW logMLLPActivity(UoW incomingUoW, Exchange camelExchange) {
-        PetasosFulfillmentTaskSharedInstance fulfillmentTaskSharedInstance = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
-        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTaskSharedInstance.getInstance());
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
+        PetasosFulfillmentTask clonedFulfillmentTask = SerializationUtils.clone(fulfillmentTask);
         servicesBroker.logMLLPTransactions(clonedFulfillmentTask, "false", true);
         return (incomingUoW);
     }

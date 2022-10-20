@@ -90,7 +90,7 @@ public class MLLPEgressMessageMetricsCapture {
         } else {
             getLogger().info(".initialise(): Start");
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
+            String includeMessageString  = getProcessingPlant().getTopologyNode().getOtherConfigurationParameter(PetasosPropertyConstants.INCLUDE_FULL_HL7_MESSAGE_IN_LOG);
             if(StringUtils.isNotEmpty(includeMessageString)){
                 if(includeMessageString.equalsIgnoreCase("true")){
                     setIncludeFullHL7MessageInLog(true);
@@ -99,7 +99,7 @@ public class MLLPEgressMessageMetricsCapture {
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] include->{}", isIncludeFullHL7MessageInLog());
             getLogger().info(".initialise(): [Check if Full HL7 Message to be included in Log] Finish");
             getLogger().info(".initialise(): [Check Size Of HL7 Message to be included in Log] Start");
-            String messageMaximumSize  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
+            String messageMaximumSize  = getProcessingPlant().getTopologyNode().getOtherConfigurationParameter(PetasosPropertyConstants.MAXIMUM_HL7_MESSAGE_SIZE_IN_LOG);
             if(StringUtils.isNotEmpty(messageMaximumSize)){
                 Integer messageMaxSize = Integer.getInteger(messageMaximumSize);
                 if(messageMaxSize != null){

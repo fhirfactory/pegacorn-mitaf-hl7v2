@@ -30,11 +30,11 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.exceptions.TransformationSoftFailureExceptionHandlerBase;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +81,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
             getLogger().info(".initialise(): Initialisation Start....");
 
             getLogger().info(".initialise(): [Check if Soft-Failure is Allowed] Start");
-            String includeMessageString  = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(ALLOW_SOFT_FAILURES_ON_TRANSFORMS);
+            String includeMessageString  = getProcessingPlant().getTopologyNode().getOtherConfigurationParameter(ALLOW_SOFT_FAILURES_ON_TRANSFORMS);
             if(StringUtils.isNotEmpty(includeMessageString)){
                 if(includeMessageString.equalsIgnoreCase("true")){
                     setAllowingSoftFailures(true);
@@ -115,7 +115,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
 
         //
         // Extract the fulfillmentTask from the exchange
-        PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
 
         //
         // Extract the WorkUnitProcessor detail
@@ -150,7 +150,7 @@ public class HL7v2xInboundMessageTransformationExceptionHandler extends Transfor
 
         if(isAllowingSoftFailures()){
             getLogger().debug(".processException(): Allowing for Soft-Errors, forwarding message");
-            String participantName = fulfillerWorkUnitProcessor.getParticipantId().getName();
+            String participantName = fulfillerWorkUnitProcessor.getParticipant().getParticipantId().getName();
             String updatedPayload = addZDESegment(uow.getIngresContent().getPayload(), exceptionMessage, participantName);
             UoWPayload continuationMessage =  SerializationUtils.clone(uow.getIngresContent());
             continuationMessage.setPayload(updatedPayload);

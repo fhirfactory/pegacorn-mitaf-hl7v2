@@ -1,13 +1,5 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.SerializationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.uhn.hl7v2.DefaultHapiContext;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
@@ -20,11 +12,18 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirect
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormalisationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.HL7MessageWithAttributes;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import org.apache.camel.Exchange;
+import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for all classes which need to duplicate a message.  The duplication rules are provided by the sub classes.
@@ -86,7 +85,7 @@ public abstract class BaseMessageDuplication {
 		
 		// If there are no messages to be sent then discard the fulfilment task.
         if (messages.size() == 0) {
-        	PetasosFulfillmentTaskSharedInstance fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        	PetasosFulfillmentTask fulfillmentTask = exchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
             LOG.warn("postTransformProcessing() -> No messages to be sent, discard fullfilment task.");
             fulfillmentTask.getTaskFulfillment().setToBeDiscarded(true);
             uow.setProcessingOutcome(UoWProcessingOutcomeEnum.UOW_OUTCOME_FILTERED);

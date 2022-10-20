@@ -31,12 +31,11 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormal
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.PolicyEnforcementPointApprovalStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
-import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentTaskSharedInstance;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.communication.extensions.CommunicationPayloadTypeExtensionEnricher;
 import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
@@ -90,7 +89,7 @@ public class FHIRCommunicationToUoW {
 
     public UoW packageCommunicationResource(Communication communication, Exchange camelExchange){
         getLogger().debug(".packageCommunicationResource(): Entry, communication->{}", communication);
-        PetasosFulfillmentTaskSharedInstance fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTaskSharedInstance.class);
+        PetasosFulfillmentTask fulfillmentTask = camelExchange.getProperty(PetasosPropertyConstants.WUP_PETASOS_FULFILLMENT_TASK_EXCHANGE_PROPERTY, PetasosFulfillmentTask.class);
         UoW uowFromExchange = SerializationUtils.clone(fulfillmentTask.getTaskWorkItem());
         LOG.trace(".packageCommunicationResource(): Converting communication (FHIR::Communication) to a JSON String");
         String communicationAsString = fhirParser.encodeResourceToString(communication);
