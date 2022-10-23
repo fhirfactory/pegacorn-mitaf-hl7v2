@@ -23,7 +23,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans;
 
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.constants.systemwide.DRICaTSReferenceProperties;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
@@ -61,7 +61,7 @@ public class FHIRCommunicationToUoW {
     private FHIRElementTopicFactory fhirTopicFactory;
 
     @Inject
-    private PegacornReferenceProperties pegacornReferenceProperties;
+    private DRICaTSReferenceProperties pegacornReferenceProperties;
 
     @Inject
     private CommunicationPayloadTypeExtensionEnricher payloadTypeExtensionEnricher;

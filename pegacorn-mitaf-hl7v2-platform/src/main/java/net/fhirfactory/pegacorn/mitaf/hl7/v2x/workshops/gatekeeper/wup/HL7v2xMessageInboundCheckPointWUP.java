@@ -42,7 +42,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
-import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
+import net.fhirfactory.pegacorn.core.constants.systemwide.DRICaTSReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
@@ -52,7 +52,6 @@ import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFac
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +70,7 @@ public class HL7v2xMessageInboundCheckPointWUP extends MOAStandardWUP {
     private PolicyEnforcementWorkshop policyEnforcementWorkshop;
 
     @Inject
-    private PegacornReferenceProperties referenceProperties;
+    private DRICaTSReferenceProperties referenceProperties;
 
     @Inject
     private FHIRElementTopicFactory fhirTopicFactory;
