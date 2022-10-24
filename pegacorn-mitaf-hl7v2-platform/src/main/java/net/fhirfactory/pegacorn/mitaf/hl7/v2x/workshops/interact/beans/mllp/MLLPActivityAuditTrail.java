@@ -25,7 +25,7 @@ import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosFulfillmentTask;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.audit.brokers.PetasosFulfillmentTaskAuditServicesBroker;
-import net.fhirfactory.pegacorn.petasos.core.tasks.registries.LocalFulfillmentTaskRegistry;
+import net.fhirfactory.pegacorn.petasos.core.tasks.cache.LocalFulfillmentTaskCache;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -36,7 +36,7 @@ import javax.inject.Inject;
 public class MLLPActivityAuditTrail {
 
     @Inject
-    private LocalFulfillmentTaskRegistry parcelCacheDM;
+    private LocalFulfillmentTaskCache parcelCacheDM;
 
     @Inject
     private PetasosFulfillmentTaskAuditServicesBroker servicesBroker;
