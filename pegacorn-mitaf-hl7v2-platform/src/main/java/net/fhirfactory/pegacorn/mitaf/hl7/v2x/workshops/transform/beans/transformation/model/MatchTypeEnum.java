@@ -8,6 +8,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transfo
  */
 public enum MatchTypeEnum {
 	EQUALS("equals"),
+	EQUALS_IGNORE_CASE("equals-ignore-case"),
 	CONTAINS("contains"),
 	STARTS_WITH("starts-with"),
 	ENDS_WITH("ends-with"),
