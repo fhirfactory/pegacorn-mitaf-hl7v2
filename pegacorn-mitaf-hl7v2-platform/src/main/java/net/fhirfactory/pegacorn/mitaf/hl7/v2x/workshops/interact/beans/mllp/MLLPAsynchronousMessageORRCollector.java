@@ -36,13 +36,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import net.fhirfactory.pegacorn.internals.hl7v2.Field;
+import net.fhirfactory.pegacorn.internals.hl7v2.HL7Message;
+import net.fhirfactory.pegacorn.internals.hl7v2.MSHSegment;
+import net.fhirfactory.pegacorn.internals.hl7v2.PIDSegment;
+import net.fhirfactory.pegacorn.internals.hl7v2.Segment;
 import net.fhirfactory.pegacorn.internals.hl7v2.interfaces.HL7v2xInformationExtractionInterface;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.HL7MessageUtils;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Field;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.HL7Message;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.MSHSegment;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.PIDSegment;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.Segment;
 
 @ApplicationScoped
 public class MLLPAsynchronousMessageORRCollector {

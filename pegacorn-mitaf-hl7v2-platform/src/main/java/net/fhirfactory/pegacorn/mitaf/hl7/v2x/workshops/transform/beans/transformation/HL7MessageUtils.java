@@ -13,7 +13,7 @@ import ca.uhn.hl7v2.parser.DefaultModelClassFactory;
 import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.PipeParser;
 import net.fhirfactory.pegacorn.csv.core.CSV;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.transformation.model.HL7Message;
+import net.fhirfactory.pegacorn.internals.hl7v2.HL7Message;
 
 /**
  * Utility methods to transform a messages.
