@@ -59,7 +59,7 @@ public class FreeMarkerConfiguration {
                 LOG.warn(".getDeploymentEnvironment(): Property {} is not set", PROP_DEPLOY_ENVIRONMENT_NAME);
                 deploymentEnvironment = "unknown";
             } else {
-                if (!StringUtils.equalsAny("production", "test", "local")) {
+                if (!StringUtils.equalsAny(deploymentEnvironment, "production", "test", "local")) {
                     LOG.warn(".getDeploymentEnvironment(): Property {} is not set to any of production, test or local: value->{}", PROP_DEPLOY_ENVIRONMENT_NAME, deploymentEnvironment);
                 }
             }
