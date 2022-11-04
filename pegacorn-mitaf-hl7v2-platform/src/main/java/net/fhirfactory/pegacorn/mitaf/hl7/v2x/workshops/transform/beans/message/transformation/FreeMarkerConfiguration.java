@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateModel;
 import freemarker.template.Version;
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
@@ -35,8 +38,35 @@ import net.fhirfactory.pegacorn.petasos.core.tasks.accessors.PetasosFulfillmentT
 @ApplicationScoped
 public class FreeMarkerConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(FreeMarkerConfiguration.class);
+    
+    public static final String PROP_DEPLOY_ENVIRONMENT_NAME = "DEPLOYMENT_ENVIRONMENT";
+    
 	
+    @Inject
+    private ProcessingPlantInterface processingPlant;
+    
+    private String deploymentEnvironment = null;
+    
 	
+    private ProcessingPlantInterface getProcessingPlant() {
+        return processingPlant;
+    }
+
+    private String getDeploymentEnvironment() {
+        if (deploymentEnvironment == null) {
+            deploymentEnvironment = getProcessingPlant().getMeAsASoftwareComponent().getOtherConfigurationParameter(PROP_DEPLOY_ENVIRONMENT_NAME);
+            if (StringUtils.isEmpty(deploymentEnvironment)) {
+                LOG.warn(".getDeploymentEnvironment(): Property {} is not set", PROP_DEPLOY_ENVIRONMENT_NAME);
+                deploymentEnvironment = "unknown";
+            } else {
+                if (!StringUtils.equalsAny("production", "test", "local")) {
+                    LOG.warn(".getDeploymentEnvironment(): Property {} is not set to any of production, test or local: value->{}", PROP_DEPLOY_ENVIRONMENT_NAME, deploymentEnvironment);
+                }
+            }
+        }
+        return deploymentEnvironment;
+    }
+    
 	/**
 	 * Configure Freemarker
 	 * 
@@ -97,6 +127,7 @@ public class FreeMarkerConfiguration {
         variableMap.put("uoW", uoW);
         variableMap.put("message", message);
         variableMap.put("exchange", exchange);
+        variableMap.put("deploymentEnvironment", getDeploymentEnvironment());
         // Set sendMessage property in the exchange to default of true, as is the case with most transformations, which require to be sent.
         exchange.setProperty("sendMessage", true);
         
