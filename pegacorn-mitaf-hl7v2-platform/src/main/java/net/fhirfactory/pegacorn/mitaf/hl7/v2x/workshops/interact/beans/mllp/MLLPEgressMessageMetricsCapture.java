@@ -182,6 +182,7 @@ public class MLLPEgressMessageMetricsCapture {
                     sendTrafficNotification(endpointMetricsAgent, messageHeaderSegment, patientIdentifierSegment, "Unable to Extract Payload Content");
                 }
             }
+
         } catch(Exception ex){
             getLogger().warn(".capturePreSendMetricDetail(): Unable to access Metrics Agent, error message->{}, stack trace->{}", ExceptionUtils.getMessage(ex), ExceptionUtils.getStackTrace(ex));
         }

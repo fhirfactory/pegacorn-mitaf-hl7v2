@@ -23,7 +23,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
@@ -81,7 +81,7 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             }
         }
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
-        PetasosParticipantRegistration participantRegistration = getParticipantRegistrationAdministrator().registerParticipant(getTopologyNode().getParticipant());
+        PetasosParticipant participantRegistration = getParticipantRegistrationAdministrator().registerParticipant(getTopologyNode().getParticipant());
         getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant, registration->{}!", participantRegistration);
         getLogger().info(".executePostConstructActivities(): Exit");
         this.mitafHL7v2SubsystemInitialised = true;

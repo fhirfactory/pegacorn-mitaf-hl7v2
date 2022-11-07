@@ -49,7 +49,7 @@ public class HL7v24TaskA19QueryClientHandler {
     //TODO move these to a more common place
     public final static String A19QUERY_FULFILLMENT_NAME = "A19QueryFulfillment";
     public final static String EXCHANGE_PROP_AIP = "AIPNumber";
-    
+
     private HapiContext hapiContext;
 
     // ***********************************************************************************
