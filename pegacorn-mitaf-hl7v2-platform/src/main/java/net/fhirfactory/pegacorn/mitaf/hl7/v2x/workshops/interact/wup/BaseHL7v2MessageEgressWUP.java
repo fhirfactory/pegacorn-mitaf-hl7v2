@@ -21,19 +21,21 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.constants.subsystems.MLLPComponentConfigurationConstantsEnum;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPClientEndpoint;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPServerAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAnswerCollector;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAuditTrail;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPEgressMessageMetricsCapture;
-import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPExceptionToUoW;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.*;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xMessageExtractor;
 import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 import net.fhirfactory.pegacorn.petasos.wup.helper.EgressActivityFinalisationRegistration;
@@ -41,8 +43,10 @@ import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
+import org.apache.camel.component.mllp.MllpConfiguration;
 import org.apache.camel.model.OnExceptionDefinition;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.net.ConnectException;
@@ -58,6 +62,11 @@ import java.net.SocketTimeoutException;
 public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingGatewayWUP {
 
 	private String CAMEL_COMPONENT_TYPE="mllp";
+	private boolean parametersInitialised;
+	private String mllpClientConfiguration;
+	private String clientIdleTimeout;
+	private String mllpIdleTimeoutStrategy;
+	private String keepAlive;
 
 	@Inject
 	private InteractWorkshop interactWorkshop;
@@ -80,6 +89,52 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	@Inject
 	private MLLPExceptionToUoW exceptionToUoW;
 
+	@Inject
+	private MLLPSenderAckTimeoutDaemon mllpACKDaemon;
+
+	//
+	// Getters and Setters
+	//
+
+	protected boolean isParametersInitialised() {
+		return parametersInitialised;
+	}
+
+	protected void setParametersInitialised(boolean parametersInitialised) {
+		this.parametersInitialised = parametersInitialised;
+	}
+
+	protected String getMLLPClientConfiguration() {
+		return mllpClientConfiguration;
+	}
+
+	protected void setMLLPClientConfiguration(String mllpClientConfiguration) {
+		this.mllpClientConfiguration = mllpClientConfiguration;
+	}
+
+	protected String getKeepAlive() {
+		return this.keepAlive;
+	}
+
+	protected void setKeepAlive(String keepAlive) {
+		this.keepAlive = keepAlive;
+	}
+
+	protected String getClientIdleTimeout() {
+		return clientIdleTimeout;
+	}
+
+	protected void setClientIdleTimeout(String clientIdleTimeout) {
+		this.clientIdleTimeout = clientIdleTimeout;
+	}
+
+	protected String getMllpIdleTimeoutStrategy() {
+		return mllpIdleTimeoutStrategy;
+	}
+
+	protected void setMllpIdleTimeoutStrategy(String mllpIdleTimeoutStrategy) {
+		this.mllpIdleTimeoutStrategy = mllpIdleTimeoutStrategy;
+	}
 	//
 	// Superclass Method Overrides
 	//
@@ -127,11 +182,21 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		getGeneralException();
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(ingresFeed())
-				.routeId(getNameSet().getRouteCoreWUP())
+				.routeId(getNameSet().getInteractEgressLeadInName())
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
+				.bean(mllpACKDaemon, "startMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
+				.to(getNameSet().getInteractEgressEndpointInRoute());
+
+		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointInRoute())
+				.routeId(getNameSet().getInteractEgressName())
 				.to(egressFeed())
+				.to(getNameSet().getInteractEgressEndpointOutRoute());
+
+		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointOutRoute())
+				.routeId(getNameSet().getInteractEgressLeadOutName())
+				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
@@ -222,4 +287,43 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
 		return(exceptionDef);
 	}
+
+	protected void buildMLLPConfiguration(){
+		if(!isParametersInitialised()) {
+			MLLPClientEndpoint clientTopologyEndpoint = (MLLPClientEndpoint) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+			MLLPClientAdapter mllpAdapter = clientTopologyEndpoint.getMLLPClientAdapters().get(0);
+			if (mllpAdapter != null) {
+				String mllpIdleTimeout = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
+				String mllpIdleTimeoutStrategy = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
+				String mllpKeepAlive = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getConfigurationFileAttributeName());
+
+				setClientIdleTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT.getDefaultValue());
+				if (StringUtils.isNotEmpty(mllpIdleTimeout)) {
+					Integer idleTimeout = Integer.valueOf(mllpIdleTimeout);
+					if(idleTimeout >= 0){
+						setClientIdleTimeout(Integer.toString(idleTimeout));
+					}
+				}
+				setMllpIdleTimeoutStrategy(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getDefaultValue());
+				if(StringUtils.isNotEmpty(mllpIdleTimeoutStrategy)){
+					if(mllpIdleTimeoutStrategy.equalsIgnoreCase("RESET")){
+						setMllpIdleTimeoutStrategy("RESET");
+					}
+					if(mllpIdleTimeoutStrategy.equalsIgnoreCase("CLOSE")){
+						setMllpIdleTimeoutStrategy("CLOSE");
+					}
+				}
+				setKeepAlive(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getDefaultValue());
+				if(StringUtils.isNotEmpty(mllpKeepAlive)){
+					if(mllpKeepAlive.equalsIgnoreCase("true")){
+						setKeepAlive("true");
+					}
+					if(mllpKeepAlive.equalsIgnoreCase("false")){
+						setKeepAlive("false");
+					}
+				}
+			}
+		}
+	}
+
 }
