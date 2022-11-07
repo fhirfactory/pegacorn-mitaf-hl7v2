@@ -199,7 +199,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
-				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
+				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");)
 	}
 
 	//
