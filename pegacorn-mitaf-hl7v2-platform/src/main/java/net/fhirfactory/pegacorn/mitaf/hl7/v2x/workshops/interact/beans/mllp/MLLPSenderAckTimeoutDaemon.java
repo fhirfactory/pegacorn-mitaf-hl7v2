@@ -22,12 +22,23 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp;
 
 import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.core.constants.subsystems.MLLPComponentConfigurationConstantsEnum;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPClientEndpoint;
+import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
 import org.apache.camel.Exchange;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.component.mllp.MllpAcknowledgementException;
+import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
@@ -35,6 +46,10 @@ public class MLLPSenderAckTimeoutDaemon {
     private static final Logger LOG = LoggerFactory.getLogger(MLLPSenderAckTimeoutDaemon.class);
 
     private ConcurrentHashMap<String, Timer> daemonMap;
+    private ConcurrentHashMap<String, Long> mllpSenderAckTimeoutDuration;
+
+    @Produce
+    private ProducerTemplate camelProducerService;
 
     //
     // Constructor(s)
@@ -42,7 +57,12 @@ public class MLLPSenderAckTimeoutDaemon {
 
     public MLLPSenderAckTimeoutDaemon(){
         this.daemonMap = new ConcurrentHashMap<>();
+        this.mllpSenderAckTimeoutDuration = new ConcurrentHashMap<>();
     }
+
+    //
+    // PostConstruct
+    //
 
     //
     // Getters and Setters
@@ -56,17 +76,74 @@ public class MLLPSenderAckTimeoutDaemon {
         return(daemonMap);
     }
 
+    protected ProducerTemplate getCamelProducerService(){
+        return(camelProducerService);
+    }
+
     //
     // Business Methods
     //
 
-    public String startMLLPMessageMonitor(String payload, Exchange camelExchange, String routeId){
+    public String startMLLPMessageMonitor(String payload, Exchange camelExchange, String routeId, String timerName, String duration){
+        getLogger().debug(".startMLLPMessageMonitor(): Entry, routeId->{}, timerName->{}, duration->{}", routeId, timerName, duration);
 
+        getLogger().trace(".startMLLPMessageMonitor(): [Derive Acknowledge Maximum Wait Duration] Start");
+        Long ackWaitDuration = null;
+        try{
+            if(StringUtils.isNotEmpty(duration)){
+                Long ackWaitDurationFromConfigFile = Long.valueOf(duration);
+                if(ackWaitDurationFromConfigFile >= 0){
+                    ackWaitDuration = ackWaitDurationFromConfigFile;
+                }
+            }
+            if(ackWaitDuration== null){
+                ackWaitDuration = Long.valueOf(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
+            }
+        } catch( Exception ex){
+            ackWaitDuration = Long.valueOf(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
+        }
+        getLogger().trace(".startMLLPMessageMonitor(): [Derive Acknowledge Maximum Wait Duration] Finish, ackWaitDuration->{}", ackWaitDuration);
+
+        getLogger().trace(".startMLLPMessageMonitor(): [Create AckFailedToReceive Task] Start");
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                ackFailedToReceiveTask(routeId, timerName, camelExchange);
+            }
+        };
+        getLogger().trace(".startMLLPMessageMonitor(): [Create AckFailedToReceive Task] Finish");
+
+        getLogger().trace(".startMLLPMessageMonitor(): [Create Timer] Start, timerName->{}", timerName);
+        Timer timer = new Timer(timerName);
+        getLogger().trace(".startMLLPMessageMonitor(): [Create Timer] Finish");
+
+        getLogger().trace(".startMLLPMessageMonitor(): [Schedule Task] Start");
+        timer.schedule(task, ackWaitDuration);
+        getLogger().trace(".startMLLPMessageMonitor(): [Schedule Task] Finish");
+
+        getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Start");
+        getDaemonMap().put(timerName, timer);
+        getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Finish");
+
+        getLogger().debug(".startMLLPMessageMonitor(): Exit, returning to route");
         return(payload);
     }
 
-    public Message stopMLLPMessageMonitor(Message payload, Exchange camelExchange, String routeId){
+    public Message stopMLLPMessageMonitor(Message payload, Exchange camelExchange, String routeId, String timerName, String duration){
+        getLogger().debug(".stopMLLPMessageMonitor(): Entry, routeId->{}, timerName->{}, duration->{}", routeId, timerName, duration);
 
+        getLogger().trace(".stopMLLPMessageMonitor(): [Retrieve Timer/Task From HashMap] Start");
+        Timer timer = getDaemonMap().get(timerName);
+        getLogger().trace(".stopMLLPMessageMonitor(): [Retrieve Timer/Task From HashMap] Finish, timer->{}", timer);
+
+        getLogger().trace(".stopMLLPMessageMonitor(): [Clear Timer/Task & remove from HashMap] Start");
+        if(timer != null){
+            timer.cancel();
+            getDaemonMap().remove(timerName);
+        }
+        getLogger().trace(".stopMLLPMessageMonitor(): [Clear Timer/Task & remove from HashMap] Finish");
+
+        getLogger().debug(".stopMLLPMessageMonitor(): Exit, returning to route");
         return(payload);
     }
 
@@ -74,7 +151,12 @@ public class MLLPSenderAckTimeoutDaemon {
     // Monitor/Daemon
     //
 
-    public void ackFailedToReceiveTask(String routeId, Exchange camelExchange){
-
+    public void ackFailedToReceiveTask(String routeId, String timerName, Exchange camelExchange)  {
+        Timer timer = getDaemonMap().get(timerName);
+        if(timer != null){
+            timer.cancel();
+            getDaemonMap().remove(timerName);
+        }
+        getCamelProducerService().sendBody("controlbus:route?"+routeId+"&action=restart");
     }
 }

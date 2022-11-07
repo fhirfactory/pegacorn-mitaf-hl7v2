@@ -21,7 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup;
 
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.constants.subsystems.MLLPComponentConfigurationConstantsEnum;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
@@ -29,9 +28,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPClientEndpoint;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPClientAdapter;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPServerAdapter;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.external.ConnectedExternalSystemTopologyNode;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
@@ -43,7 +40,6 @@ import net.fhirfactory.pegacorn.workshops.InteractWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.InteractEgressMessagingGatewayWUP;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.mllp.MllpAcknowledgementReceiveException;
-import org.apache.camel.component.mllp.MllpConfiguration;
 import org.apache.camel.model.OnExceptionDefinition;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +62,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	private String mllpClientConfiguration;
 	private String clientIdleTimeout;
 	private String mllpIdleTimeoutStrategy;
+	private String mllpAckTimeout;
 	private String keepAlive;
 
 	@Inject
@@ -135,6 +132,15 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	protected void setMllpIdleTimeoutStrategy(String mllpIdleTimeoutStrategy) {
 		this.mllpIdleTimeoutStrategy = mllpIdleTimeoutStrategy;
 	}
+
+	protected String getMLLPAckTimeout() {
+		return mllpAckTimeout;
+	}
+
+	public void setMLLPAckTimeout(String mllpAckTimeout) {
+		this.mllpAckTimeout = mllpAckTimeout;
+	}
+
 	//
 	// Superclass Method Overrides
 	//
@@ -162,6 +168,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
 		ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
 		MLLPClientAdapter mllpClientAdapter = (MLLPClientAdapter)targetSystem.getTargetPorts().get(0);
+		buildMLLPConfiguration();
 		int portValue = Integer.valueOf(mllpClientAdapter.getPortNumber());
 		String targetInterfaceDNSName = mllpClientAdapter.getHostName();
 		endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue));
@@ -186,7 +193,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
-				.bean(mllpACKDaemon, "startMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
+				.bean(mllpACKDaemon, "startMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ","+ getNameSet().getInteractEgressEndpointTimerName() + "," + getMLLPAckTimeout() + ")")
 				.to(getNameSet().getInteractEgressEndpointInRoute());
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointInRoute())
@@ -196,7 +203,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointOutRoute())
 				.routeId(getNameSet().getInteractEgressLeadOutName())
-				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
+				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ","+ getNameSet().getInteractEgressEndpointTimerName() + "," + getMLLPAckTimeout() + ")")
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
@@ -293,10 +300,18 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 			MLLPClientEndpoint clientTopologyEndpoint = (MLLPClientEndpoint) getTopologyEndpoint(specifyEgressTopologyEndpointName());
 			MLLPClientAdapter mllpAdapter = clientTopologyEndpoint.getMLLPClientAdapters().get(0);
 			if (mllpAdapter != null) {
+				String mllpACKTimeout = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getConfigurationFileAttributeName());
 				String mllpIdleTimeout = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
 				String mllpIdleTimeoutStrategy = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
 				String mllpKeepAlive = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getConfigurationFileAttributeName());
 
+				setMLLPAckTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
+				if (StringUtils.isNotEmpty(mllpACKTimeout)) {
+					Integer ackTimeout = Integer.valueOf(mllpACKTimeout);
+					if(ackTimeout >= 0){
+						setClientIdleTimeout(Integer.toString(ackTimeout));
+					}
+				}
 				setClientIdleTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT.getDefaultValue());
 				if (StringUtils.isNotEmpty(mllpIdleTimeout)) {
 					Integer idleTimeout = Integer.valueOf(mllpIdleTimeout);

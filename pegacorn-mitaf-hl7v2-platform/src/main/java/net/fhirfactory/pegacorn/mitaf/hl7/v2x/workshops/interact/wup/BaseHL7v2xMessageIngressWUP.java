@@ -230,12 +230,12 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 			MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
 			MLLPServerAdapter mllpAdapter = serverTopologyEndpoint.getMLLPServerAdapter();
 			if (mllpAdapter != null) {
-				String mllpConnectionTimeout = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_CONNECTION_TIMEOUT_PARAMETER_NAME);
+				String mllpValidatePayload = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_VALIDATE_PAYLOAD_PARAMETER_NAME);
 				String mllpDeliveryStringPayload = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_STRING_PAYLOAD_PARAMETER_NAME);
 				String mllpBindTimeout = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_BIND_TIMEOUT_PARAMETER_NAME);
 				String mllpAcceptTimeout = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_ACCEPT_TIMEOUT_PARAMETER_NAME);
 				String mllpMaxConcurrentConsumers = mllpAdapter.getAdditionalParameters().get(PetasosPropertyConstants.CAMEL_MLLP_MAXIMUM_CONSUMERS_PARAMETER_NAME);
-				if (StringUtils.isNotEmpty(mllpConnectionTimeout)) {
+				if (StringUtils.isNotEmpty(mllpValidatePayload)) {
 					if (mllpValidatePayload.equalsIgnoreCase("True")) {
 						setCamelToValidatePayload(true);
 					}
