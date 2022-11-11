@@ -22,6 +22,7 @@
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp;
 
 import ca.uhn.hl7v2.model.Message;
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.constants.subsystems.MLLPComponentConfigurationConstantsEnum;
 import net.fhirfactory.pegacorn.core.interfaces.tasks.PetasosTaskLifetimeExtensionInterface;
 import org.apache.camel.Exchange;
@@ -41,8 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MLLPSenderAckTimeoutDaemon {
     private static final Logger LOG = LoggerFactory.getLogger(MLLPSenderAckTimeoutDaemon.class);
 
+    private static final Integer MAX_RETRY_COUNT = 10;
+
     private ConcurrentHashMap<String, Timer> daemonMap;
     private ConcurrentHashMap<String, Long> mllpSenderAckTimeoutDuration;
+    private ConcurrentHashMap<String, Integer> retryCountMap;
+    private Long ackWaitDuration;
 
     @Produce
     private ProducerTemplate camelProducerService;
@@ -57,6 +62,8 @@ public class MLLPSenderAckTimeoutDaemon {
     public MLLPSenderAckTimeoutDaemon(){
         this.daemonMap = new ConcurrentHashMap<>();
         this.mllpSenderAckTimeoutDuration = new ConcurrentHashMap<>();
+        this.retryCountMap = new ConcurrentHashMap<>();
+        this.ackWaitDuration = Long.valueOf(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
     }
 
     //
@@ -75,6 +82,10 @@ public class MLLPSenderAckTimeoutDaemon {
         return(camelProducerService);
     }
 
+    protected ConcurrentHashMap<String, Integer> getRetryCountMap(){
+        return(retryCountMap);
+    }
+
     //
     // Business Methods
     //
@@ -83,16 +94,12 @@ public class MLLPSenderAckTimeoutDaemon {
         getLogger().debug(".startMLLPMessageMonitor(): Entry, routeId->{}, timerName->{}, duration->{}", routeId, timerName, duration);
 
         getLogger().trace(".startMLLPMessageMonitor(): [Derive Acknowledge Maximum Wait Duration] Start");
-        Long ackWaitDuration = null;
         try{
             if(StringUtils.isNotEmpty(duration)){
                 Long ackWaitDurationFromConfigFile = Long.valueOf(duration);
                 if(ackWaitDurationFromConfigFile >= 0){
                     ackWaitDuration = ackWaitDurationFromConfigFile;
                 }
-            }
-            if(ackWaitDuration== null){
-                ackWaitDuration = Long.valueOf(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
             }
         } catch( Exception ex){
             ackWaitDuration = Long.valueOf(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
@@ -120,6 +127,11 @@ public class MLLPSenderAckTimeoutDaemon {
         getDaemonMap().put(timerName, timer);
         getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Finish");
 
+        getLogger().trace(".startMLLPMessageMonitor(): [Set Retry Count] Start");
+        getRetryCountMap().put(timerName, 0);
+        getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Finish");
+
+
         getLogger().debug(".startMLLPMessageMonitor(): Exit, returning to route");
         return(payload);
     }
@@ -135,6 +147,7 @@ public class MLLPSenderAckTimeoutDaemon {
         if(timer != null){
             timer.cancel();
             getDaemonMap().remove(timerName);
+            getRetryCountMap().remove(timerName);
         }
         getLogger().trace(".stopMLLPMessageMonitor(): [Clear Timer/Task & remove from HashMap] Finish");
 
@@ -157,6 +170,38 @@ public class MLLPSenderAckTimeoutDaemon {
         } catch(Exception ex){
             getLogger().debug(".ackFailedToReceiveTask(): Error Touching all Tasks --> " ,ex);
         }
-        getCamelProducerService().sendBody("controlbus:route?"+routeId+"&action=restart");
+        if(getRetryCountMap().get(timerName) < MAX_RETRY_COUNT){
+            getLogger().trace(".startMLLPMessageMonitor(): [Create AckFailedToReceive Task] Start");
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    ackFailedToReceiveTask(routeId, timerName, camelExchange);
+                }
+            };
+            getLogger().trace(".startMLLPMessageMonitor(): [Create AckFailedToReceive Task] Finish");
+
+            getLogger().trace(".startMLLPMessageMonitor(): [Create Timer] Start, timerName->{}", timerName);
+            timer = new Timer(timerName);
+            getLogger().trace(".startMLLPMessageMonitor(): [Create Timer] Finish");
+
+            getLogger().trace(".startMLLPMessageMonitor(): [Schedule Task] Start");
+            timer.schedule(task, ackWaitDuration);
+            getLogger().trace(".startMLLPMessageMonitor(): [Schedule Task] Finish");
+
+            getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Start");
+            getDaemonMap().put(timerName, timer);
+            getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Finish");
+
+            getLogger().trace(".startMLLPMessageMonitor(): [Set Retry Count] Start");
+            int countSoFar = getRetryCountMap().get(timerName);
+            countSoFar += 1;
+            getRetryCountMap().put(timerName, countSoFar);
+            getLogger().trace(".startMLLPMessageMonitor(): [Register Timer/Task In HashMap] Finish");
+            getCamelProducerService().sendBody("controlbus:route?"+routeId+"&action=restart");
+        } else {
+            getRetryCountMap().remove(timerName);
+            getCamelProducerService().sendBody("controlbus:route?"+routeId+"&action=fail");
+        }
+
     }
 }
