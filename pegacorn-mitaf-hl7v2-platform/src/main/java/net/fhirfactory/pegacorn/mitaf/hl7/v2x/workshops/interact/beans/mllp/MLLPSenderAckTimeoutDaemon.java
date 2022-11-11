@@ -23,6 +23,7 @@ package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp;
 
 import ca.uhn.hl7v2.model.Message;
 import net.fhirfactory.pegacorn.core.constants.subsystems.MLLPComponentConfigurationConstantsEnum;
+import net.fhirfactory.pegacorn.core.interfaces.tasks.PetasosTaskLifetimeExtensionInterface;
 import org.apache.camel.Exchange;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +46,9 @@ public class MLLPSenderAckTimeoutDaemon {
 
     @Produce
     private ProducerTemplate camelProducerService;
+
+    @Inject
+    private PetasosTaskLifetimeExtensionInterface taskLifetimeExtension;
 
     //
     // Constructor(s)
@@ -146,6 +151,11 @@ public class MLLPSenderAckTimeoutDaemon {
         if(timer != null){
             timer.cancel();
             getDaemonMap().remove(timerName);
+        }
+        try {
+            taskLifetimeExtension.extendAllTaskLifetimes();
+        } catch(Exception ex){
+            getLogger().debug(".ackFailedToReceiveTask(): Error Touching all Tasks --> " ,ex);
         }
         getCamelProducerService().sendBody("controlbus:route?"+routeId+"&action=restart");
     }
