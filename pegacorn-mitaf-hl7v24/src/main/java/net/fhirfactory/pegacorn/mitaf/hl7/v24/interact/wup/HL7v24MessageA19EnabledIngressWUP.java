@@ -21,8 +21,6 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.wup;
 
-import static org.apache.camel.component.hl7.HL7.ack;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,17 +30,14 @@ import javax.inject.Inject;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.component.hl7.HL7DataFormat;
 
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24TaskA19QueryClientHandler;
 import net.fhirfactory.pegacorn.mitaf.hl7.v24.interact.beans.HL7v24UnsupportedInput;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.wup.BaseHL7v2xMessageIngressWUP;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.message.transformation.FreeMarkerConfiguration;
-import net.fhirfactory.pegacorn.petasos.core.moa.wup.MessageBasedWUPEndpointContainer;
 
 public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessageIngressWUP {
 
     private String WUP_VERSION="1.0.0";
-    private String CAMEL_COMPONENT_TYPE="mllp";
 
     @Inject
     private FreeMarkerConfiguration freemarkerConfig;
@@ -101,21 +96,6 @@ public abstract class HL7v24MessageA19EnabledIngressWUP extends BaseHL7v2xMessag
                         .log(LoggingLevel.INFO, "HL7v24MessageA19EnabledIngressWUP: Returning NACK -> ${body}")
                 .end()
                 .setProperty("CamelMllpAcknowledgementString", body());  // this property is used for what is sent back to the client, not the body
-    }
-
-    @Override
-    protected MessageBasedWUPEndpointContainer specifyIngresEndpoint() {
-        getLogger().debug(".specifyIngresEndpoint(): Entry, specifyIngresTopologyEndpointName()->{}", specifyIngresTopologyEndpointName());
-        MessageBasedWUPEndpointContainer endpoint = new MessageBasedWUPEndpointContainer();
-        MLLPServerEndpoint serverTopologyEndpoint = (MLLPServerEndpoint) getTopologyEndpoint(specifyIngresTopologyEndpointName());
-        getLogger().trace(".specifyIngresEndpoint(): Retrieved serverTopologyEndpoint->{}", serverTopologyEndpoint);
-        int portValue = serverTopologyEndpoint.getMLLPServerAdapter().getPortNumber();
-        String interfaceDNSName = serverTopologyEndpoint.getMLLPServerAdapter().getHostName();
-        endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+interfaceDNSName+":"+Integer.toString(portValue)+"?requireEndOfData=false&autoAck=true");
-        endpoint.setEndpointTopologyNode(serverTopologyEndpoint);
-        endpoint.setFrameworkEnabled(false);
-        getLogger().debug(".specifyIngresEndpoint(): Exit, endpoint->{}", endpoint);
-        return (endpoint);
     }
 
     @Override
