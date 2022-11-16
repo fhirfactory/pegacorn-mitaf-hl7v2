@@ -42,18 +42,16 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
-import io.github.linuxforhealth.hl7.HL7ToFHIRConverter;
 import net.fhirfactory.pegacorn.core.constants.systemwide.PegacornReferenceProperties;
 import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
-import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.FHIRElementTopicFactory;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.beans.PegacornEdgeHL7v2xPolicyEnforcementPoint;
 import net.fhirfactory.pegacorn.workshops.PolicyEnforcementWorkshop;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.MOAStandardWUP;
-import org.hl7.fhir.r4.model.ResourceType;
+import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.OutboundCheckPointWUP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,16 +61,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
+public class HL7v2xMessageOutboundCheckPointWUP extends OutboundCheckPointWUP {
     private static final Logger LOG = LoggerFactory.getLogger(HL7v2xMessageOutboundCheckPointWUP.class);
 
     private static String WUP_VERSION = "1.0.0";
-
-    @Inject
-    private PolicyEnforcementWorkshop policyEnforcementWorkshop;
-
-    @Inject
-    private PegacornReferenceProperties referenceProperties;
 
     @Inject
     private HL7V2XTopicFactory topicFactory;
@@ -83,32 +75,6 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
     }
 
     @Override
-    protected List<DataParcelManifest> specifySubscriptionTopics() {
-        getLogger().debug(".specifySubscriptionTopics(): Entry");
-        List<DataParcelManifest> subscriptionList = new ArrayList<>();
-        DataParcelManifest subscriptionManifest = new DataParcelManifest();
-        DataParcelTypeDescriptor messageDescriptor = new DataParcelTypeDescriptor();
-        messageDescriptor.setDataParcelDefiner(topicFactory.getHl7MessageDefiner());
-        messageDescriptor.setDataParcelCategory(topicFactory.getHl7MessageCategory());
-        messageDescriptor.setDataParcelSubCategory(DataParcelManifest.WILDCARD_CHARACTER);
-        messageDescriptor.setDataParcelResource(DataParcelManifest.WILDCARD_CHARACTER);
-        messageDescriptor.setDataParcelDiscriminatorType(DataParcelManifest.WILDCARD_CHARACTER);
-        messageDescriptor.setDataParcelDiscriminatorValue(DataParcelManifest.WILDCARD_CHARACTER);
-        messageDescriptor.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
-        subscriptionManifest.setContentDescriptor(messageDescriptor);
-        subscriptionManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_OUTBOUND_DATA_PARCEL);
-        subscriptionManifest.setSourceSystem("*");
-        subscriptionManifest.setIntendedTargetSystem("*");
-        subscriptionManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
-        subscriptionManifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-        subscriptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
-        subscriptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-        subscriptionManifest.setInterSubsystemDistributable(false);
-        subscriptionList.add(subscriptionManifest);
-        return (subscriptionList);
-    }
-
-    @Override
     protected String specifyWUPInstanceName() {
         return (getClass().getSimpleName());
     }
@@ -116,16 +82,6 @@ public class HL7v2xMessageOutboundCheckPointWUP extends MOAStandardWUP {
     @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
-    }
-
-    @Override
-    protected WorkshopInterface specifyWorkshop() {
-        return (policyEnforcementWorkshop);
-    }
-
-    @Override
-    protected String specifyParticipantDisplayName(){
-        return("OutboundMessageCheckpoint");
     }
 
     @Override
