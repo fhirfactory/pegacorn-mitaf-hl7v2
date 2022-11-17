@@ -30,6 +30,7 @@ import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEnd
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.adapters.MLLPServerAdapter;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
+import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPAckSpecification;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPActivityAuditTrail;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.mllp.MLLPMessageIngresProcessor;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.triggerevents.HL7v2xTriggerEventIngresProcessor;
@@ -205,6 +206,7 @@ public abstract class BaseHL7v2xMessageIngressWUP extends InteractIngresMessagin
 				.bean(HL7v2xTriggerEventValidationProcessor.class, "ensureMinimalCompliance(*, Exchange)")
 				.bean(HL7v2xTriggerEventIngresProcessor.class, "encapsulateTriggerEvent(*, Exchange)")
 				.bean(IngresActivityBeginRegistration.class, "registerActivityStart(*,  Exchange)")
+				.bean(MLLPAckSpecification.class, "setMLLPResponseCode(*, Exchange)")
                 .bean(mllpAuditTrail, "logMLLPActivity(*, Exchange, MLLPIngres)")
                 .to(ExchangePattern.InOnly, egressFeed());
     }
