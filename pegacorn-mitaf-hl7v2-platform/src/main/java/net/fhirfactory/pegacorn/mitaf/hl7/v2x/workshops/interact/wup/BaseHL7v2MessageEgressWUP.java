@@ -65,6 +65,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	private boolean parametersInitialised;
 	private String mllpClientConfiguration;
 	private String clientIdleTimeout;
+	private String mllpConnectionTimeOut;
 	private String mllpIdleTimeoutStrategy;
 	private String keepAlive;
 
@@ -91,6 +92,16 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 	@Inject
 	private MLLPSenderAckTimeoutDaemon mllpACKDaemon;
+
+	//
+	// Constructor(s)
+	//
+
+	public BaseHL7v2MessageEgressWUP(){
+		super();
+		setMLLPClientConfiguration("");
+	}
+
 
 	//
 	// Getters and Setters
@@ -132,9 +143,18 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		return mllpIdleTimeoutStrategy;
 	}
 
+	protected String getMllpConnectionTimeOut() {
+		return mllpConnectionTimeOut;
+	}
+
+	protected void setMllpConnectionTimeOut(String mllpConnectionTimeOut) {
+		this.mllpConnectionTimeOut = mllpConnectionTimeOut;
+	}
+
 	protected void setMllpIdleTimeoutStrategy(String mllpIdleTimeoutStrategy) {
 		this.mllpIdleTimeoutStrategy = mllpIdleTimeoutStrategy;
 	}
+
 	//
 	// Superclass Method Overrides
 	//
@@ -162,9 +182,10 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		StandardInteractClientTopologyEndpointPort clientTopologyEndpoint = (StandardInteractClientTopologyEndpointPort) getTopologyEndpoint(specifyEgressTopologyEndpointName());
 		ConnectedExternalSystemTopologyNode targetSystem = clientTopologyEndpoint.getTargetSystem();
 		MLLPClientAdapter mllpClientAdapter = (MLLPClientAdapter)targetSystem.getTargetPorts().get(0);
+		buildMLLPConfiguration();
 		int portValue = Integer.valueOf(mllpClientAdapter.getPortNumber());
 		String targetInterfaceDNSName = mllpClientAdapter.getHostName();
-		endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue));
+		endpoint.setEndpointSpecification(CAMEL_COMPONENT_TYPE+":"+targetInterfaceDNSName+":"+Integer.toString(portValue) + getMLLPClientConfiguration());
 		endpoint.setEndpointTopologyNode(clientTopologyEndpoint);
 		endpoint.setFrameworkEnabled(false);
 		getMeAsATopologyComponent().setEgressEndpoint(clientTopologyEndpoint);
@@ -289,22 +310,43 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	}
 
 	protected void buildMLLPConfiguration(){
+		getLogger().debug(".buildMLLPConfiguration(): Entry");
 		if(!isParametersInitialised()) {
+			getLogger().trace(".buildMLLPConfiguration(): [Extract MLLPAdapter from Configuration] Start");
 			MLLPClientEndpoint clientTopologyEndpoint = (MLLPClientEndpoint) getTopologyEndpoint(specifyEgressTopologyEndpointName());
+			getLogger().trace(".buildMLLPConfiguration(): [Extract MLLPAdapter from Configuration] clientTopologyEndpoint->{}", clientTopologyEndpoint);
 			MLLPClientAdapter mllpAdapter = clientTopologyEndpoint.getMLLPClientAdapters().get(0);
+			getLogger().trace(".buildMLLPConfiguration(): [Extract MLLPAdapter from Configuration] Finish, mllpAdapter->{}", mllpAdapter);
+
+			getLogger().trace(".buildMLLPConfiguration(): [Setting Default Parameter Values] Start");
+			setMllpConnectionTimeOut(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT.getDefaultValue());
+			setClientIdleTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_TIMEOUT.getDefaultValue());
+			setMllpIdleTimeoutStrategy(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getDefaultValue());
+			setKeepAlive(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getDefaultValue());
+			getLogger().trace(".buildMLLPConfiguration(): [Setting Default Parameter Values] Finish");
+
 			if (mllpAdapter != null) {
+				getLogger().trace(".buildMLLPConfiguration(): [Updating Parameters with Configuration File Values] Start");
 				String mllpIdleTimeout = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
 				String mllpIdleTimeoutStrategy = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getConfigurationFileAttributeName());
 				String mllpKeepAlive = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getConfigurationFileAttributeName());
+				String mllpConnectionTimeout = mllpAdapter.getAdditionalParameters().get(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_TIMEOUT.getConfigurationFileAttributeName());
 
-				setClientIdleTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT.getDefaultValue());
+
 				if (StringUtils.isNotEmpty(mllpIdleTimeout)) {
 					Integer idleTimeout = Integer.valueOf(mllpIdleTimeout);
 					if(idleTimeout >= 0){
 						setClientIdleTimeout(Integer.toString(idleTimeout));
 					}
 				}
-				setMllpIdleTimeoutStrategy(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getDefaultValue());
+
+				if (StringUtils.isNotEmpty(mllpConnectionTimeout)) {
+					Integer connectionTimeOut = Integer.valueOf(mllpConnectionTimeout);
+					if(connectionTimeOut >= 0){
+						setMllpConnectionTimeOut(Integer.toString(connectionTimeOut));
+					}
+				}
+
 				if(StringUtils.isNotEmpty(mllpIdleTimeoutStrategy)){
 					if(mllpIdleTimeoutStrategy.equalsIgnoreCase("RESET")){
 						setMllpIdleTimeoutStrategy("RESET");
@@ -313,7 +355,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 						setMllpIdleTimeoutStrategy("CLOSE");
 					}
 				}
-				setKeepAlive(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getDefaultValue());
+
 				if(StringUtils.isNotEmpty(mllpKeepAlive)){
 					if(mllpKeepAlive.equalsIgnoreCase("true")){
 						setKeepAlive("true");
@@ -322,8 +364,25 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 						setKeepAlive("false");
 					}
 				}
+				getLogger().trace(".buildMLLPConfiguration(): [Updating Parameters with Configuration File Values] Finish");
 			}
+
+			getLogger().trace(".buildMLLPConfiguration(): [Build Configuration String] Start");
+			StringBuilder mllpConfig = new StringBuilder();
+			mllpConfig.append("?");
+			mllpConfig.append("idleTimeout=" + getClientIdleTimeout());
+			mllpConfig.append("&");
+			mllpConfig.append("connectTimeout=" + getMllpConnectionTimeOut());
+			mllpConfig.append("&");
+			mllpConfig.append("keepAlive=" + getKeepAlive());
+//			mllpConfig.append("&");
+//			mllpConfig.append("idleTimeoutStrategy=" + getMllpIdleTimeoutStrategy());
+			String mllpConfigurationString = mllpConfig.toString();
+			setMLLPClientConfiguration(mllpConfigurationString);
+			setParametersInitialised(true);
+			getLogger().trace(".buildMLLPConfiguration(): [Build Configuration String] Finish, mllpConfigurationString->{}", mllpConfigurationString);
 		}
+		getLogger().debug(".buildMLLPConfiguration(): Exit");
 	}
 
 }
