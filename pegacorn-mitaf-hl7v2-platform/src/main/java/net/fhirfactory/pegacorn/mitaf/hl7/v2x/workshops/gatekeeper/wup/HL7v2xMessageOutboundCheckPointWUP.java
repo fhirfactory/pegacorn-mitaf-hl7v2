@@ -42,6 +42,7 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.gatekeeper.wup;
 
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.wups.archetypes.petasosenabled.messageprocessingbased.pep.OutboundCheckPointWUP;
 import org.slf4j.Logger;
@@ -67,5 +68,10 @@ public class HL7v2xMessageOutboundCheckPointWUP extends OutboundCheckPointWUP {
     @Override
     protected String specifyWUPInstanceVersion() {
         return (WUP_VERSION);
+    }
+
+    @Override
+    protected String specifyWUPInstanceName() {
+        return (PetasosPropertyConstants.OUTBOUND_CHECKPOINT_WUP_NAME);
     }
 }

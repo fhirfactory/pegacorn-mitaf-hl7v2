@@ -112,11 +112,11 @@ public class HL7v2xInboundMessageTransformationPostProcessor {
         newManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_NEGATIVE);
         newManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
         newManifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-        if(uow.getIngresContent().getPayloadManifest().hasSourceProcessingPlantParticipantName()){
-            newManifest.setSourceProcessingPlantParticipantName(uow.getIngresContent().getPayloadManifest().getSourceProcessingPlantParticipantName());
+        if(uow.getIngresContent().getPayloadManifest().hasOriginParticipant()){
+            newManifest.setOriginParticipant(uow.getIngresContent().getPayloadManifest().getOriginParticipant());
         }
-        if(uow.getIngresContent().getPayloadManifest().hasTargetProcessingPlantParticipantName()){
-            newManifest.setTargetProcessingPlantParticipantName(uow.getIngresContent().getPayloadManifest().getTargetProcessingPlantParticipantName());
+        if(uow.getIngresContent().getPayloadManifest().hasDestinationParticipant()){
+            newManifest.setDestinationParticipant(uow.getIngresContent().getPayloadManifest().getDestinationParticipant());
         }
         newManifest.setInterSubsystemDistributable(false);
 

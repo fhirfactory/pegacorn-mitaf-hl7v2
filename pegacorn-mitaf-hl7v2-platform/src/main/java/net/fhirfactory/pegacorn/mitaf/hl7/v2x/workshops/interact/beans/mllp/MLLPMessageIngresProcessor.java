@@ -31,6 +31,7 @@ import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelNormal
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelTypeEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelValidationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoW;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
@@ -39,10 +40,10 @@ import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftw
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.internals.hl7v2.triggerevents.valuesets.HL7v2SegmentTypeEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.interact.beans.datatypes.MLLPMessageActivityParcel;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.EndpointMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.WorkUnitProcessorMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.EndpointMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.ProcessingPlantMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.WorkUnitProcessorMetricsAgent;
 import org.apache.camel.Exchange;
 import org.apache.camel.component.mllp.MllpConstants;
 import org.apache.commons.lang3.StringUtils;
@@ -220,8 +221,10 @@ public class MLLPMessageIngresProcessor {
         }
 
         String portDescription = null;
+        String participantName = null;
         try{
             WorkUnitProcessorSoftwareComponent workUnitProcessorSoftwareComponent = exchange.getProperty(PetasosPropertyConstants.WUP_TOPOLOGY_NODE_EXCHANGE_PROPERTY_NAME, WorkUnitProcessorSoftwareComponent.class);
+            participantName = workUnitProcessorSoftwareComponent.getParticipantName();
             IPCTopologyEndpoint ingresEndpoint = workUnitProcessorSoftwareComponent.getIngresEndpoint();
             portDescription = ingresEndpoint.getParticipantDisplayName();
         } catch(Exception ex){
@@ -229,6 +232,9 @@ public class MLLPMessageIngresProcessor {
                 portDescription = "ServerPort:" + targetPort;
             } else{
                 portDescription = "ServerPort: Unknown";
+            }
+            if(StringUtils.isEmpty(participantName)){
+                participantName = "Unknown";
             }
         }
 
@@ -258,6 +264,11 @@ public class MLLPMessageIngresProcessor {
         manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
         manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_FALSE);
         manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
+        PetasosParticipantId originParticipantId = new PetasosParticipantId();
+        originParticipantId.setSubsystemName(processingPlant.getSubsystemParticipantName());
+        originParticipantId.setName(participantName);
+        originParticipantId.setDisplayName(portDescription);
+        originParticipantId.setVersion("1.0.0");
         manifest.setInterSubsystemDistributable(false);
 
         boolean failed = false;

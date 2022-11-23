@@ -21,11 +21,13 @@
  */
 package net.fhirfactory.pegacorn.mitaf.hl7.v2x;
 
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
+import net.fhirfactory.pegacorn.core.model.topology.nodes.DefaultWorkshopSetEnum;
+import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.SimpleSubscriptionItem;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -33,6 +35,8 @@ import org.hl7.fhir.r4.model.ResourceType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants.OUTBOUND_CHECKPOINT_WUP_NAME;
 
 public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
 
@@ -75,7 +79,13 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
                 manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
                 manifest.setInterSubsystemDistributable(true);
                 manifest.setSourceSystem(currentSource);
-                manifest.setSourceProcessingPlantParticipantName(currentSimpleSubscription.getSourceSubsystemParticipantName());
+                String workshopName = DefaultWorkshopSetEnum.POLICY_ENFORCEMENT_WORKSHOP.getWorkshop();
+                String participantName = OUTBOUND_CHECKPOINT_WUP_NAME;
+                PetasosParticipantId previousParticipantId = new PetasosParticipantId(currentSource, workshopName, participantName);
+                manifest.setPreviousParticipant(previousParticipantId);
+                PetasosParticipantId originParticipantId = new PetasosParticipantId();
+                originParticipantId.setSubsystemName(currentSource);
+                manifest.setOriginParticipant(originParticipantId);
                 manifestList.add(manifest);
             }
         }

@@ -25,7 +25,9 @@ import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.ProcessingPlantPetasosParticipantNameHolder;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.model.HL7v2VersionEnum;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2MessageAsTextToHL7V2xMessage;
@@ -75,8 +77,6 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
     @Inject
     private ProcessingPlantPetasosParticipantNameHolder participantNameHolder;
 
-    @Inject
-    private HL7v2xMessageIntoFHIRCommunication intoFHIRCommunicationBean;
 
     @Override
     public void configure() throws Exception {
@@ -134,7 +134,19 @@ public abstract class BaseHL7v2xInboundMessageTransformationWUP extends MOAStand
         manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
         manifest.setSourceSystem(DataParcelManifest.WILDCARD_CHARACTER);
         manifest.setIntendedTargetSystem(DataParcelManifest.WILDCARD_CHARACTER);
-        manifest.setSourceProcessingPlantParticipantName(participantNameHolder.getSubsystemParticipantName());
+
+        PetasosParticipantId previousParticipantId = new PetasosParticipantId();
+        previousParticipantId.setSubsystemName(participantNameHolder.getSubsystemParticipantName());
+        previousParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+        previousParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setPreviousParticipant(previousParticipantId);
+
+        PetasosParticipantId originParticipantId = new PetasosParticipantId();
+        originParticipantId.setSubsystemName(DataParcelManifest.WILDCARD_CHARACTER);
+        originParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+        originParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        manifest.setOriginParticipant(originParticipantId);
+
         manifest.setInterSubsystemDistributable(false);
         getLogger().info(".createSubscriptionManifestForInteractIngressHL7v2Messages(): Exit, manifest->{}", manifest);
         return (manifest);

@@ -25,6 +25,7 @@ import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
 import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xMessageOutOfFHIRCommunication;
 import net.fhirfactory.pegacorn.mitaf.hl7.v2x.workshops.transform.beans.HL7v2xOutboundMessageTransformationExceptionHandler;
@@ -150,6 +151,19 @@ public class BaseHL7v2xOutboundMessageTransformationWUP extends MOAStandardWUP {
         subscriptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_FALSE);
         subscriptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
         subscriptionManifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
+
+        PetasosParticipantId previousParticipantId = new PetasosParticipantId();
+        previousParticipantId.setSubsystemName(getProcessingPlant().getSubsystemParticipantName());
+        previousParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+        previousParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        subscriptionManifest.setPreviousParticipant(previousParticipantId);
+
+        PetasosParticipantId originParticipantId = new PetasosParticipantId();
+        originParticipantId.setSubsystemName(DataParcelManifest.WILDCARD_CHARACTER);
+        originParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+        originParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+        subscriptionManifest.setOriginParticipant(originParticipantId);
+
         subscriptionManifest.setInterSubsystemDistributable(false);
 
         subscriptionList.add(subscriptionManifest);
