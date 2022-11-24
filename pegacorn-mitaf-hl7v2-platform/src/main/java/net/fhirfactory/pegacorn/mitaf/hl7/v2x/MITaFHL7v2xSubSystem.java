@@ -63,35 +63,8 @@ public abstract class MITaFHL7v2xSubSystem extends ProcessingPlant {
             getLogger().info(".executePostConstructActivities(): currentSimpleSubscription->{}", currentSimpleSubscription);
             List<DataParcelTypeDescriptor> descriptorList = currentSimpleSubscription.getDescriptorList();
             String currentSource = currentSimpleSubscription.getSourceSystem();
-            for (DataParcelTypeDescriptor currentDescriptor : descriptorList) {
-                getLogger().info(".executePostConstructActivities(): SourceSubsystem->{}, currentDescriptor->{}", currentSource, currentDescriptor);
-                getLogger().info(".executePostConstructActivities(): Invoking subscribeToRemoteDataParcels()!");
-
-                getLogger().info(".executePostConstructActivities(): currentDescriptor->{}", currentDescriptor);
-                DataParcelTypeDescriptor container = getFHIRElementTopicFactory().newTopicToken(ResourceType.Communication.name(), getPegacornReferenceProperties().getPegacornDefaultFHIRVersion());
-                getLogger().info(".executePostConstructActivities(): container->{}", container);
-                TaskWorkItemManifestType manifest = new TaskWorkItemManifestType();
-                manifest.setContentDescriptor(currentDescriptor);
-                manifest.setEnforcementPointApprovalStatus(PolicyEnforcementPointApprovalStatusEnum.POLICY_ENFORCEMENT_POINT_APPROVAL_POSITIVE);
-                manifest.setDataParcelFlowDirection(DataParcelDirectionEnum.INFORMATION_FLOW_INBOUND_DATA_PARCEL);
-                manifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
-                manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
-                manifest.setDataParcelType(DataParcelTypeEnum.GENERAL_DATA_PARCEL_TYPE);
-                manifest.setInterSubsystemDistributable(true);
-                manifest.setSourceSystem(currentSource);
-                String workshopName = DefaultWorkshopSetEnum.POLICY_ENFORCEMENT_WORKSHOP.getWorkshop();
-                String participantName = OUTBOUND_CHECKPOINT_WUP_NAME;
-                PetasosParticipantId previousParticipantId = new PetasosParticipantId(currentSource, workshopName, participantName);
-                manifest.setPreviousParticipant(previousParticipantId);
-                PetasosParticipantId originParticipantId = new PetasosParticipantId();
-                originParticipantId.setSubsystemName(currentSource);
-                manifest.setOriginParticipant(originParticipantId);
-                manifestList.add(manifest);
-            }
+            subscribeToRemoteDataParcels(currentSimpleSubscription.getDescriptorList(), currentSource);
         }
-        getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant ... :)");
-        PetasosParticipantRegistration participantRegistration = getLocalPetasosParticipantCacheIM().registerPetasosParticipant(getMeAsASoftwareComponent(), new HashSet<>(), manifestList);
-        getLogger().info(".executePostConstructActivities(): Registration Processing Plant Petasos Participant, registration->{}!", participantRegistration);
         getLogger().info(".executePostConstructActivities(): Exit");
         this.mitafHL7v2SubsystemInitialised = true;
     }
