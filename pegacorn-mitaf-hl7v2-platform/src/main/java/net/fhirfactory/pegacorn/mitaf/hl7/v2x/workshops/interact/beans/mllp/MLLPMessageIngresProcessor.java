@@ -269,6 +269,7 @@ public class MLLPMessageIngresProcessor {
         originParticipantId.setName(participantName);
         originParticipantId.setDisplayName(portDescription);
         originParticipantId.setVersion("1.0.0");
+        manifest.setOriginParticipant(originParticipantId);
         manifest.setInterSubsystemDistributable(false);
 
         boolean failed = false;

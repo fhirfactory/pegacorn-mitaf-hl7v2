@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.core.interfaces.topology.WorkshopInterface;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelManifest;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.*;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.interact.StandardInteractClientTopologyEndpointPort;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPClientEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
@@ -67,6 +68,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 	private String clientIdleTimeout;
 	private String mllpConnectionTimeOut;
 	private String mllpIdleTimeoutStrategy;
+	private String mllpAckTimeout;
 	private String keepAlive;
 
 	@Inject
@@ -155,6 +157,14 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		this.mllpIdleTimeoutStrategy = mllpIdleTimeoutStrategy;
 	}
 
+	protected String getMllpAckTimeout() {
+		return mllpAckTimeout;
+	}
+
+	protected void setMllpAckTimeout(String mllpAckTimeout) {
+		this.mllpAckTimeout = mllpAckTimeout;
+	}
+
 	//
 	// Superclass Method Overrides
 	//
@@ -207,7 +217,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 				.bean(mllpAuditTrail, "logMLLPActivity(*, Exchange)")
 				.bean(metricsCapture, "capturePreSendMetricDetail(*, Exchange)")
 				.bean(messageExtractor, "convertToMessage(*, Exchange)")
-				.bean(mllpACKDaemon, "startMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
+				.bean(mllpACKDaemon, "startMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + "," + getNameSet().getInteractEgressEndpointTimer() + ","+ getMllpAckTimeout()+ ")")
 				.to(getNameSet().getInteractEgressEndpointInRoute());
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointInRoute())
@@ -217,7 +227,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 
 		fromIncludingPetasosServicesForEndpointsWithNoExceptionHandling(getNameSet().getInteractEgressEndpointOutRoute())
 				.routeId(getNameSet().getInteractEgressLeadOutName())
-				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + ")")
+				.bean(mllpACKDaemon, "stopMLLPMessageMonitor(*, Exchange, " + getNameSet().getInteractEgressName() + "," + getNameSet().getInteractEgressEndpointTimer() + ","+ getMllpAckTimeout()+ ")")
 				.bean(answerCollector, "extractUoWAndAnswer")
 				.bean(metricsCapture, "capturePostSendMetricDetail(*, Exchange)")
 				.bean(EgressActivityFinalisationRegistration.class,"registerActivityFinishAndFinalisation(*,  Exchange)");
@@ -244,6 +254,19 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 		manifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATION_ANY);
 		manifest.setIntendedTargetSystem("*");
 		manifest.setSourceSystem("*");
+
+		PetasosParticipantId previousParticipantId = new PetasosParticipantId();
+		previousParticipantId.setSubsystemName(getProcessingPlant().getSubsystemParticipantName());
+		previousParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+		previousParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+		manifest.setPreviousParticipant(previousParticipantId);
+
+		PetasosParticipantId originParticipantId = new PetasosParticipantId();
+		originParticipantId.setSubsystemName(DataParcelManifest.WILDCARD_CHARACTER);
+		originParticipantId.setName(DataParcelManifest.WILDCARD_CHARACTER);
+		originParticipantId.setVersion(DataParcelManifest.WILDCARD_CHARACTER);
+		manifest.setOriginParticipant(originParticipantId);
+
 		manifest.setInterSubsystemDistributable(false);
 		return manifest;
 	}
@@ -321,6 +344,7 @@ public abstract class BaseHL7v2MessageEgressWUP extends InteractEgressMessagingG
 			getLogger().trace(".buildMLLPConfiguration(): [Setting Default Parameter Values] Start");
 			setMllpConnectionTimeOut(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT.getDefaultValue());
 			setClientIdleTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_TIMEOUT.getDefaultValue());
+			setMllpAckTimeout(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_ACKNOWLEDGEMENT_TIMEOUT.getDefaultValue());
 			setMllpIdleTimeoutStrategy(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_CONNECTION_IDLE_TIMEOUT_STRATEGY.getDefaultValue());
 			setKeepAlive(MLLPComponentConfigurationConstantsEnum.CAMEL_MLLP_KEEPALIVE.getDefaultValue());
 			getLogger().trace(".buildMLLPConfiguration(): [Setting Default Parameter Values] Finish");
