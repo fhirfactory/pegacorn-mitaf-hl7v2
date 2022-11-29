@@ -84,6 +84,7 @@ public class MLLPExceptionToUoW {
         exceptionManifest.setContentDescriptor(exceptionDescriptor);
         exceptionManifest.setNormalisationStatus(DataParcelNormalisationStatusEnum.DATA_PARCEL_CONTENT_NORMALISATION_TRUE);
         exceptionManifest.setValidationStatus(DataParcelValidationStatusEnum.DATA_PARCEL_CONTENT_VALIDATED_TRUE);
+        exceptionManifest.setDataParcelFlowDirection(uow.getPayloadTopicID().getDataParcelFlowDirection());
         exceptionManifest.setInterSubsystemDistributable(false);
         UoWPayload payload = new UoWPayload();
         payload.setPayloadManifest(exceptionManifest);
